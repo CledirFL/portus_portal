@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { isAllowedRoute } from "@/lib/permissions";
 import { mockUsers } from "@/mocks/users";
@@ -14,6 +14,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    const persisted = window.localStorage.getItem("portus-auth");
+
+    if (!persisted) {
+      setIsHydrated(true);
+      return;
+    }
+
+    try {
+      const authState = JSON.parse(persisted) as { state?: { user?: typeof user } };
+      if (authState.state?.user && !user && !isAuthenticated) {
+        setUser(authState.state.user);
+      }
+    } catch {
+      // ignore invalid persisted auth
+    } finally {
+      setIsHydrated(true);
+    }
+  }, [isAuthenticated, setUser, user]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -34,6 +55,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const publicRoutes = ["/login", "/unauthorized"];
 
+    if (!isHydrated) {
+      return;
+    }
+
     if (publicRoutes.includes(pathname)) {
       return;
     }
@@ -46,9 +71,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (user && !isAllowedRoute(user.role, pathname)) {
       router.push("/unauthorized");
     }
-  }, [isAuthenticated, pathname, router, user]);
+  }, [isHydrated, isAuthenticated, pathname, router, user]);
 
-  if (!isAuthenticated || !user) {
+  if (!isHydrated || !isAuthenticated || !user) {
     return null;
   }
 

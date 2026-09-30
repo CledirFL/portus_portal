@@ -64,6 +64,19 @@ const operationalRows = [
   { id: "OP-366", route: "Mindelo → Hamburg", status: "Atrasado", progress: 35 },
 ];
 
+const activityFeed = [
+  { time: "08:40", text: "BL-2024-001 validado por auditoria documental." },
+  { time: "09:15", text: "Gate pass CNT-1042 foi autorizado em Mindelo." },
+  { time: "10:30", text: "Viagem MV Ocean Wave entrou em fase de descarga." },
+  { time: "11:05", text: "Volume de Praia → Antwerp excedeu a capacidade prevista em 6%." },
+];
+
+const priorityTasks = [
+  { title: "Revisão de manifesto", owner: "Ana Silva", due: "Hoje, 14:00", tone: "warning" },
+  { title: "Validação de contra-marca", owner: "Duarte Nunes", due: "Hoje, 16:30", tone: "success" },
+  { title: "Trafego em atraso", owner: "Bruno Costa", due: "Hoje, 18:00", tone: "danger" },
+];
+
 export default function DashboardPage() {
   const [range, setRange] = useState<RangeKey>("30d");
 
@@ -197,6 +210,51 @@ export default function DashboardPage() {
               rows={operationalRows}
               emptyMessage="Sem operações em curso."
             />
+          </div>
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card title="Atividade recente">
+          <div className="mt-4 space-y-4">
+            {activityFeed.map((item) => (
+              <div key={item.time} className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-100 text-xs font-semibold text-sky-700">
+                  {item.time.split(":")[0]}
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">{item.time}</p>
+                  <p className="mt-1 text-sm text-slate-700">{item.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card title="Tarefas prioritárias">
+          <div className="mt-4 space-y-3">
+            {priorityTasks.map((task) => (
+              <div key={task.title} className="rounded-xl border border-slate-200 bg-white p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{task.title}</p>
+                    <p className="mt-1 text-xs text-slate-500">{task.owner}</p>
+                  </div>
+                  <Badge
+                    tone={
+                      task.tone === "success"
+                        ? "success"
+                        : task.tone === "danger"
+                          ? "danger"
+                          : "warning"
+                    }
+                  >
+                    {task.tone === "success" ? "OK" : task.tone === "danger" ? "Urgente" : "Pendente"}
+                  </Badge>
+                </div>
+                <p className="mt-2 text-xs font-medium text-slate-600">Entrega: {task.due}</p>
+              </div>
+            ))}
           </div>
         </Card>
       </div>
