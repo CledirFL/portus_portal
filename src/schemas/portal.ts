@@ -3,7 +3,8 @@ import { z } from "zod";
 export const shipmentFormSchema = z.object({
   code: z.string().min(3, "Código obrigatório."),
   exporter: z.string().min(2, "Nome do exportador é obrigatório."),
-  route: z.string().min(3, "Rota obrigatória."),
+  origin: z.string().min(2, "Origem obrigatória."),
+  destination: z.string().min(2, "Destino obrigatório."),
   status: z.enum(["Em trânsito", "Validado", "Pendente", "Atrasado"]),
   eta: z.string().min(1, "Data ETA obrigatória."),
   volume: z.string().min(1, "Volume obrigatório."),

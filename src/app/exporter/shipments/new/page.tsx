@@ -20,7 +20,8 @@ export default function NewShipmentPage() {
     defaultValues: {
       code: "BL-2024-056",
       exporter: "Atlantic Exports",
-      route: "Mindelo → Rotterdam",
+      origin: "Mindelo",
+      destination: "Rotterdam",
       status: "Em trânsito",
       eta: "2026-10-02",
       volume: "2.4k TEU",
@@ -28,8 +29,12 @@ export default function NewShipmentPage() {
   });
 
   const onSubmit = async (values: ShipmentFormValues) => {
-    // mock submit only
-    console.log("New shipment payload", values);
+    const payload = {
+      ...values,
+      route: `${values.origin} → ${values.destination}`,
+    };
+
+    console.log("New shipment payload", payload);
     alert(`Embarque ${values.code} criado com sucesso.`);
   };
 
@@ -49,7 +54,8 @@ export default function NewShipmentPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-5 md:grid-cols-2">
           <Input label="Código" {...register("code")} error={errors.code?.message} />
           <Input label="Exportador" {...register("exporter")} error={errors.exporter?.message} />
-          <Input label="Rota" {...register("route")} error={errors.route?.message} />
+          <Input label="Origem" {...register("origin")} error={errors.origin?.message} />
+          <Input label="Destino" {...register("destination")} error={errors.destination?.message} />
           <Select
             label="Status"
             options={[
