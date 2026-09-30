@@ -39,6 +39,11 @@ export default function HomePage() {
                 Conhecer a plataforma
               </Button>
             </Link>
+            <Link href="/register">
+              <Button variant="secondary" className="text-slate-900">
+                Criar conta
+              </Button>
+            </Link>
             <Link href="/login">
               <Button variant="primary">Entrar</Button>
             </Link>
@@ -58,11 +63,16 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/register">
+                <Button className="px-6 py-3">Criar conta</Button>
+              </Link>
               <Link href="/login">
-                <Button className="px-6 py-3">Aceder ao portal</Button>
+                <Button variant="secondary" className="px-6 py-3 text-slate-100 hover:bg-slate-800">
+                  Entrar
+                </Button>
               </Link>
               <Link href="/platform">
-                <Button variant="secondary" className="px-6 py-3 text-slate-100 hover:bg-slate-800">
+                <Button variant="ghost" className="px-6 py-3 text-slate-100 hover:bg-slate-800">
                   Ver detalhes
                 </Button>
               </Link>

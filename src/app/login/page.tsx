@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -98,6 +99,13 @@ export default function LoginPage() {
 
         <div className="mt-5 rounded-md bg-slate-100 p-3 text-xs text-slate-600">
           Demo credentials: <span className="font-semibold">ana@portus.cv</span> / <span className="font-semibold">password123</span>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
+          <span className="text-slate-600">Ainda não tem conta?</span>
+          <Link href="/register" className="font-medium text-sky-700 hover:text-sky-800">
+            Criar conta
+          </Link>
         </div>
       </Card>
     </main>

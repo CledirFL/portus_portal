@@ -65,3 +65,6 @@ export const mockUserRegistry = mockUsers.map((user) => ({
 }));
 
 export const mockPassword = "password123";
+export const mockUserCredentials: Record<string, string> = Object.fromEntries(
+  mockUsers.map((user) => [user.email.toLowerCase(), mockPassword]),
+);
