@@ -1,21 +1,52 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { isAllowedRoute } from "@/lib/permissions";
+import { mockUsers } from "@/mocks/users";
 import { useAuthStore } from "@/store/auth-store";
 import { Sidebar } from "@/components/layout/sidebar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
+    if (typeof window === "undefined") {
+      return;
     }
-  }, [isAuthenticated, router]);
+
+    const params = new URLSearchParams(window.location.search);
+    const demoRole = params.get("demo");
+
+    if (demoRole && !user) {
+      const demoUser = mockUsers.find((entry) => entry.role === demoRole);
+      if (demoUser) {
+        setUser(demoUser);
+      }
+    }
+  }, [user, setUser]);
+
+  useEffect(() => {
+    const publicRoutes = ["/login", "/unauthorized"];
+
+    if (publicRoutes.includes(pathname)) {
+      return;
+    }
+
+    if (!isAuthenticated && !user) {
+      router.push("/login");
+      return;
+    }
+
+    if (user && !isAllowedRoute(user.role, pathname)) {
+      router.push("/unauthorized");
+    }
+  }, [isAuthenticated, pathname, router, user]);
 
   if (!isAuthenticated || !user) {
     return null;
