@@ -17,6 +17,8 @@ export interface User {
   lastActive?: string;
   createdAt?: string;
   permissions?: string[];
+  department?: string;
+  region?: string;
 }
 
 export interface NavItem {

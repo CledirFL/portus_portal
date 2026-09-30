@@ -1,40 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import { mockUserRegistry } from "@/mocks/users";
-
-const statusTone = {
-  active: "success",
-  review: "warning",
-  blocked: "danger",
-} as const;
-
-const statusLabel = {
-  active: "Ativo",
-  review: "Em revisão",
-  blocked: "Bloqueado",
-} as const;
+import { filterUsersByQuery, getUserStatusLabel, getUserStatusTone } from "@/lib/user-registry";
 
 export default function AdminUsersPage() {
   const [query, setQuery] = useState("");
 
-  const filteredUsers = useMemo(() => {
-    const text = query.trim().toLowerCase();
-
-    if (!text) {
-      return mockUserRegistry;
-    }
-
-    return mockUserRegistry.filter((user) =>
-      [user.name, user.email, user.company, user.role].some((value) =>
-        value.toLowerCase().includes(text),
-      ),
-    );
-  }, [query]);
+  const filteredUsers = useMemo(() => filterUsersByQuery(mockUserRegistry, query), [query]);
 
   return (
     <AppShell>
@@ -85,7 +63,15 @@ export default function AdminUsersPage() {
         <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
           <Table
             columns={[
-              { key: "name", label: "Utilizador" },
+              {
+                key: "name",
+                label: "Utilizador",
+                render: (value, row) => (
+                  <Link href={`/admin/users/${row.id}`} className="font-medium text-sky-700 hover:text-sky-800">
+                    {String(value)}
+                  </Link>
+                ),
+              },
               { key: "email", label: "Email" },
               { key: "role", label: "Perfil" },
               { key: "company", label: "Empresa" },
@@ -93,8 +79,8 @@ export default function AdminUsersPage() {
                 key: "status",
                 label: "Estado",
                 render: (value) => (
-                  <Badge tone={statusTone[value as keyof typeof statusTone]}>
-                    {statusLabel[value as keyof typeof statusLabel]}
+                  <Badge tone={getUserStatusTone(value as Parameters<typeof getUserStatusTone>[0])}>
+                    {getUserStatusLabel(value as Parameters<typeof getUserStatusLabel>[0])}
                   </Badge>
                 ),
               },
