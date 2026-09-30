@@ -24,12 +24,12 @@ export function Table<T extends object>({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
       <table className="min-w-full text-left text-sm text-slate-700">
         <thead className="bg-slate-50 text-slate-700">
           <tr>
             {columns.map((column) => (
-              <th key={String(column.key)} className="px-4 py-3 font-medium">
+              <th key={String(column.key)} className="px-4 py-3 font-medium whitespace-nowrap">
                 {column.label}
               </th>
             ))}
@@ -41,7 +41,7 @@ export function Table<T extends object>({
               {columns.map((column) => {
                 const value = row[column.key];
                 return (
-                  <td key={String(column.key)} className="px-4 py-3 align-middle">
+                  <td key={String(column.key)} className="px-4 py-3 align-middle whitespace-nowrap">
                     {column.render ? column.render(value, row) : String(value ?? "-")}
                   </td>
                 );

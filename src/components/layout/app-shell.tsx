@@ -78,17 +78,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-100 text-slate-900">
+    <div className="flex min-h-screen flex-col bg-slate-100 text-slate-900 md:flex-row">
       <Sidebar />
 
-      <main className="flex-1">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
+      <main className="min-w-0 flex-1">
+        <header className="flex flex-col gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-6 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">PORTUS</p>
             <h1 className="text-lg font-semibold text-slate-900">Portal de operações</h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
             <div className="rounded-full bg-sky-100 px-3 py-1 text-sm font-medium text-sky-700">
               {user.role}
             </div>
@@ -105,7 +105,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6">{children}</div>
       </main>
     </div>
   );
