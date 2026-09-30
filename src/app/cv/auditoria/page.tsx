@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
+import { getStatusTone } from "@/lib/status";
 
 const auditRows = [
   { id: "AUD-204", scope: "Docs de embarque", result: "Conforme", assignee: "L. Silva" },
@@ -44,17 +45,7 @@ export default function AuditoriaPage() {
                   key: "result",
                   label: "Resultado",
                   render: (value) => (
-                    <Badge
-                      tone={
-                        value === "Conforme"
-                          ? "success"
-                          : value === "Não conforme"
-                            ? "danger"
-                            : "warning"
-                      }
-                    >
-                      {String(value)}
-                    </Badge>
+                    <Badge tone={getStatusTone(String(value))}>{String(value)}</Badge>
                   ),
                 },
               ]}

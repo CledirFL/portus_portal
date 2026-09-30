@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
+import { getStatusTone } from "@/lib/status";
 
 const containerRows = [
   { container: "CNT-1042", voyage: "MV Atlantic Star", port: "Mindelo", status: "Em inspeção" },
@@ -44,19 +45,7 @@ export default function ContainersPage() {
                   key: "status",
                   label: "Estado",
                   render: (value) => (
-                    <Badge
-                      tone={
-                        value === "Liberado"
-                          ? "success"
-                          : value === "Em inspeção"
-                            ? "warning"
-                            : value === "Aguardando descarga"
-                              ? "neutral"
-                              : "neutral"
-                      }
-                    >
-                      {String(value)}
-                    </Badge>
+                    <Badge tone={getStatusTone(String(value))}>{String(value)}</Badge>
                   ),
                 },
               ]}

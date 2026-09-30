@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
+import { getStatusTone } from "@/lib/status";
 
 const contraMarcaRows = [
   { seal: "CM-2481", voyage: "MV Atlantic Star", status: "Aprovada", team: "Operações Norte" },
@@ -44,17 +45,7 @@ export default function ContraMarcaPage() {
                   key: "status",
                   label: "Status",
                   render: (value) => (
-                    <Badge
-                      tone={
-                        value === "Aprovada"
-                          ? "success"
-                          : value === "Em revisão"
-                            ? "warning"
-                            : "neutral"
-                      }
-                    >
-                      {String(value)}
-                    </Badge>
+                    <Badge tone={getStatusTone(String(value))}>{String(value)}</Badge>
                   ),
                 },
               ]}
