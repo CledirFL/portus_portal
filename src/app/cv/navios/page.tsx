@@ -1,13 +1,10 @@
 "use client";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-
-const routes = [
-  { ship: "MV Atlantic Star", port: "Mindelo", status: "Em rota", eta: "18:30" },
-  { ship: "MV Cabo Verde", port: "Praia", status: "Atracado", eta: "21:15" },
-  { ship: "MV Ocean Wave", port: "Tarrafal", status: "Em operação", eta: "08:00" },
-];
+import { Table } from "@/components/ui/table";
+import { voyageRows } from "@/mocks/portal";
 
 export default function NaviosPage() {
   return (
@@ -31,19 +28,33 @@ export default function NaviosPage() {
 
       <div className="mt-6">
         <Card title="Operações em curso">
-          <div className="mt-4 space-y-3">
-            {routes.map((route) => (
-              <div key={route.ship} className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
-                <div>
-                  <p className="font-medium text-slate-900">{route.ship}</p>
-                  <p className="text-sm text-slate-500">{route.port}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-slate-700">{route.status}</p>
-                  <p className="text-xs text-slate-500">ETA {route.eta}</p>
-                </div>
-              </div>
-            ))}
+          <div className="mt-4">
+            <Table
+              columns={[
+                { key: "ship", label: "Navio" },
+                { key: "route", label: "Rota" },
+                {
+                  key: "status",
+                  label: "Status",
+                  render: (value) => (
+                    <Badge
+                      tone={
+                        value === "Atracado"
+                          ? "success"
+                          : value === "Em operação"
+                            ? "warning"
+                            : "neutral"
+                      }
+                    >
+                      {String(value)}
+                    </Badge>
+                  ),
+                },
+                { key: "eta", label: "ETA" },
+              ]}
+              rows={voyageRows}
+              emptyMessage="Sem operações em curso."
+            />
           </div>
         </Card>
       </div>

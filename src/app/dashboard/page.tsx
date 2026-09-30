@@ -2,13 +2,7 @@
 
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
-
-const metrics = [
-  { label: "Embarques", value: "124", change: "+12%" },
-  { label: "Volume total", value: "18.4k", change: "+8%" },
-  { label: "BLs pendentes", value: "31", change: "-4%" },
-  { label: "Gate Pass", value: "89", change: "+9%" },
-];
+import { dashboardMetrics } from "@/mocks/portal";
 
 export default function DashboardPage() {
   return (
@@ -19,7 +13,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
+        {dashboardMetrics.map((metric) => (
           <Card key={metric.label}>
             <p className="text-sm text-slate-500">{metric.label}</p>
             <div className="mt-4 flex items-end justify-between">

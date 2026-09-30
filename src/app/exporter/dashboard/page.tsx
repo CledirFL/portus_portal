@@ -1,15 +1,24 @@
 "use client";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-
-const rows = [
-  { name: "BL-2024-001", status: "Validado", date: "12/09" },
-  { name: "CNT-1042", status: "Em trânsito", date: "13/09" },
-  { name: "Manifesto 88", status: "Pendente", date: "14/09" },
-];
+import { Table } from "@/components/ui/table";
+import { shipmentRows } from "@/mocks/portal";
 
 export default function ExporterDashboardPage() {
+  const rows = shipmentRows.map((item) => ({
+    ...item,
+    statusTone:
+      item.status === "Validado"
+        ? "success"
+        : item.status === "Atrasado"
+          ? "danger"
+          : item.status === "Pendente"
+            ? "warning"
+            : "neutral",
+  }));
+
   return (
     <AppShell>
       <div className="mb-6">
@@ -31,25 +40,35 @@ export default function ExporterDashboardPage() {
 
       <div className="mt-6">
         <Card title="Últimos movimentos">
-          <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-700">
-                <tr>
-                  <th className="px-4 py-3">Documento</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Data</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.name} className="border-t border-slate-200">
-                    <td className="px-4 py-3">{row.name}</td>
-                    <td className="px-4 py-3">{row.status}</td>
-                    <td className="px-4 py-3">{row.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-4">
+            <Table
+              columns={[
+                { key: "code", label: "Documento" },
+                { key: "route", label: "Rota" },
+                {
+                  key: "status",
+                  label: "Status",
+                  render: (value, row) => (
+                    <Badge
+                      tone={
+                        row.status === "Validado"
+                          ? "success"
+                          : row.status === "Atrasado"
+                            ? "danger"
+                            : row.status === "Pendente"
+                              ? "warning"
+                              : "neutral"
+                      }
+                    >
+                      {String(value)}
+                    </Badge>
+                  ),
+                },
+                { key: "eta", label: "ETA" },
+              ]}
+              rows={rows}
+              emptyMessage="Sem movimentações para mostrar."
+            />
           </div>
         </Card>
       </div>
