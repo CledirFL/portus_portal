@@ -5,15 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import { getStatusTone } from "@/lib/status";
-
-const manifestRows = [
-  { code: "MNF-4401", voyage: "MV Atlantic Star", issue: "14 Sep", status: "Validado" },
-  { code: "MNF-4410", voyage: "MV Cabo Verde", issue: "15 Sep", status: "Em revisão" },
-  { code: "MNF-4422", voyage: "MV Ocean Wave", issue: "16 Sep", status: "Pendente" },
-  { code: "MNF-4438", voyage: "MV Horizon Blue", issue: "17 Sep", status: "Atrasado" },
-];
+import { mockDocuments, mockVessels } from "@/mocks/domain";
 
 export default function ManifestosPage() {
+  const manifestRows = mockDocuments.filter((doc) => doc.type === "Manifesto");
+  const getVesselName = (vesselId: string) => mockVessels.find((vessel) => vessel.id === vesselId)?.name ?? vesselId;
+
   return (
     <AppShell>
       <div className="mb-6">
@@ -23,10 +20,12 @@ export default function ManifestosPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card title="Manifestos ativos">
-          <p className="text-3xl font-semibold text-slate-900">57</p>
+          <p className="text-3xl font-semibold text-slate-900">{manifestRows.length}</p>
         </Card>
         <Card title="Pendentes">
-          <p className="text-3xl font-semibold text-amber-600">9</p>
+          <p className="text-3xl font-semibold text-amber-600">
+            {manifestRows.filter((row) => row.status === "Pendente").length}
+          </p>
         </Card>
         <Card title="Última validação">
           <p className="text-3xl font-semibold text-slate-900">Hoje</p>
@@ -38,9 +37,13 @@ export default function ManifestosPage() {
           <div className="mt-4">
             <Table
               columns={[
-                { key: "code", label: "Manifesto" },
-                { key: "voyage", label: "Viagem" },
-                { key: "issue", label: "Emissão" },
+                { key: "reference", label: "Manifesto" },
+                {
+                  key: "vesselId",
+                  label: "Viagem",
+                  render: (value) => <span className="font-medium text-slate-800">{getVesselName(String(value))}</span>,
+                },
+                { key: "eta", label: "Emissão" },
                 {
                   key: "status",
                   label: "Status",

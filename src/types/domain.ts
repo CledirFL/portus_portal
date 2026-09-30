@@ -48,3 +48,58 @@ export interface VolumeRecord {
   consigneeId: string;
   route: string;
 }
+
+export type ContainerStatus = "Em inspeção" | "Liberado" | "Aguardando descarga" | "Em trânsito";
+export type VesselStatus = "Em rota" | "Atracado" | "Em operação";
+export type DocumentStatus = "Validado" | "Pendente" | "Em revisão" | "Atrasado";
+export type SealStatus = "Aprovada" | "Pendente" | "Em revisão";
+export type AuditResult = "Conforme" | "Observações" | "Não conforme";
+
+export interface ContainerRecord {
+  id: string;
+  containerNumber: string;
+  vesselId: string;
+  cargoId: string;
+  route: string;
+  port: string;
+  status: ContainerStatus;
+}
+
+export interface VesselRecord {
+  id: string;
+  name: string;
+  route: string;
+  port: string;
+  status: VesselStatus;
+  eta: string;
+  cargoIds: string[];
+}
+
+export interface DocumentRecord {
+  id: string;
+  type: "BL" | "Manifesto" | "Gate Pass";
+  reference: string;
+  shipper: string;
+  consignee: string;
+  status: DocumentStatus;
+  vesselId: string;
+  eta: string;
+}
+
+export interface SealRecord {
+  id: string;
+  code: string;
+  vesselId: string;
+  cargoId: string;
+  status: SealStatus;
+  team: string;
+}
+
+export interface AuditRecord {
+  id: string;
+  scope: string;
+  result: AuditResult;
+  assignee: string;
+  vesselId: string;
+  cargoId: string;
+}

@@ -5,15 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import { getStatusTone } from "@/lib/status";
-
-const contraMarcaRows = [
-  { seal: "CM-2481", voyage: "MV Atlantic Star", status: "Aprovada", team: "Operações Norte" },
-  { seal: "CM-2517", voyage: "MV Cabo Verde", status: "Pendente", team: "Porto Praia" },
-  { seal: "CM-2554", voyage: "MV Ocean Wave", status: "Em revisão", team: "Operações Sul" },
-  { seal: "CM-2602", voyage: "MV Horizon Blue", status: "Aprovada", team: "Audit" },
-];
+import { mockSealRecords, mockVessels } from "@/mocks/domain";
 
 export default function ContraMarcaPage() {
+  const getVesselName = (vesselId: string) => mockVessels.find((vessel) => vessel.id === vesselId)?.name ?? vesselId;
+
   return (
     <AppShell>
       <div className="mb-6">
@@ -23,13 +19,17 @@ export default function ContraMarcaPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card title="Total">
-          <p className="text-3xl font-semibold text-slate-900">41</p>
+          <p className="text-3xl font-semibold text-slate-900">{mockSealRecords.length}</p>
         </Card>
         <Card title="Aprovadas">
-          <p className="text-3xl font-semibold text-emerald-600">28</p>
+          <p className="text-3xl font-semibold text-emerald-600">
+            {mockSealRecords.filter((seal) => seal.status === "Aprovada").length}
+          </p>
         </Card>
         <Card title="Pendentes">
-          <p className="text-3xl font-semibold text-amber-600">6</p>
+          <p className="text-3xl font-semibold text-amber-600">
+            {mockSealRecords.filter((seal) => seal.status === "Pendente").length}
+          </p>
         </Card>
       </div>
 
@@ -38,8 +38,12 @@ export default function ContraMarcaPage() {
           <div className="mt-4">
             <Table
               columns={[
-                { key: "seal", label: "Selagem" },
-                { key: "voyage", label: "Viagem" },
+                { key: "code", label: "Selagem" },
+                {
+                  key: "vesselId",
+                  label: "Viagem",
+                  render: (value) => <span className="font-medium text-slate-800">{getVesselName(String(value))}</span>,
+                },
                 { key: "team", label: "Equipa" },
                 {
                   key: "status",
@@ -49,7 +53,7 @@ export default function ContraMarcaPage() {
                   ),
                 },
               ]}
-              rows={contraMarcaRows}
+              rows={mockSealRecords}
               emptyMessage="Sem registos de contra-marca."
             />
           </div>

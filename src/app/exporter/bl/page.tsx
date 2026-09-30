@@ -5,15 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import { getStatusTone } from "@/lib/status";
-
-const blRows = [
-  { doc: "BL-2024-001", shipper: "Atlantic Exports", consignee: "Apex Logistics", status: "Validado" },
-  { doc: "BL-2024-014", shipper: "Norte Mar Ltd.", consignee: "BluePort GmbH", status: "Pendente" },
-  { doc: "BL-2024-029", shipper: "Sao Vicente Cargo", consignee: "CMA Iberia", status: "Em revisão" },
-  { doc: "BL-2024-033", shipper: "Cabo Verde Trade", consignee: "EuroCargo", status: "Atrasado" },
-];
+import { mockDocuments, mockVessels } from "@/mocks/domain";
 
 export default function BlPage() {
+  const blRows = mockDocuments.filter((doc) => doc.type === "BL");
+  const getVesselName = (vesselId: string) => mockVessels.find((vessel) => vessel.id === vesselId)?.name ?? vesselId;
+
   return (
     <AppShell>
       <div className="mb-6">
@@ -23,13 +20,17 @@ export default function BlPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card title="BLs emitidos">
-          <p className="text-3xl font-semibold text-slate-900">180</p>
+          <p className="text-3xl font-semibold text-slate-900">{blRows.length}</p>
         </Card>
         <Card title="Pendentes">
-          <p className="text-3xl font-semibold text-amber-600">12</p>
+          <p className="text-3xl font-semibold text-amber-600">
+            {blRows.filter((row) => row.status === "Pendente").length}
+          </p>
         </Card>
         <Card title="Aprovados hoje">
-          <p className="text-3xl font-semibold text-emerald-600">34</p>
+          <p className="text-3xl font-semibold text-emerald-600">
+            {blRows.filter((row) => row.status === "Validado").length}
+          </p>
         </Card>
       </div>
 
@@ -38,9 +39,14 @@ export default function BlPage() {
           <div className="mt-4">
             <Table
               columns={[
-                { key: "doc", label: "Documento" },
+                { key: "reference", label: "Documento" },
                 { key: "shipper", label: "Shipper" },
                 { key: "consignee", label: "Consignee" },
+                {
+                  key: "vesselId",
+                  label: "Navio",
+                  render: (value) => <span className="font-medium text-slate-800">{getVesselName(String(value))}</span>,
+                },
                 {
                   key: "status",
                   label: "Status",

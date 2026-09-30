@@ -6,14 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
-
-const gatePassRows = [
-  { container: "CNT-1042", vehicle: "TRK-44", destination: "Terminal Norte", status: "Autorizado" },
-  { container: "CNT-1089", vehicle: "TRK-31", destination: "Gate B", status: "Em revisão" },
-  { container: "CNT-1103", vehicle: "TRK-05", destination: "Porto Sudeste", status: "Recusado" },
-];
+import { getStatusTone } from "@/lib/status";
+import { mockContainers, mockDocuments, mockVessels } from "@/mocks/domain";
 
 export default function GatePassPage() {
+  const gatePassRows = mockDocuments.filter((doc) => doc.type === "Gate Pass");
+  const getContainer = (vesselId: string) => mockContainers.find((container) => container.vesselId === vesselId)?.containerNumber ?? "N/D";
+  const getVesselName = (vesselId: string) => mockVessels.find((vessel) => vessel.id === vesselId)?.name ?? vesselId;
+
   return (
     <AppShell>
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -28,13 +28,13 @@ export default function GatePassPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card title="Emitidos">
-          <p className="text-3xl font-semibold">94</p>
+          <p className="text-3xl font-semibold">{gatePassRows.length}</p>
         </Card>
         <Card title="Válidos">
-          <p className="text-3xl font-semibold">86</p>
+          <p className="text-3xl font-semibold">{gatePassRows.filter((row) => row.status === "Validado").length}</p>
         </Card>
         <Card title="Pendentes">
-          <p className="text-3xl font-semibold">7</p>
+          <p className="text-3xl font-semibold">{gatePassRows.filter((row) => row.status === "Pendente").length}</p>
         </Card>
       </div>
 
@@ -43,25 +43,21 @@ export default function GatePassPage() {
           <div className="mt-4">
             <Table
               columns={[
-                { key: "container", label: "Container" },
-                { key: "vehicle", label: "Veículo" },
-                { key: "destination", label: "Destino" },
+                { key: "reference", label: "Gate Pass" },
+                {
+                  key: "vesselId",
+                  label: "Navio",
+                  render: (value) => <span className="font-medium text-slate-800">{getVesselName(String(value))}</span>,
+                },
+                {
+                  key: "eta",
+                  label: "Container",
+                  render: (_, row) => <span>{getContainer(String(row.vesselId))}</span>,
+                },
                 {
                   key: "status",
                   label: "Status",
-                  render: (value) => (
-                    <Badge
-                      tone={
-                        value === "Autorizado"
-                          ? "success"
-                          : value === "Recusado"
-                            ? "danger"
-                            : "warning"
-                      }
-                    >
-                      {String(value)}
-                    </Badge>
-                  ),
+                  render: (value) => <Badge tone={getStatusTone(String(value))}>{String(value)}</Badge>,
                 },
               ]}
               rows={gatePassRows}

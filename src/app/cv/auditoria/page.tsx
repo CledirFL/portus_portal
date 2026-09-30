@@ -5,15 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import { getStatusTone } from "@/lib/status";
-
-const auditRows = [
-  { id: "AUD-204", scope: "Docs de embarque", result: "Conforme", assignee: "L. Silva" },
-  { id: "AUD-208", scope: "Revisão de gate pass", result: "Observações", assignee: "N. Costa" },
-  { id: "AUD-211", scope: "Controlo de peso", result: "Conforme", assignee: "P. Ferreira" },
-  { id: "AUD-214", scope: "Validação de roteiros", result: "Não conforme", assignee: "M. Gomes" },
-];
+import { mockAuditRecords, mockCargo, mockVessels } from "@/mocks/domain";
 
 export default function AuditoriaPage() {
+  const getVesselName = (vesselId: string) => mockVessels.find((vessel) => vessel.id === vesselId)?.name ?? vesselId;
+  const getCargoName = (cargoId: string) => mockCargo.find((cargo) => cargo.id === cargoId)?.cargoType ?? cargoId;
+
   return (
     <AppShell>
       <div className="mb-6">
@@ -23,13 +20,17 @@ export default function AuditoriaPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card title="Auditorias">
-          <p className="text-3xl font-semibold text-slate-900">23</p>
+          <p className="text-3xl font-semibold text-slate-900">{mockAuditRecords.length}</p>
         </Card>
         <Card title="Não conformes">
-          <p className="text-3xl font-semibold text-amber-600">2</p>
+          <p className="text-3xl font-semibold text-amber-600">
+            {mockAuditRecords.filter((audit) => audit.result === "Não conforme").length}
+          </p>
         </Card>
         <Card title="Concluídas">
-          <p className="text-3xl font-semibold text-emerald-600">19</p>
+          <p className="text-3xl font-semibold text-emerald-600">
+            {mockAuditRecords.filter((audit) => audit.result === "Conforme").length}
+          </p>
         </Card>
       </div>
 
@@ -40,6 +41,16 @@ export default function AuditoriaPage() {
               columns={[
                 { key: "id", label: "ID" },
                 { key: "scope", label: "Área" },
+                {
+                  key: "vesselId",
+                  label: "Navio",
+                  render: (value) => <span className="font-medium text-slate-800">{getVesselName(String(value))}</span>,
+                },
+                {
+                  key: "cargoId",
+                  label: "Carga",
+                  render: (value) => <span className="text-slate-700">{getCargoName(String(value))}</span>,
+                },
                 { key: "assignee", label: "Responsável" },
                 {
                   key: "result",
@@ -49,7 +60,7 @@ export default function AuditoriaPage() {
                   ),
                 },
               ]}
-              rows={auditRows}
+              rows={mockAuditRecords}
               emptyMessage="Sem auditorias em execução."
             />
           </div>

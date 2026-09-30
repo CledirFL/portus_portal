@@ -4,7 +4,8 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
-import { voyageRows } from "@/mocks/portal";
+import { getStatusTone } from "@/lib/status";
+import { mockVessels } from "@/mocks/domain";
 
 export default function NaviosPage() {
   return (
@@ -16,13 +17,13 @@ export default function NaviosPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card title="Navios ativos">
-          <p className="text-3xl font-semibold">18</p>
+          <p className="text-3xl font-semibold">{mockVessels.length}</p>
         </Card>
         <Card title="Viagens hoje">
-          <p className="text-3xl font-semibold">7</p>
+          <p className="text-3xl font-semibold">{mockVessels.filter((vessel) => vessel.status !== "Em rota").length}</p>
         </Card>
         <Card title="Portos monitorizados">
-          <p className="text-3xl font-semibold">9</p>
+          <p className="text-3xl font-semibold">{new Set(mockVessels.map((vessel) => vessel.port)).size}</p>
         </Card>
       </div>
 
@@ -32,7 +33,7 @@ export default function NaviosPage() {
             <Table
               columns={[
                 {
-                  key: "ship",
+                  key: "name",
                   label: "Navio",
                   render: (value, row) => (
                     <a href={`/cv/navios/${row.id}`} className="font-medium text-sky-700 hover:text-sky-800">
@@ -41,26 +42,15 @@ export default function NaviosPage() {
                   ),
                 },
                 { key: "route", label: "Rota" },
+                { key: "port", label: "Porto" },
                 {
                   key: "status",
                   label: "Status",
-                  render: (value) => (
-                    <Badge
-                      tone={
-                        value === "Atracado"
-                          ? "success"
-                          : value === "Em operação"
-                            ? "warning"
-                            : "neutral"
-                      }
-                    >
-                      {String(value)}
-                    </Badge>
-                  ),
+                  render: (value) => <Badge tone={getStatusTone(String(value))}>{String(value)}</Badge>,
                 },
                 { key: "eta", label: "ETA" },
               ]}
-              rows={voyageRows}
+              rows={mockVessels}
               emptyMessage="Sem operações em curso."
             />
           </div>

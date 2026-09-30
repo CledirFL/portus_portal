@@ -5,15 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import { getStatusTone } from "@/lib/status";
-
-const containerRows = [
-  { container: "CNT-1042", voyage: "MV Atlantic Star", port: "Mindelo", status: "Em inspeção" },
-  { container: "CNT-1089", voyage: "MV Cabo Verde", port: "Praia", status: "Liberado" },
-  { container: "CNT-1103", voyage: "MV Ocean Wave", port: "Tarrafal", status: "Aguardando descarga" },
-  { container: "CNT-1158", voyage: "MV Horizon Blue", port: "Le Havre", status: "Em trânsito" },
-];
+import { mockCargo, mockContainers, mockVessels } from "@/mocks/domain";
 
 export default function ContainersPage() {
+  const getVesselName = (vesselId: string) => mockVessels.find((vessel) => vessel.id === vesselId)?.name ?? vesselId;
+  const getCargoName = (cargoId: string) => mockCargo.find((cargo) => cargo.id === cargoId)?.cargoType ?? cargoId;
+
   return (
     <AppShell>
       <div className="mb-6">
@@ -23,13 +20,17 @@ export default function ContainersPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card title="Ativos">
-          <p className="text-3xl font-semibold text-slate-900">412</p>
+          <p className="text-3xl font-semibold text-slate-900">{mockContainers.length}</p>
         </Card>
         <Card title="Em inspeção">
-          <p className="text-3xl font-semibold text-amber-600">22</p>
+          <p className="text-3xl font-semibold text-amber-600">
+            {mockContainers.filter((container) => container.status === "Em inspeção").length}
+          </p>
         </Card>
         <Card title="Aguardando descarga">
-          <p className="text-3xl font-semibold text-slate-900">31</p>
+          <p className="text-3xl font-semibold text-slate-900">
+            {mockContainers.filter((container) => container.status === "Aguardando descarga").length}
+          </p>
         </Card>
       </div>
 
@@ -38,8 +39,17 @@ export default function ContainersPage() {
           <div className="mt-4">
             <Table
               columns={[
-                { key: "container", label: "Container" },
-                { key: "voyage", label: "Viagem" },
+                { key: "containerNumber", label: "Container" },
+                {
+                  key: "vesselId",
+                  label: "Viagem",
+                  render: (value) => <span className="font-medium text-slate-800">{getVesselName(String(value))}</span>,
+                },
+                {
+                  key: "cargoId",
+                  label: "Carga",
+                  render: (value) => <span className="text-slate-700">{getCargoName(String(value))}</span>,
+                },
                 { key: "port", label: "Porto" },
                 {
                   key: "status",
@@ -49,7 +59,7 @@ export default function ContainersPage() {
                   ),
                 },
               ]}
-              rows={containerRows}
+              rows={mockContainers}
               emptyMessage="Sem contentores registados."
             />
           </div>
