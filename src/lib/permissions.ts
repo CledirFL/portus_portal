@@ -4,6 +4,9 @@ export const roleNavigation: Record<Role, NavItem[]> = {
   exporter: [
     { label: "Dashboard", href: "/dashboard", icon: "▣" },
     { label: "Exporter Dashboard", href: "/exporter/dashboard", icon: "🌍" },
+    { label: "Exportadores", href: "/exporter/companies", icon: "🏢" },
+    { label: "Destinatários", href: "/exporter/consignees", icon: "📍" },
+    { label: "Carga", href: "/exporter/cargo", icon: "📦" },
     { label: "Shipments", href: "/exporter/shipments", icon: "⛴" },
     { label: "Volumes", href: "/exporter/volumes", icon: "📦" },
     { label: "Containers", href: "/exporter/containers", icon: "📛" },
