@@ -31,7 +31,15 @@ export default function NaviosPage() {
           <div className="mt-4">
             <Table
               columns={[
-                { key: "ship", label: "Navio" },
+                {
+                  key: "ship",
+                  label: "Navio",
+                  render: (value, row) => (
+                    <a href={`/cv/navios/${row.id}`} className="font-medium text-sky-700 hover:text-sky-800">
+                      {String(value)}
+                    </a>
+                  ),
+                },
                 { key: "route", label: "Rota" },
                 {
                   key: "status",

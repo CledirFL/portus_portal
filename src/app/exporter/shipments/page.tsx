@@ -71,7 +71,15 @@ export default function ShipmentsPage() {
         <div className="mt-4">
           <Table
             columns={[
-              { key: "code", label: "Código" },
+              {
+                key: "code",
+                label: "Código",
+                render: (value, row) => (
+                  <Link href={`/exporter/shipments/${row.id}`} className="font-medium text-sky-700 hover:text-sky-800">
+                    {String(value)}
+                  </Link>
+                ),
+              },
               { key: "exporter", label: "Exportador" },
               { key: "route", label: "Rota" },
               {
