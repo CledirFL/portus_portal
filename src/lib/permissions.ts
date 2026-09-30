@@ -3,6 +3,7 @@ import type { NavItem, Role } from "@/types/user";
 export const roleNavigation: Record<Role, NavItem[]> = {
   exporter: [
     { label: "Dashboard", href: "/dashboard", icon: "▣" },
+    { label: "Exporter Dashboard", href: "/exporter/dashboard", icon: "🌍" },
     { label: "Shipments", href: "/exporter/shipments", icon: "⛴" },
     { label: "Volumes", href: "/exporter/volumes", icon: "📦" },
     { label: "Containers", href: "/exporter/containers", icon: "📛" },
@@ -46,5 +47,12 @@ export const defaultRouteByRole: Record<Role, string> = {
 
 export const isAllowedRoute = (role: Role, href: string) => {
   const allowed = roleNavigation[role].map((item) => item.href);
-  return allowed.includes(href);
+
+  return allowed.some((allowedPath) => {
+    if (allowedPath === href) {
+      return true;
+    }
+
+    return href.startsWith(`${allowedPath}/`);
+  });
 };
