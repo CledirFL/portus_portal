@@ -31,6 +31,7 @@ export const roleNavigation: Record<Role, NavItem[]> = {
   ],
   admin: [
     { label: "Dashboard", href: "/dashboard", icon: "▣" },
+    { label: "Utilizadores", href: "/admin/users", icon: "👥" },
     { label: "Exportador", href: "/exporter/dashboard", icon: "🌍" },
     { label: "CV", href: "/cv/navios", icon: "🇨🇻" },
     { label: "Auditoria", href: "/cv/auditoria", icon: "🧾" },
@@ -42,7 +43,7 @@ export const defaultRouteByRole: Record<Role, string> = {
   transitario: "/dashboard",
   agente_maritimo: "/cv/navios",
   cv_operator: "/cv/navios",
-  admin: "/dashboard",
+  admin: "/admin/users",
 };
 
 export const isAllowedRoute = (role: Role, href: string) => {

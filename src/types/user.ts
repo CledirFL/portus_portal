@@ -5,12 +5,18 @@ export type Role =
   | "cv_operator"
   | "admin";
 
+export type UserStatus = "active" | "review" | "blocked";
+
 export interface User {
   id: string;
   name: string;
   email: string;
   role: Role;
   company: string;
+  status?: UserStatus;
+  lastActive?: string;
+  createdAt?: string;
+  permissions?: string[];
 }
 
 export interface NavItem {

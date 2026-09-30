@@ -7,6 +7,10 @@ describe("isAllowedRoute", () => {
     expect(isAllowedRoute("exporter", "/exporter/shipments/SHP-2041")).toBe(true);
   });
 
+  it("allows the admin user registry route", () => {
+    expect(isAllowedRoute("admin", "/admin/users")).toBe(true);
+  });
+
   it("blocks routes outside the current role", () => {
     expect(isAllowedRoute("exporter", "/cv/navios/V-010")).toBe(false);
   });
