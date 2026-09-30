@@ -77,6 +77,12 @@ const priorityTasks = [
   { title: "Trafego em atraso", owner: "Bruno Costa", due: "Hoje, 18:00", tone: "danger" },
 ];
 
+const alerts = [
+  { level: "Alta", text: "3 BLs com atraso de revisão documental." },
+  { level: "Média", text: "2 gate passes aguardam conferência terminal." },
+  { level: "Baixa", text: "5 documentos validaram hoje sem incidentes." },
+];
+
 export default function DashboardPage() {
   const [range, setRange] = useState<RangeKey>("30d");
 
@@ -231,32 +237,48 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        <Card title="Tarefas prioritárias">
-          <div className="mt-4 space-y-3">
-            {priorityTasks.map((task) => (
-              <div key={task.title} className="rounded-xl border border-slate-200 bg-white p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{task.title}</p>
-                    <p className="mt-1 text-xs text-slate-500">{task.owner}</p>
+        <div className="space-y-6">
+          <Card title="Tarefas prioritárias">
+            <div className="mt-4 space-y-3">
+              {priorityTasks.map((task) => (
+                <div key={task.title} className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">{task.title}</p>
+                      <p className="mt-1 text-xs text-slate-500">{task.owner}</p>
+                    </div>
+                    <Badge
+                      tone={
+                        task.tone === "success"
+                          ? "success"
+                          : task.tone === "danger"
+                            ? "danger"
+                            : "warning"
+                      }
+                    >
+                      {task.tone === "success" ? "OK" : task.tone === "danger" ? "Urgente" : "Pendente"}
+                    </Badge>
                   </div>
-                  <Badge
-                    tone={
-                      task.tone === "success"
-                        ? "success"
-                        : task.tone === "danger"
-                          ? "danger"
-                          : "warning"
-                    }
-                  >
-                    {task.tone === "success" ? "OK" : task.tone === "danger" ? "Urgente" : "Pendente"}
-                  </Badge>
+                  <p className="mt-2 text-xs font-medium text-slate-600">Entrega: {task.due}</p>
                 </div>
-                <p className="mt-2 text-xs font-medium text-slate-600">Entrega: {task.due}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
+              ))}
+            </div>
+          </Card>
+
+          <Card title="Alertas globais">
+            <div className="mt-4 space-y-3">
+              {alerts.map((alert) => (
+                <div key={alert.text} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">{alert.level}</span>
+                    <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  </div>
+                  <p className="mt-2 text-sm text-slate-700">{alert.text}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
       </div>
     </AppShell>
   );
