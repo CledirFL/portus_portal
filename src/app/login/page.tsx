@@ -50,7 +50,10 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
       <Card className="w-full max-w-md">
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-[0.22em] text-sky-700">PORTUS</p>
+          <Link href="/" className="text-sm font-medium text-sky-700 hover:text-sky-800">
+            Voltar à página inicial
+          </Link>
+          <p className="mt-4 text-xs uppercase tracking-[0.22em] text-sky-700">PORTUS</p>
           <h1 className="mt-2 text-2xl font-semibold text-slate-900">Entrar no portal</h1>
         </div>
 
