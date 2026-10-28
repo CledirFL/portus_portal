@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,10 +18,19 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
+const subscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export default function LoginPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
   const [serverError, setServerError] = useState("");
+  const isHydrated = useSyncExternalStore(
+    subscribe,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
 
   const {
     register,
@@ -30,8 +39,8 @@ export default function LoginPage() {
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "ana@portus.cv",
-      password: "PortusDemo!2026-CV",
+      email: "",
+      password: "",
     },
   });
 
@@ -57,13 +66,20 @@ export default function LoginPage() {
           <h1 className="mt-2 text-2xl font-semibold text-slate-900">Entrar no portal</h1>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+          data-cy="login-form"
+          data-hydrated={isHydrated}
+        >
           <div>
             <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">
               Email
             </label>
             <input
               id="email"
+              type="email"
+              autoComplete="username"
               {...register("email")}
               className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
               placeholder="ana@portus.cv"
@@ -80,6 +96,7 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
+              autoComplete="current-password"
               {...register("password")}
               className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
               placeholder="••••••••"
@@ -100,8 +117,15 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="mt-5 rounded-md bg-slate-100 p-3 text-xs text-slate-600">
-          Demo credentials: <span className="font-semibold">ana@portus.cv</span> / <span className="font-semibold">PortusDemo!2026-CV</span>
+        <div className="mt-5 space-y-1 rounded-md bg-slate-100 p-3 text-xs text-slate-600">
+          <p>
+            Demo exportador: <span className="font-semibold">ana@portus.cv</span> /{" "}
+            <span className="font-semibold">PortusDemo!2026-CV</span>
+          </p>
+          <p>
+            Demo agente de recolha: <span className="font-semibold">agente@portus.cv</span> /{" "}
+            <span className="font-semibold">PortusDemo!2026-CV</span>
+          </p>
         </div>
 
         <div className="mt-5 flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
