@@ -25,6 +25,10 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Gate Pass", href: "/cv/gate-pass", icon: "🚪" },
     { label: "Conferência", href: "/cv/conferencia", icon: "✅" },
   ],
+  agente_recolha: [
+    { label: "Recolhas", href: "/agent/collections", icon: "📦" },
+    { label: "Nova recolha", href: "/agent/collections/new", icon: "➕" },
+  ],
   cv_operator: [
     { label: "Dashboard", href: "/dashboard", icon: "▣" },
     { label: "Navios", href: "/cv/navios", icon: "🚢" },
@@ -45,6 +49,7 @@ export const defaultRouteByRole: Record<Role, string> = {
   exporter: "/exporter/dashboard",
   transitario: "/dashboard",
   agente_maritimo: "/cv/navios",
+  agente_recolha: "/agent/collections",
   cv_operator: "/cv/navios",
   admin: "/admin/users",
 };
