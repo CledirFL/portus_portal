@@ -21,7 +21,11 @@ export const mockUsers: User[] = [
     status: "review",
     lastActive: "Ontem",
     createdAt: "2024-02-25",
-    permissions: ["Containers", "BL"],
+    permissions: [
+      "Consolidar volumes em BL Master",
+      "Importar listas",
+      "Gerar e enviar manifestos",
+    ],
   },
   {
     id: "u-003",
@@ -43,7 +47,7 @@ export const mockUsers: User[] = [
     status: "blocked",
     lastActive: "Semana passada",
     createdAt: "2024-04-18",
-    permissions: ["Auditoria", "Contra-Marca"],
+    permissions: ["Registar chegada", "Desconsolidar", "Conferir", "Armazenar", "Auditoria"],
   },
   {
     id: "u-005",
@@ -54,17 +58,32 @@ export const mockUsers: User[] = [
     status: "active",
     lastActive: "Agora",
     createdAt: "2023-11-02",
-    permissions: ["Administração", "Gestão de acessos", "Configuração"],
+    permissions: [
+      "Utilizadores",
+      "Perfis",
+      "Tarifas",
+      "Listas de itens restritos",
+      "Parâmetros",
+      "Auditoria",
+    ],
   },
 ];
 
+const departmentByRole: Record<User["role"], string> = {
+  exporter: "Exportação",
+  transitario: "Operações de transporte",
+  agente_maritimo: "Operações marítimas",
+  cv_operator: "Operações portuárias",
+  admin: "Administração",
+};
+
 export const mockUserRegistry = mockUsers.map((user) => ({
   ...user,
-  department: user.role === "admin" ? "Operações globais" : user.role === "exporter" ? "Exportação" : "Logística",
+  department: departmentByRole[user.role],
   region: "Cabo Verde",
 }));
 
-export const mockPassword = "password123";
+export const mockPassword = "PortusDemo!2026-CV";
 export const mockUserCredentials: Record<string, string> = Object.fromEntries(
   mockUsers.map((user) => [user.email.toLowerCase(), mockPassword]),
 );

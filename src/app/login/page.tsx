@@ -31,7 +31,7 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "ana@portus.cv",
-      password: "password123",
+      password: "PortusDemo!2026-CV",
     },
   });
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-5 rounded-md bg-slate-100 p-3 text-xs text-slate-600">
-          Demo credentials: <span className="font-semibold">ana@portus.cv</span> / <span className="font-semibold">password123</span>
+          Demo credentials: <span className="font-semibold">ana@portus.cv</span> / <span className="font-semibold">PortusDemo!2026-CV</span>
         </div>
 
         <div className="mt-5 flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
