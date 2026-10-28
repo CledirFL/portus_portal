@@ -39,6 +39,17 @@ export const mockUsers: User[] = [
     permissions: ["Navios", "Gate Pass"],
   },
   {
+    id: "u-006",
+    name: "Rui Monteiro",
+    email: "agente@portus.cv",
+    role: "agente_recolha",
+    company: "Portus Recolhas",
+    status: "active",
+    lastActive: "Agora",
+    createdAt: "2026-10-28",
+    permissions: ["Registar recolhas", "Fotografar encomendas", "Confirmar dados"],
+  },
+  {
     id: "u-004",
     name: "Duarte Nunes",
     email: "duarte@portus.cv",
@@ -73,6 +84,7 @@ const departmentByRole: Record<User["role"], string> = {
   exporter: "Exportação",
   transitario: "Operações de transporte",
   agente_maritimo: "Operações marítimas",
+  agente_recolha: "Recolhas no terreno",
   cv_operator: "Operações portuárias",
   admin: "Administração",
 };
