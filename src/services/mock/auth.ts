@@ -56,7 +56,7 @@ export async function mockLogin(email: string, password: string) {
   const savedPassword = mockUserCredentials[email.toLowerCase()] ?? mockPassword;
 
   if (!user || password !== savedPassword) {
-    throw new Error("Credenciais inválidas. Tente: ana@portus.cv / password123");
+    throw new Error("Credenciais inválidas. Tente: ana@portus.cv / PortusDemo!2026-CV");
   }
 
   return {

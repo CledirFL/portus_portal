@@ -14,4 +14,17 @@ describe("user registry helpers", () => {
     expect(result).toHaveLength(1);
     expect(result[0]?.email).toBe("joao@portus.cv");
   });
+
+  it("uses the document's terminal operator and administrator responsibilities", () => {
+    const terminalOperator = mockUserRegistry.find((user) => user.role === "cv_operator");
+    const administrator = mockUserRegistry.find((user) => user.role === "admin");
+
+    expect(terminalOperator?.department).toBe("Operações portuárias");
+    expect(terminalOperator?.permissions).toEqual(
+      expect.arrayContaining(["Registar chegada", "Desconsolidar", "Conferir", "Armazenar"]),
+    );
+    expect(administrator?.permissions).toEqual(
+      expect.arrayContaining(["Utilizadores", "Perfis", "Tarifas", "Listas de itens restritos"]),
+    );
+  });
 });
