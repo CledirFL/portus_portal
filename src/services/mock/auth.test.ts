@@ -8,4 +8,11 @@ describe("mock authentication", () => {
 
     expect(result.user.email).toBe("ana@portus.cv");
   });
+
+  it("routes the field agent to the collection workspace", async () => {
+    const result = await mockLogin("agente@portus.cv", mockPassword);
+
+    expect(result.user.role).toBe("agente_recolha");
+    expect(result.redirectTo).toBe("/agent/collections");
+  });
 });
