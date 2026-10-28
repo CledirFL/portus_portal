@@ -11,7 +11,13 @@ describe("isAllowedRoute", () => {
     expect(isAllowedRoute("admin", "/admin/users")).toBe(true);
   });
 
+  it("allows collection routes for field agents", () => {
+    expect(isAllowedRoute("agente_recolha", "/agent/collections")).toBe(true);
+    expect(isAllowedRoute("agente_recolha", "/agent/collections/new")).toBe(true);
+  });
+
   it("blocks routes outside the current role", () => {
     expect(isAllowedRoute("exporter", "/cv/navios/V-010")).toBe(false);
+    expect(isAllowedRoute("exporter", "/agent/collections")).toBe(false);
   });
 });
