@@ -2,6 +2,7 @@ export type Role =
   | "exporter"
   | "transitario"
   | "agente_maritimo"
+  | "agente_recolha"
   | "cv_operator"
   | "admin";
 
