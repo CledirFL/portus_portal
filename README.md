@@ -15,15 +15,15 @@ PORTUS is a mock operational portal for maritime export workflows in Cabo Verde.
 
 Use the existing mock credentials in the app:
 
-- ana@portus.cv / password123
-- geraldo@portus.cv / password123
-- noelia@portus.cv / password123
+- ana@portus.cv / PortusDemo!2026-CV
+- agente@portus.cv / PortusDemo!2026-CV (field collection agent)
 
 ## App structure
 
 - Public pages: /, /platform, /login
 - Exporter area: /exporter/*
 - CV operations: /cv/*
+- Field agent: /agent/collections
 - Admin area: /admin/*
 
 ## Local development
@@ -35,13 +35,28 @@ npm run dev
 
 Then open http://localhost:3000.
 
+## Field collection agent
+
+The field agent can register a collection with sender, recipient, declared contents, weight,
+volume or dimensions, and a photograph. OCR runs in the browser in Portuguese and suggests
+editable field values; the agent must review and explicitly confirm the data before saving.
+
+Collections and photographs are stored in the browser's IndexedDB for this demo only. They are
+not shared across devices and are not connected to the operational portal or a production backend.
+The demo login is not production authentication.
+
 ## Validation
 
 ```bash
 npx vitest run
+npm run cypress:run
 npm run build
 ```
 
+For interactive E2E runs, use `npm run cypress:open`. Cypress starts the Next.js development
+server and injects a deterministic OCR result for its tests.
+
 ## Notes
 
-This project intentionally uses mock services and local state instead of a live backend so the UI can be reviewed and validated quickly in a demo environment.
+This project intentionally uses mock services and local state instead of a live backend so the UI
+can be reviewed and validated quickly in a demo environment.
