@@ -1,114 +1,110 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { roleNavigation } from "@/lib/permissions";
+import { Menu, X } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
+import { NavIcon } from "@/components/ui/nav-icon";
+import { roleLabels, roleNavigation } from "@/lib/permissions";
 import { useAuthStore } from "@/store/auth-store";
+import type { NavItem } from "@/types/user";
+
+/** Item ativo = o mais específico cujo href é prefixo do caminho atual. */
+export function findActiveNavItem(items: NavItem[], pathname: string) {
+  return items
+    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
+    .sort((left, right) => right.href.length - left.href.length)[0];
+}
 
 export function Sidebar() {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
+  const [openFor, setOpenFor] = useState<string | null>(null);
+  // Fecha automaticamente ao navegar, sem efeito extra.
+  const isOpen = openFor === pathname;
 
   if (!user) {
     return null;
   }
 
-  const renderNav = () => (
-    <nav className="space-y-2">
-      {roleNavigation[user.role].map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const items = roleNavigation[user.role];
+  const active = findActiveNavItem(items, pathname);
+
+  const nav = (
+    <nav className="space-y-0.5" aria-label="Navegação da aplicação">
+      {items.map((item) => {
+        const isActive = active?.href === item.href;
 
         return (
           <Link
             key={item.href}
             href={item.href}
-            onClick={() => setIsOpen(false)}
-            className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition ${
-              active ? "bg-sky-700 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"
+            aria-current={isActive ? "page" : undefined}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+              isActive
+                ? "bg-white/10 text-white shadow-[inset_2px_0_0_var(--color-star)]"
+                : "text-brand-100/70 hover:bg-white/5 hover:text-white"
             }`}
           >
-            <span className="flex items-center gap-3">
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </span>
+            <NavIcon name={item.icon} />
+            <span>{item.label}</span>
           </Link>
         );
       })}
     </nav>
   );
 
+  const footer = (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+      <p className="truncate text-sm font-medium text-white">{user.name}</p>
+      <p className="truncate text-xs text-brand-200/70">
+        {roleLabels[user.role]} · {user.company}
+      </p>
+    </div>
+  );
+
   return (
     <>
-      <aside className="hidden w-72 border-r border-slate-200 bg-slate-950 p-5 text-slate-100 md:flex md:flex-col">
-        <div className="mb-8">
-          <p className="text-xs uppercase tracking-[0.2em] text-sky-300">Portus</p>
-          <h2 className="mt-2 text-xl font-semibold">Portal</h2>
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-brand-950 px-4 py-5 md:flex">
+        <div className="mb-8 px-2">
+          <Logo tone="light" />
         </div>
-
-        {renderNav()}
-
-        <div className="mt-auto rounded-xl border border-slate-800 bg-slate-900 p-3">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Alertas</p>
-          <p className="mt-2 text-sm text-slate-200">3 pendências de revisão</p>
-        </div>
+        <div className="flex-1 overflow-y-auto">{nav}</div>
+        {footer}
       </aside>
 
-      <div className="border-b border-slate-200 bg-slate-950 px-4 py-3 text-slate-100 md:hidden">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-sky-300">Portus</p>
-            <p className="text-sm font-medium">Portal</p>
-          </div>
-
-          <button
-            type="button"
-            aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
-            onClick={() => setIsOpen((value) => !value)}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 text-lg text-white"
-          >
-            {isOpen ? "×" : "☰"}
-          </button>
-        </div>
+      <div className="sticky top-0 z-30 flex items-center justify-between bg-brand-950 px-4 py-3 md:hidden">
+        <Logo tone="light" />
+        <button
+          type="button"
+          aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
+          onClick={() => setOpenFor(isOpen ? null : pathname)}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-white"
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
       </div>
 
       {isOpen ? (
-        <div
-          className="fixed inset-0 z-40 bg-slate-950/60 md:hidden"
-          onClick={() => setIsOpen(false)}
-        >
+        <div className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm md:hidden" onClick={() => setOpenFor(null)}>
           <aside
-            className="flex h-full w-72 flex-col border-r border-slate-700 bg-slate-950 p-5 text-slate-100"
+            className="flex h-full w-72 flex-col bg-brand-950 px-4 py-5"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-sky-300">Portus</p>
-                <h2 className="mt-2 text-xl font-semibold">Portal</h2>
-              </div>
+            <div className="mb-8 flex items-center justify-between px-2">
+              <Logo tone="light" />
               <button
                 type="button"
                 aria-label="Fechar menu"
-                onClick={() => setIsOpen(false)}
-                className="rounded-lg border border-slate-700 px-2 py-1 text-sm text-slate-200"
+                onClick={() => setOpenFor(null)}
+                className="rounded-lg p-1.5 text-brand-100 hover:bg-white/10"
               >
-                Fechar
+                <X className="h-5 w-5" />
               </button>
             </div>
-
-            <div className="flex-1 overflow-y-auto">
-              {renderNav()}
-            </div>
-
-            <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Alertas</p>
-              <p className="mt-2 text-sm text-slate-200">3 pendências de revisão</p>
-            </div>
+            <div className="flex-1 overflow-y-auto">{nav}</div>
+            {footer}
           </aside>
         </div>
       ) : null}
