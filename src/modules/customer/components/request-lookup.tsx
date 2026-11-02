@@ -13,7 +13,7 @@ import { RequestCard } from "@/modules/customer/components/request-card";
 
 export function RequestLookup({ initialReference = "" }: { initialReference?: string }) {
   const [reference, setReference] = useState(initialReference);
-  const [phone, setPhone] = useState("+351 ");
+  const [phone, setPhone] = useState("");
   const [result, setResult] = useState<ShipmentRequest | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [isSearching, setIsSearching] = useState(false);

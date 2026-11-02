@@ -52,6 +52,8 @@ export type HandoverMethod = "recolha" | "entrega_na_agencia";
 export interface ShipmentRequest {
   id: string;
   reference: string;
+  /** País de origem da carga (ISO 3166-1 alfa-2). */
+  originCountry: string;
   agencyId: string;
   category: CargoCategory;
   description: string;
@@ -81,6 +83,7 @@ const phoneField = z
 
 export const shipmentRequestSchema = z
   .object({
+    originCountry: z.string().length(2, "Escolha o país de origem."),
     agencyId: z.string().min(1, "Escolha uma agência."),
     category: z.enum(cargoTypes.map((type) => type.id) as [CargoCategory, ...CargoCategory[]], {
       message: "Escolha o tipo de carga.",
@@ -148,6 +151,7 @@ export function createShipmentRequest(
   return {
     id: options.id,
     reference: options.reference,
+    originCountry: parsed.originCountry,
     agencyId: parsed.agencyId,
     category: parsed.category,
     description: parsed.description,
