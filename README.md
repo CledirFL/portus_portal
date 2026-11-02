@@ -16,11 +16,14 @@ PORTUS is a mock operational portal for maritime export workflows in Cabo Verde.
 Use the existing mock credentials in the app:
 
 - ana@portus.cv / PortusDemo!2026-CV
-- agente@portus.cv / PortusDemo!2026-CV (field collection agent)
+- agente@portus.cv / PortusDemo!2026-CV (field collection agent, agência Morabeza Envios)
+- joao@portus.cv / PortusDemo!2026-CV (admin)
 
 ## App structure
 
-- Public pages: /, /platform, /login
+- Public pages: /, /platform, /login, /enviar (pedido de envio sem conta), /acompanhar (código + telefone)
+- Customer area (conta opcional): /cliente
+- Agency queue of customer requests: /agencia/pedidos
 - Exporter area: /exporter/*
 - CV operations: /cv/*
 - Field agent: /agent/collections
@@ -52,6 +55,10 @@ npx vitest run
 npm run cypress:run
 npm run build
 ```
+
+Inside the VS Code terminal run Cypress with `ELECTRON_RUN_AS_NODE` unset (e.g. `env -u ELECTRON_RUN_AS_NODE npm run cypress:run`).
+
+The improvement plan and gap analysis live in `docs/PLANO-DE-MELHORIAS.md`. Business rules are in `src/domain` (pure TypeScript, unit tested).
 
 For interactive E2E runs, use `npm run cypress:open`. Cypress starts the Next.js development
 server and injects a deterministic OCR result for its tests.
