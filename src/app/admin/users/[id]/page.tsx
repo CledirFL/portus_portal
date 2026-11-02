@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { mockUserRegistry } from "@/mocks/users";
 import { getUserStatusLabel, getUserStatusTone } from "@/lib/user-registry";
+import { roleLabels } from "@/lib/permissions";
 
 export default async function AdminUserDetailPage({
   params,
@@ -23,7 +24,7 @@ export default async function AdminUserDetailPage({
     <AppShell>
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-sky-700">Administração</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-brand-700">Administração</p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-900">Detalhes do utilizador</h2>
         </div>
 
@@ -38,7 +39,7 @@ export default async function AdminUserDetailPage({
             <div className="flex flex-wrap items-center gap-3">
               <Badge tone={getUserStatusTone(user.status)}>{getUserStatusLabel(user.status)}</Badge>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                {user.role}
+                {roleLabels[user.role]}
               </span>
             </div>
 

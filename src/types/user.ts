@@ -4,6 +4,7 @@ export type Role =
   | "agente_maritimo"
   | "agente_recolha"
   | "cv_operator"
+  | "cliente"
   | "admin";
 
 export type UserStatus = "active" | "review" | "blocked";
@@ -20,10 +21,32 @@ export interface User {
   permissions?: string[];
   department?: string;
   region?: string;
+  /** Agência a que o utilizador pertence (âmbito de dados, BR 28). */
+  agencyId?: string;
+  phone?: string;
 }
+
+export type NavIcon =
+  | "dashboard"
+  | "globe"
+  | "building"
+  | "users"
+  | "map-pin"
+  | "package"
+  | "ship"
+  | "boxes"
+  | "container"
+  | "file-text"
+  | "clipboard-list"
+  | "door"
+  | "check"
+  | "tag"
+  | "shield"
+  | "inbox"
+  | "plus";
 
 export interface NavItem {
   label: string;
   href: string;
-  icon: string;
+  icon: NavIcon;
 }
