@@ -38,7 +38,7 @@ export default function NewGatePassPage() {
           <h2 className="text-2xl font-semibold text-slate-900">Novo Gate Pass</h2>
           <p className="text-sm text-slate-500">Registar movimentação e autorização de contentor.</p>
         </div>
-        <Link href="/cv/gate-pass" className="text-sm font-medium text-sky-700 hover:text-sky-800">
+        <Link href="/cv/gate-pass" className="text-sm font-medium text-brand-700 hover:text-brand-800">
           Voltar
         </Link>
       </div>
@@ -63,7 +63,7 @@ export default function NewGatePassPage() {
             <textarea
               {...register("notes")}
               rows={4}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
             />
             {errors.notes ? <span className="mt-1 block text-xs text-rose-600">{errors.notes.message}</span> : null}
           </div>

@@ -18,7 +18,7 @@ export default function AdminUsersPage() {
     <AppShell>
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-sky-700">Administração</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-brand-700">Administração</p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-900">Registos de utilizadores</h2>
         </div>
 
@@ -31,7 +31,7 @@ export default function AdminUsersPage() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Nome, email, empresa..."
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-sky-500"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-brand-500"
           />
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function AdminUsersPage() {
                 key: "name",
                 label: "Utilizador",
                 render: (value, row) => (
-                  <Link href={`/admin/users/${row.id}`} className="font-medium text-sky-700 hover:text-sky-800">
+                  <Link href={`/admin/users/${row.id}`} className="font-medium text-brand-700 hover:text-brand-800">
                     {String(value)}
                   </Link>
                 ),

@@ -43,7 +43,8 @@ export const mockUsers: User[] = [
     name: "Rui Monteiro",
     email: "agente@portus.cv",
     role: "agente_recolha",
-    company: "Portus Recolhas",
+    company: "Morabeza Envios",
+    agencyId: "AG-LIS",
     status: "active",
     lastActive: "Agora",
     createdAt: "2026-10-28",
@@ -86,6 +87,7 @@ const departmentByRole: Record<User["role"], string> = {
   agente_maritimo: "Operações marítimas",
   agente_recolha: "Recolhas no terreno",
   cv_operator: "Operações portuárias",
+  cliente: "Clientes",
   admin: "Administração",
 };
 

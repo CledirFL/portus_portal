@@ -79,7 +79,7 @@ export default function RegisterPage() {
     <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
       <Card className="w-full max-w-2xl">
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-[0.22em] text-sky-700">PORTUS</p>
+          <p className="text-xs uppercase tracking-[0.22em] text-brand-700">PORTUS</p>
           <h1 className="mt-2 text-2xl font-semibold text-slate-900">Criar conta no PORTUS</h1>
           <p className="mt-2 text-sm text-slate-600">
             Registe a sua empresa e comece a operar em poucos minutos. O seu pedido ficará em revisão antes de ganhar acesso total ao portal.
@@ -95,7 +95,7 @@ export default function RegisterPage() {
               <input
                 id="name"
                 {...register("name")}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
                 placeholder="Ana Silva"
               />
               {errors.name ? <p className="mt-1 text-xs text-rose-600">{errors.name.message}</p> : null}
@@ -108,7 +108,7 @@ export default function RegisterPage() {
               <input
                 id="email"
                 {...register("email")}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
                 placeholder="ana@empresa.pt"
               />
               {errors.email ? <p className="mt-1 text-xs text-rose-600">{errors.email.message}</p> : null}
@@ -121,7 +121,7 @@ export default function RegisterPage() {
               <input
                 id="company"
                 {...register("company")}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
                 placeholder="Atlantic Exports"
               />
               {errors.company ? <p className="mt-1 text-xs text-rose-600">{errors.company.message}</p> : null}
@@ -134,7 +134,7 @@ export default function RegisterPage() {
               <select
                 id="country"
                 {...register("country")}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
               >
                 <option value="Cabo Verde">Cabo Verde</option>
                 <option value="Portugal">Portugal</option>
@@ -151,7 +151,7 @@ export default function RegisterPage() {
               <select
                 id="role"
                 {...register("role")}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
               >
                 {roleOptions.map((role) => (
                   <option key={role.value} value={role.value}>
@@ -169,7 +169,7 @@ export default function RegisterPage() {
               <input
                 id="taxId"
                 {...register("taxId")}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
                 placeholder="PT123456789"
               />
               {errors.taxId ? <p className="mt-1 text-xs text-rose-600">{errors.taxId.message}</p> : null}
@@ -183,7 +183,7 @@ export default function RegisterPage() {
                 id="password"
                 type="password"
                 {...register("password")}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
                 placeholder="••••••••"
               />
               {errors.password ? <p className="mt-1 text-xs text-rose-600">{errors.password.message}</p> : null}
@@ -197,7 +197,7 @@ export default function RegisterPage() {
                 id="confirmPassword"
                 type="password"
                 {...register("confirmPassword")}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
                 placeholder="••••••••"
               />
               {errors.confirmPassword ? (
@@ -207,7 +207,7 @@ export default function RegisterPage() {
           </div>
 
           <label className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-            <input type="checkbox" {...register("acceptTerms")} className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600" />
+            <input type="checkbox" {...register("acceptTerms")} className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600" />
             <span>
               Confirmo que os dados fornecidos são verdadeiros e aceito a revisão do pedido de acesso ao PORTUS.
             </span>
@@ -225,7 +225,7 @@ export default function RegisterPage() {
               {isSubmitting ? "A criar conta..." : "Criar conta"}
             </Button>
 
-            <Link href="/login" className="text-sm font-medium text-sky-700 hover:text-sky-800">
+            <Link href="/login" className="text-sm font-medium text-brand-700 hover:text-brand-800">
               Já tenho conta
             </Link>
           </div>

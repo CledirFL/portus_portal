@@ -13,11 +13,11 @@ interface TableProps<T extends object> {
 export function Table<T extends object>({
   columns,
   rows,
-  emptyMessage = "No data available",
+  emptyMessage = "Sem dados para mostrar.",
 }: TableProps<T>) {
   if (!rows.length) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 px-4 py-10 text-center text-sm text-slate-500">
         {emptyMessage}
       </div>
     );
@@ -26,7 +26,7 @@ export function Table<T extends object>({
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
       <table className="min-w-full text-left text-sm text-slate-700">
-        <thead className="bg-slate-50 text-slate-700">
+        <thead className="bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500">
           <tr>
             {columns.map((column) => (
               <th key={String(column.key)} className="px-4 py-3 font-medium whitespace-nowrap">
@@ -37,7 +37,7 @@ export function Table<T extends object>({
         </thead>
         <tbody>
           {rows.map((row, rowIndex) => (
-            <tr key={rowIndex} className="border-t border-slate-200">
+            <tr key={rowIndex} className="border-t border-slate-100 transition-colors hover:bg-slate-50/70">
               {columns.map((column) => {
                 const value = row[column.key];
                 return (

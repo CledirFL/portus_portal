@@ -75,7 +75,7 @@ export default function ShipmentsPage() {
                 key: "code",
                 label: "Código",
                 render: (value, row) => (
-                  <Link href={`/exporter/shipments/${row.id}`} className="font-medium text-sky-700 hover:text-sky-800">
+                  <Link href={`/exporter/shipments/${row.id}`} className="font-medium text-brand-700 hover:text-brand-800">
                     {String(value)}
                   </Link>
                 ),

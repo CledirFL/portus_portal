@@ -1,0 +1,46 @@
+import {
+  Boxes,
+  Building2,
+  Check,
+  ClipboardList,
+  Container,
+  DoorOpen,
+  FileText,
+  Globe2,
+  Inbox,
+  LayoutDashboard,
+  MapPin,
+  Package,
+  Plus,
+  ShieldCheck,
+  Ship,
+  Tag,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import type { NavIcon as NavIconName } from "@/types/user";
+
+const icons: Record<NavIconName, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  globe: Globe2,
+  building: Building2,
+  users: Users,
+  "map-pin": MapPin,
+  package: Package,
+  ship: Ship,
+  boxes: Boxes,
+  container: Container,
+  "file-text": FileText,
+  "clipboard-list": ClipboardList,
+  door: DoorOpen,
+  check: Check,
+  tag: Tag,
+  shield: ShieldCheck,
+  inbox: Inbox,
+  plus: Plus,
+};
+
+export function NavIcon({ name, className = "h-4 w-4" }: { name: NavIconName; className?: string }) {
+  const Icon = icons[name];
+  return <Icon className={className} strokeWidth={1.75} aria-hidden />;
+}

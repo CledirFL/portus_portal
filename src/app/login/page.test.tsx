@@ -14,6 +14,6 @@ describe("Login page", () => {
 
     expect(screen.getByText(/entrar no portal/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/palavra-passe/i)).toBeInTheDocument();
   });
 });
