@@ -189,7 +189,7 @@ export function CollectionForm() {
               data-cy="collection-photo"
               onChange={(event) => onPhotoChange(event.target.files?.[0])}
               type="file"
-              className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-sky-100 file:px-3 file:py-2 file:font-medium file:text-sky-800"
+              className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-brand-100 file:px-3 file:py-2 file:font-medium file:text-brand-800"
             />
           </label>
           {photoError ? <p role="alert" className="text-sm text-rose-700">{photoError}</p> : null}
@@ -220,7 +220,7 @@ export function CollectionForm() {
           {recognizedText ? (
             <div
               data-cy="ocr-result"
-              className="rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950"
+              className="rounded-lg border border-brand-200 bg-brand-50 p-4 text-sm text-brand-950"
             >
               <p className="font-semibold">Texto reconhecido — confirme cada campo abaixo.</p>
               <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap font-sans">
@@ -348,7 +348,7 @@ export function CollectionForm() {
                   setConfirmedSnapshot(event.target.checked ? currentSnapshot : "")
                 }
                 type="checkbox"
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-700"
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-700"
               />
               <span>
                 Confirmo que revi e corrigi os dados da encomenda e que correspondem à

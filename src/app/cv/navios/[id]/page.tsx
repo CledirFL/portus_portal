@@ -18,7 +18,7 @@ export default function VesselDetailPage() {
         <Card>
           <h2 className="text-xl font-semibold text-slate-900">Navio não encontrado</h2>
           <p className="mt-2 text-sm text-slate-500">A operação solicitada não existe no sistema.</p>
-          <Link href="/cv/navios" className="mt-4 inline-block text-sm font-medium text-sky-700">
+          <Link href="/cv/navios" className="mt-4 inline-block text-sm font-medium text-brand-700">
             Voltar para navios
           </Link>
         </Card>
@@ -33,11 +33,11 @@ export default function VesselDetailPage() {
     <AppShell>
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-sky-600">Operação</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-brand-600">Operação</p>
           <h2 className="text-2xl font-semibold text-slate-900">{vessel.name}</h2>
         </div>
 
-        <Link href="/cv/navios" className="text-sm font-medium text-sky-700 hover:text-sky-800">
+        <Link href="/cv/navios" className="text-sm font-medium text-brand-700 hover:text-brand-800">
           Voltar
         </Link>
       </div>

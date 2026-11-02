@@ -45,7 +45,7 @@ export default function NewShipmentPage() {
           <h2 className="text-2xl font-semibold text-slate-900">Novo embarque</h2>
           <p className="text-sm text-slate-500">Registar nova operação de exportação.</p>
         </div>
-        <Link href="/exporter/shipments" className="text-sm font-medium text-sky-700 hover:text-sky-800">
+        <Link href="/exporter/shipments" className="text-sm font-medium text-brand-700 hover:text-brand-800">
           Voltar
         </Link>
       </div>

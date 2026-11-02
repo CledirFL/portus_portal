@@ -21,7 +21,7 @@ export default function PlatformDetailsPage() {
     <main className="min-h-screen bg-slate-100 text-slate-900">
       <section className="mx-auto max-w-6xl px-6 py-12 lg:px-8">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-sky-700">PORTUS</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-brand-700">PORTUS</p>
           <h1 className="mt-4 text-4xl font-bold text-slate-900 md:text-5xl">
             A plataforma que reúne a operação portuária e a documentação de carga.
           </h1>
@@ -44,7 +44,7 @@ export default function PlatformDetailsPage() {
         <div className="grid gap-6 md:grid-cols-3">
           {pillars.map((pillar) => (
             <div key={pillar.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-100 text-xl text-sky-700">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100 text-xl text-brand-700">
                 ✦
               </div>
               <h2 className="text-xl font-semibold text-slate-900">{pillar.title}</h2>

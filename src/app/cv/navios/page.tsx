@@ -36,7 +36,7 @@ export default function NaviosPage() {
                   key: "name",
                   label: "Navio",
                   render: (value, row) => (
-                    <a href={`/cv/navios/${row.id}`} className="font-medium text-sky-700 hover:text-sky-800">
+                    <a href={`/cv/navios/${row.id}`} className="font-medium text-brand-700 hover:text-brand-800">
                       {String(value)}
                     </a>
                   ),

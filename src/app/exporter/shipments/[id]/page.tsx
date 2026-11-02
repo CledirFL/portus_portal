@@ -17,7 +17,7 @@ export default function ShipmentDetailPage() {
         <Card>
           <h2 className="text-xl font-semibold text-slate-900">Embarque não encontrado</h2>
           <p className="mt-2 text-sm text-slate-500">O registo solicitado não existe no portal.</p>
-          <Link href="/exporter/shipments" className="mt-4 inline-block text-sm font-medium text-sky-700">
+          <Link href="/exporter/shipments" className="mt-4 inline-block text-sm font-medium text-brand-700">
             Voltar para embarques
           </Link>
         </Card>
@@ -29,11 +29,11 @@ export default function ShipmentDetailPage() {
     <AppShell>
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-sky-600">Embarque</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-brand-600">Embarque</p>
           <h2 className="text-2xl font-semibold text-slate-900">{shipment.code}</h2>
         </div>
 
-        <Link href="/exporter/shipments" className="text-sm font-medium text-sky-700 hover:text-sky-800">
+        <Link href="/exporter/shipments" className="text-sm font-medium text-brand-700 hover:text-brand-800">
           Voltar
         </Link>
       </div>
