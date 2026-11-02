@@ -69,7 +69,7 @@ export default function LoginPage() {
             Para agências, transitários, terminal, Alfândega e portaria.
           </p>
         </div>
-        <p className="relative text-sm text-brand-200/60">Portugal → Cabo Verde</p>
+        <p className="relative text-sm text-brand-200/60">De qualquer país para Cabo Verde</p>
       </section>
 
       <section className="flex items-center justify-center px-4 py-12 sm:px-8">

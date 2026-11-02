@@ -35,13 +35,13 @@ export default function HomePage() {
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-brand-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-star" /> Portugal → Cabo Verde
+              <span className="h-1.5 w-1.5 rounded-full bg-star" /> De qualquer país para Cabo Verde
             </p>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-              Do envio em Portugal ao levantamento em Cabo Verde.
+              Do país de origem ao levantamento em Cabo Verde.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-brand-100/80">
-              Caixas, carros, mudanças ou material de construção. Peça o envio a uma agência em poucos minutos e acompanhe cada etapa até ao levantamento.
+              Caixas, carros, mudanças ou material de construção. Escolha uma agência no país onde está, peça o envio em poucos minutos e acompanhe cada etapa até ao levantamento.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -150,7 +150,7 @@ export default function HomePage() {
 
       <footer className="border-t border-slate-100">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:justify-between sm:px-6">
-          <p>© 2026 PORTUS · Plataforma de encomendas Portugal – Cabo Verde</p>
+          <p>© 2026 PORTUS · Plataforma de encomendas para Cabo Verde</p>
           <Link href="/platform" className="hover:text-slate-800">Sobre a plataforma</Link>
         </div>
       </footer>

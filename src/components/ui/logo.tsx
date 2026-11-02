@@ -25,7 +25,7 @@ export function Logo({ tone = "dark", href = "/" }: LogoProps) {
       </span>
       <span className="leading-none">
         <span className={`block text-[15px] font-semibold tracking-tight ${text}`}>PORTUS</span>
-        <span className={`mt-0.5 block text-[11px] ${sub}`}>Portugal · Cabo Verde</span>
+        <span className={`mt-0.5 block text-[11px] ${sub}`}>Envios para Cabo Verde</span>
       </span>
     </Link>
   );

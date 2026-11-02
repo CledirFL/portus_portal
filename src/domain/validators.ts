@@ -131,7 +131,7 @@ export function validatePhone(input: string): { valid: boolean; message?: string
   const phone = normalizePhone(input);
 
   if (!/^\+\d+$/.test(phone)) {
-    return { valid: false, message: "Inclua o indicativo do país, por exemplo +238 ou +351." };
+    return { valid: false, message: "Inclua o indicativo do país, por exemplo +238 para Cabo Verde." };
   }
 
   for (const [code, rule] of Object.entries(phoneRules)) {

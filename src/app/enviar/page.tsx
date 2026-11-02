@@ -4,7 +4,7 @@ import { RequestWizard } from "@/modules/customer/components/request-wizard";
 
 export const metadata: Metadata = {
   title: "Enviar encomenda · PORTUS",
-  description: "Peça a uma agência o envio da sua carga de Portugal para Cabo Verde.",
+  description: "Peça a uma agência o envio da sua carga para Cabo Verde, a partir do país onde está.",
 };
 
 export default function SendPage() {
