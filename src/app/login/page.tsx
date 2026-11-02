@@ -1,36 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { fieldClasses } from "@/components/ui/input";
+import { Logo } from "@/components/ui/logo";
+import { useHydrated } from "@/lib/use-hydrated";
 import { mockLogin } from "@/services/mock/auth";
 import { useAuthStore } from "@/store/auth-store";
 
 const loginSchema = z.object({
   email: z.string().email("Insira um email válido."),
-  password: z.string().min(6, "A password deve ter pelo menos 6 caracteres."),
+  password: z.string().min(6, "A palavra-passe deve ter pelo menos 6 caracteres."),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
 
-const subscribe = () => () => {};
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
 
 export default function LoginPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
   const [serverError, setServerError] = useState("");
-  const isHydrated = useSyncExternalStore(
-    subscribe,
-    getClientSnapshot,
-    getServerSnapshot,
-  );
+  const isHydrated = useHydrated();
 
   const {
     register,
@@ -56,85 +51,118 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
-      <Card className="w-full max-w-md">
-        <div className="mb-6">
-          <Link href="/" className="text-sm font-medium text-sky-700 hover:text-sky-800">
-            Voltar à página inicial
-          </Link>
-          <p className="mt-4 text-xs uppercase tracking-[0.22em] text-sky-700">PORTUS</p>
-          <h1 className="mt-2 text-2xl font-semibold text-slate-900">Entrar no portal</h1>
+    <main className="grid min-h-screen bg-white lg:grid-cols-2">
+      <section className="relative hidden overflow-hidden bg-brand-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-40"
+          style={{ background: "radial-gradient(40rem 24rem at 100% 0%, rgba(59,110,240,0.55), transparent 60%)" }}
+          aria-hidden
+        />
+        <div className="relative">
+          <Logo tone="light" />
         </div>
+        <div className="relative max-w-md">
+          <h2 className="text-3xl font-semibold leading-tight tracking-tight">
+            Recolha, consolidação, despacho e levantamento num só lugar.
+          </h2>
+          <p className="mt-4 text-brand-100/75">
+            Para agências, transitários, terminal, Alfândega e portaria.
+          </p>
+        </div>
+        <p className="relative text-sm text-brand-200/60">Portugal → Cabo Verde</p>
+      </section>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4"
-          data-cy="login-form"
-          data-hydrated={isHydrated}
-        >
-          <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="username"
-              {...register("email")}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
-              placeholder="ana@portus.cv"
-            />
-            {errors.email ? (
-              <p className="mt-1 text-xs text-rose-600">{errors.email.message}</p>
-            ) : null}
+      <section className="flex items-center justify-center px-4 py-12 sm:px-8">
+        <div className="w-full max-w-sm">
+          <div className="mb-8 lg:hidden">
+            <Logo />
           </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Entrar no portal</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Quer só enviar uma encomenda?{" "}
+            <Link href="/enviar" className="font-medium text-brand-700 hover:text-brand-800">
+              Não precisa de conta
+            </Link>
+            .
+          </p>
 
-          <div>
-            <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              {...register("password")}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
-              placeholder="••••••••"
-            />
-            {errors.password ? (
-              <p className="mt-1 text-xs text-rose-600">{errors.password.message}</p>
-            ) : null}
-          </div>
-
-          {serverError ? (
-            <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-              {serverError}
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="mt-8 space-y-4"
+            data-cy="login-form"
+            data-hydrated={isHydrated}
+          >
+            <div>
+              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="username"
+                {...register("email")}
+                className={fieldClasses}
+                placeholder="nome@empresa.cv"
+              />
+              {errors.email ? (
+                <p className="mt-1 text-xs text-rose-600">{errors.email.message}</p>
+              ) : null}
             </div>
-          ) : null}
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "A entrar..." : "Entrar"}
-          </Button>
-        </form>
+            <div>
+              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Palavra-passe
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                {...register("password")}
+                className={fieldClasses}
+                placeholder="••••••••"
+              />
+              {errors.password ? (
+                <p className="mt-1 text-xs text-rose-600">{errors.password.message}</p>
+              ) : null}
+            </div>
 
-        <div className="mt-5 space-y-1 rounded-md bg-slate-100 p-3 text-xs text-slate-600">
-          <p>
-            Demo exportador: <span className="font-semibold">ana@portus.cv</span> /{" "}
-            <span className="font-semibold">PortusDemo!2026-CV</span>
-          </p>
-          <p>
-            Demo agente de recolha: <span className="font-semibold">agente@portus.cv</span> /{" "}
-            <span className="font-semibold">PortusDemo!2026-CV</span>
+            {serverError ? (
+              <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                {serverError}
+              </div>
+            ) : null}
+
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "A entrar..." : "Entrar"}
+            </Button>
+          </form>
+
+          <details className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+            <summary className="cursor-pointer font-medium text-slate-700">Contas de demonstração</summary>
+            <div className="mt-2 space-y-1">
+              <p>
+                Exportador: <span className="font-semibold">ana@portus.cv</span>
+              </p>
+              <p>
+                Agente de recolha: <span className="font-semibold">agente@portus.cv</span>
+              </p>
+              <p>
+                Administrador: <span className="font-semibold">joao@portus.cv</span>
+              </p>
+              <p>
+                Palavra-passe: <span className="font-semibold">PortusDemo!2026-CV</span>
+              </p>
+            </div>
+          </details>
+
+          <p className="mt-6 text-center text-sm text-slate-500">
+            Empresa sem conta?{" "}
+            <Link href="/register" className="font-medium text-brand-700 hover:text-brand-800">
+              Pedir acesso
+            </Link>
           </p>
         </div>
-
-        <div className="mt-5 flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
-          <span className="text-slate-600">Ainda não tem conta?</span>
-          <Link href="/register" className="font-medium text-sky-700 hover:text-sky-800">
-            Criar conta
-          </Link>
-        </div>
-      </Card>
+      </section>
     </main>
   );
 }
