@@ -1,16 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
-  createShipmentRequest,
-  generateRequestReference,
-  matchesPublicLookup,
+  nextRequestStatuses,
+  requestStatuses,
+  requestStatusLabels,
   shipmentRequestSchema,
-  transitionRequest,
   type ShipmentRequestInput,
 } from "@/domain/shipment-request";
 
 const validInput: ShipmentRequestInput = {
   dispatchCountry: "PT",
-  agencyId: "AG-LIS",
+  agencyId: "2f47f7b9-d76b-404b-841b-00dfc678542b",
   category: "encomenda_pequena",
   description: "Roupa e alimentos para a família",
   details: { quantity: "3", approxWeightKg: "" },
@@ -44,31 +43,15 @@ describe("shipment request schema", () => {
   });
 });
 
-describe("shipment request lifecycle", () => {
-  const request = createShipmentRequest(validInput, { id: "r1", reference: "PED-ABC234", now: "2026-11-02T09:00:00Z" });
-
-  it("starts as Submetido with normalized phones and empty details removed", () => {
-    expect(request.status).toBe("Submetido");
-    expect(request.sender.phone).toBe("+351912345678");
-    expect(request.details).toEqual({ quantity: "3" });
-    expect(request.pickupAddress).toBeUndefined();
+describe("request statuses", () => {
+  it("has a visible label for every API status code", () => {
+    for (const status of requestStatuses) {
+      expect(requestStatusLabels[status]).toBeTruthy();
+    }
   });
 
-  it("records transitions and rejects invalid ones", () => {
-    const accepted = transitionRequest(request, "Aceite", { userId: "agent", at: "2026-11-02T10:00:00Z" });
-    expect(accepted.history).toHaveLength(1);
-    expect(() => transitionRequest(accepted, "Submetido", { userId: "agent" })).toThrow();
-  });
-
-  it("only allows public lookup with reference and sender phone (BR 42)", () => {
-    expect(matchesPublicLookup(request, "ped-abc234", "+351 912 345 678")).toBe(true);
-    expect(matchesPublicLookup(request, "PED-ABC234", "+238 991 22 33")).toBe(false);
-  });
-});
-
-describe("generateRequestReference", () => {
-  it("uses an unambiguous alphabet", () => {
-    const reference = generateRequestReference();
-    expect(reference).toMatch(/^PED-[A-HJ-NP-Z2-9]{6}$/);
+  it("offers only the transitions the API allows", () => {
+    expect(nextRequestStatuses("submitted")).toEqual(["accepted", "rejected", "cancelled"]);
+    expect(nextRequestStatuses("converted")).toEqual([]);
   });
 });

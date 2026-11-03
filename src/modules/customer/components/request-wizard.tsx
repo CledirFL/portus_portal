@@ -19,10 +19,11 @@ import {
   type ShipmentRequest,
   type ShipmentRequestInput,
 } from "@/domain/shipment-request";
-import { submitShipmentRequest } from "@/data/requests-repository";
+import { ApiError } from "@/lib/api-client";
 import { useHydrated } from "@/lib/use-hydrated";
 import { fetchAgencies } from "@/services/api/agencies";
-import { mockRegisterCustomer } from "@/services/mock/auth";
+import { registerCustomer } from "@/services/api/auth";
+import { submitShipmentRequest } from "@/services/api/shipment-requests";
 import { useAuthStore } from "@/store/auth-store";
 
 const steps = ["O que vai enviar", "Destino e agência", "Contactos", "Confirmar"] as const;
@@ -39,6 +40,16 @@ const defaultValues: ShipmentRequestInput = {
   recipient: { name: "", phone: "+238 ", island: "Santiago", nif: "" },
 };
 
+// Nomes legíveis para erros devolvidos pela API sobre campos de outros passos.
+const fieldNames: Record<string, string> = {
+  agencyId: "Agência",
+  handover: "Entrega da carga",
+  dispatchCountry: "País de onde envia",
+  "recipient.island": "Ilha de destino",
+  "recipient.phone": "Telefone do destinatário",
+  "sender.phone": "O seu telefone",
+};
+
 const stepFields: Array<FieldPath<ShipmentRequestInput>[]> = [
   ["category", "description"],
   ["dispatchCountry", "recipient.island", "agencyId", "handover"],
@@ -51,7 +62,6 @@ function formatDate(value?: string) {
 
 export function RequestWizard() {
   const user = useAuthStore((state) => state.user);
-  const setUser = useAuthStore((state) => state.setUser);
   const isCustomer = user?.role === "cliente";
   const isHydrated = useHydrated();
 
@@ -62,6 +72,7 @@ export function RequestWizard() {
   const [account, setAccount] = useState({ email: "", password: "" });
   const [accountError, setAccountError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [linkedToAccount, setLinkedToAccount] = useState(false);
   const [allAgencies, setAllAgencies] = useState<Agency[] | null>(null);
   const [agenciesError, setAgenciesError] = useState("");
 
@@ -138,38 +149,41 @@ export function RequestWizard() {
     setSubmitError("");
     setAccountError("");
 
-    try {
-      let customerId = isCustomer ? user.id : undefined;
-
-      if (!isCustomer && createAccount) {
-        if (!/^\S+@\S+\.\S+$/.test(account.email) || account.password.length < 8) {
-          setAccountError("Indique um email válido e uma palavra-passe com pelo menos 8 caracteres.");
-          return;
-        }
-        const result = await mockRegisterCustomer({
+    if (!isCustomer && createAccount) {
+      if (!/^\S+@\S+\.\S+$/.test(account.email) || account.password.length < 8) {
+        setAccountError("Indique um email válido e uma palavra-passe com pelo menos 8 caracteres.");
+        return;
+      }
+      try {
+        // Cria a conta e inicia sessão; o pedido seguinte fica associado a ela.
+        await registerCustomer({
           name: input.sender.name,
           email: account.email,
           phone: input.sender.phone,
           password: account.password,
         });
-        setUser(result.user);
-        customerId = result.user.id;
+      } catch (error) {
+        setAccountError(error instanceof Error ? error.message : "Não foi possível criar a conta.");
+        return;
       }
+    }
 
-      setSubmitted(await submitShipmentRequest(input, customerId));
+    try {
+      const request = await submitShipmentRequest(input);
+      setLinkedToAccount(useAuthStore.getState().user?.role === "cliente");
+      setSubmitted(request);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Não foi possível enviar o pedido.";
-      if (createAccount) {
-        setAccountError(message);
+      if (error instanceof ApiError && error.issues.length) {
+        setSubmitError(error.issues.map((issue) => `${fieldNames[issue.path] ?? issue.path}: ${issue.message}`).join(" "));
       } else {
-        setSubmitError(message);
+        setSubmitError(error instanceof Error ? error.message : "Não foi possível enviar o pedido.");
       }
     }
   };
 
   if (submitted) {
-    const agency = allAgencies?.find((item) => item.id === submitted.agencyId);
+    const { agency } = submitted;
     return (
       <Card className="mx-auto max-w-xl text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
@@ -195,7 +209,7 @@ export function RequestWizard() {
           </button>
         </div>
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
-          {submitted.customerId ? (
+          {linkedToAccount ? (
             <Link href="/cliente">
               <Button className="w-full sm:w-auto">Ver os meus pedidos</Button>
             </Link>

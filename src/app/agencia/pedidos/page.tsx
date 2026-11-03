@@ -9,44 +9,54 @@ import { Card } from "@/components/ui/card";
 import { Input, fieldClasses } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
-import { listRequestsByAgency, updateRequestStatus } from "@/data/requests-repository";
 import { getCargoType } from "@/domain/cargo-types";
 import { nextRequestStatuses, type RequestStatus, type ShipmentRequest } from "@/domain/shipment-request";
-import { getAgency } from "@/mocks/agencies";
 import { RequestStatusBadge } from "@/modules/customer/components/request-status";
+import { agencyShipmentRequestAction, listAgencyShipmentRequests } from "@/services/api/shipment-requests";
 import { useAuthStore } from "@/store/auth-store";
 
+type AgencyTarget = Exclude<RequestStatus, "submitted">;
+
 const filters: Array<{ key: string; label: string; statuses: RequestStatus[] }> = [
-  { key: "open", label: "Por tratar", statuses: ["Submetido"] },
-  { key: "progress", label: "Em curso", statuses: ["Aceite", "Recolha agendada"] },
-  { key: "closed", label: "Fechados", statuses: ["Convertido", "Recusado", "Cancelado"] },
+  { key: "open", label: "Por tratar", statuses: ["submitted"] },
+  { key: "progress", label: "Em curso", statuses: ["accepted", "pickup_scheduled"] },
+  { key: "closed", label: "Fechados", statuses: ["converted", "rejected", "cancelled"] },
 ];
 
-const actionLabels: Partial<Record<RequestStatus, string>> = {
-  Aceite: "Aceitar",
-  "Recolha agendada": "Agendar",
-  Convertido: "Carga recebida",
-  Recusado: "Recusar",
-  Cancelado: "Cancelar",
+const actionLabels: Record<AgencyTarget, string> = {
+  accepted: "Aceitar",
+  pickup_scheduled: "Agendar",
+  converted: "Carga recebida",
+  rejected: "Recusar",
+  cancelled: "Cancelar",
 };
+
+const needsReason = (to: RequestStatus) => to === "rejected" || to === "cancelled";
 
 export default function AgencyRequestsPage() {
   const user = useAuthStore((state) => state.user);
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
+  const [loadError, setLoadError] = useState("");
   const [filter, setFilter] = useState("open");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Admin vê todas as agências; o agente só a sua (BR 28).
-  const agencyId = user?.role === "admin" ? undefined : user?.agencyId;
-  const agency = agencyId ? getAgency(agencyId) : undefined;
-
+  // A API já filtra pela agência do agente (BR 28); o admin recebe todas.
   const reload = useCallback(() => {
-    void listRequestsByAgency(agencyId).then(setRequests);
-  }, [agencyId]);
+    listAgencyShipmentRequests()
+      .then((items) => {
+        setRequests(items);
+        setLoadError("");
+      })
+      .catch((error: unknown) =>
+        setLoadError(error instanceof Error ? error.message : "Não foi possível carregar os pedidos."),
+      );
+  }, []);
 
   useEffect(() => {
-    reload();
-  }, [reload]);
+    if (user) {
+      reload();
+    }
+  }, [reload, user]);
 
   const counts = useMemo(
     () => Object.fromEntries(filters.map((item) => [item.key, requests.filter((request) => item.statuses.includes(request.status)).length])),
@@ -54,14 +64,21 @@ export default function AgencyRequestsPage() {
   );
   const visible = requests.filter((request) => filters.find((item) => item.key === filter)?.statuses.includes(request.status));
   const selected = requests.find((request) => request.id === selectedId) ?? visible[0];
+  const agencyName = user?.role === "admin" ? "Todas as agências" : requests[0]?.agency.name;
 
   return (
     <AppShell>
       <PageHeader
-        eyebrow={agency?.name ?? "Todas as agências"}
+        eyebrow={agencyName}
         title="Pedidos de clientes"
         description="Pedidos feitos no portal público. Confirme os dados com o cliente antes de registar a encomenda."
       />
+
+      {loadError ? (
+        <div role="alert" className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {loadError}
+        </div>
+      ) : null}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <StatCard label="Por tratar" value={counts.open ?? 0} tone="warning" icon={<Inbox className="h-4 w-4" />} />
@@ -114,14 +131,17 @@ export default function AgencyRequestsPage() {
                       <span className="mt-0.5 block truncate text-sm text-slate-700">
                         {request.sender.name} → {request.recipient.island}
                       </span>
-                      <span className="mt-0.5 block truncate text-xs text-slate-500">{type.publicLabel}</span>
+                      <span className="mt-0.5 block truncate text-xs text-slate-500">
+                        {type.publicLabel}
+                        {user?.role === "admin" ? ` · ${request.agency.name}` : ""}
+                      </span>
                     </span>
                   </button>
                 </li>
               );
             })}
           </ul>
-          {selected ? <RequestPanel key={selected.id} request={selected} userId={user?.id ?? ""} onChange={reload} /> : null}
+          {selected ? <RequestPanel key={selected.id} request={selected} onChange={reload} /> : null}
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center text-sm text-slate-500">
@@ -132,40 +152,41 @@ export default function AgencyRequestsPage() {
   );
 }
 
-function RequestPanel({ request, userId, onChange }: { request: ShipmentRequest; userId: string; onChange: () => void }) {
+function RequestPanel({ request, onChange }: { request: ShipmentRequest; onChange: () => void }) {
   const type = getCargoType(request.category);
-  const [scheduledFor, setScheduledFor] = useState(request.scheduledFor?.slice(0, 16) ?? "");
+  const [scheduledFor, setScheduledFor] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const act = async (to: RequestStatus) => {
+  const act = async (to: AgencyTarget) => {
     setError("");
-    if ((to === "Recusado" || to === "Cancelado") && !note.trim()) {
+    const text = note.trim() || undefined;
+    if (needsReason(to) && !text) {
       setError("Indique o motivo para o cliente.");
       return;
     }
-    if (to === "Recolha agendada" && !scheduledFor) {
+    if (to === "pickup_scheduled" && !scheduledFor) {
       setError("Escolha a data e hora.");
       return;
     }
+
+    setBusy(true);
     try {
-      await updateRequestStatus(
-        request.id,
-        to,
-        { userId, reason: note.trim() || undefined },
-        {
-          ...(to === "Recolha agendada" ? { scheduledFor: new Date(scheduledFor).toISOString() } : {}),
-          ...(note.trim() ? { agencyNote: note.trim() } : {}),
-        },
-      );
+      await agencyShipmentRequestAction(request.id, to, {
+        ...(needsReason(to) ? { reason: text } : { note: text }),
+        ...(to === "pickup_scheduled" ? { scheduledFor: new Date(scheduledFor).toISOString() } : {}),
+      });
       setNote("");
       onChange();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível atualizar o pedido.");
+    } finally {
+      setBusy(false);
     }
   };
 
-  const actions = nextRequestStatuses(request.status);
+  const actions = nextRequestStatuses(request.status) as AgencyTarget[];
 
   return (
     <Card className="h-fit lg:sticky lg:top-20">
@@ -195,7 +216,12 @@ function RequestPanel({ request, userId, onChange }: { request: ShipmentRequest;
       ) : null}
 
       <div className="mt-5 grid gap-4 border-t border-slate-100 pt-4 text-sm sm:grid-cols-2">
-        <Contact title="Remetente" name={request.sender.name} phone={request.sender.phone} extra={request.sender.email} />
+        <Contact
+          title="Remetente"
+          name={request.sender.name}
+          phone={request.sender.phone}
+          extra={request.sender.email ?? undefined}
+        />
         <Contact
           title="Destinatário"
           name={request.recipient.name}
@@ -221,6 +247,11 @@ function RequestPanel({ request, userId, onChange }: { request: ShipmentRequest;
           {new Date(request.scheduledFor).toLocaleString("pt-PT", { dateStyle: "medium", timeStyle: "short" })}
         </p>
       ) : null}
+      {request.agencyNote ? (
+        <p className="mt-2 text-sm text-slate-600">
+          <span className="font-medium">Última nota ao cliente:</span> {request.agencyNote}
+        </p>
+      ) : null}
 
       {type.requiredDocuments.length ? (
         <p className="mt-3 text-xs text-slate-500">
@@ -230,7 +261,7 @@ function RequestPanel({ request, userId, onChange }: { request: ShipmentRequest;
 
       {actions.length ? (
         <div className="mt-5 space-y-3 border-t border-slate-100 pt-4">
-          {actions.includes("Recolha agendada") ? (
+          {actions.includes("pickup_scheduled") ? (
             <Input
               label={request.handover === "recolha" ? "Data e hora da recolha" : "Data e hora para entregar na agência"}
               type="datetime-local"
@@ -248,11 +279,12 @@ function RequestPanel({ request, userId, onChange }: { request: ShipmentRequest;
               <Button
                 key={to}
                 size="sm"
-                variant={to === "Recusado" || to === "Cancelado" ? "outline" : "primary"}
+                variant={needsReason(to) ? "outline" : "primary"}
+                disabled={busy}
                 onClick={() => act(to)}
               >
-                {to === "Recusado" || to === "Cancelado" ? <XCircle className="h-3.5 w-3.5" /> : null}
-                {actionLabels[to] ?? to}
+                {needsReason(to) ? <XCircle className="h-3.5 w-3.5" /> : null}
+                {actionLabels[to]}
               </Button>
             ))}
           </div>

@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
-import { listRequestsByCustomer } from "@/data/requests-repository";
+import { listMyShipmentRequests } from "@/services/api/shipment-requests";
 import type { ShipmentRequest } from "@/domain/shipment-request";
 import { RequestCard } from "@/modules/customer/components/request-card";
 import { useAuthStore } from "@/store/auth-store";
@@ -17,7 +17,9 @@ export default function CustomerHomePage() {
 
   useEffect(() => {
     if (user) {
-      void listRequestsByCustomer(user.id).then(setRequests);
+      void listMyShipmentRequests()
+        .then(setRequests)
+        .catch(() => setRequests([]));
     }
   }, [user]);
 
