@@ -3,8 +3,10 @@
 Base: *Documento de Requisitos v1.0 (26/10/2026)* + pedido novo de **portal público do cliente**.
 Data da análise: 02/11/2026.
 
-> **Âmbito:** a plataforma cobre cargas de **qualquer país** que exporte para Cabo Verde. O documento de
-> requisitos fala de Portugal, mas Portugal é apenas uma das origens. O destino é sempre Cabo Verde.
+> **Âmbito:** a plataforma cobre envios para Cabo Verde a partir de **qualquer país** onde os cabo-verdianos
+> vivem ou compram (Portugal, França, Espanha, Américas, China, entre outros). O documento de requisitos fala
+> de Portugal, mas é apenas um desses países de envio. O destino é sempre Cabo Verde. Na interface diz-se
+> "país de onde envia" e não "país de origem", que é o país de fabrico das mercadorias (campo aduaneiro).
 
 ---
 
@@ -51,7 +53,7 @@ Não existe servidor, base de dados nem API. Quase todas as páginas da Parte A 
 ## 2. Requisito novo: portal público do cliente
 
 Um cliente (remetente) pode, **sem criar conta**:
-1. Escolher o **país de origem** e a **agência** que vai tratar o envio (agências desse país, com cidade, ilhas servidas, contacto).
+1. Escolher o **país de onde envia** e a **agência** que vai tratar o envio (agências desse país, com cidade, ilhas servidas, contacto).
 2. Escolher o **tipo de carga** de forma simples — *Caixa / encomenda pequena*, *Veículo*, *Mudança / móveis*, *Material de construção*, *Máquina / equipamento*, *Mercadoria comercial*, *Outro*.
 3. Dar uma descrição curta e só os dados mínimos de cada tipo (ex.: caixa → nº de caixas e peso aproximado; carro → marca, modelo, ano).
 4. Indicar contactos do remetente e do destinatário (ilha de destino).
