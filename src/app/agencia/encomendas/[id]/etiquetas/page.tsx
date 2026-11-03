@@ -72,7 +72,7 @@ export default function ShipmentLabelsPage() {
               <div className="mt-4 flex gap-5">
                 <QrCode value={label.qr} label={`QR do volume ${label.volumeCode}`} size={150} />
                 <div className="min-w-0 flex-1">
-                  <p className="font-mono text-2xl font-bold tracking-wider">{label.volumeCode}</p>
+                  <p className="whitespace-nowrap font-mono text-xl font-bold tracking-wide">{label.volumeCode}</p>
                   <p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Destinatário</p>
                   <p className="text-lg font-semibold leading-tight">{data.shipment.recipient.name}</p>
                   <p className="text-base font-bold uppercase">{data.shipment.recipient.island}</p>
