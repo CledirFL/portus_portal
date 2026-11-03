@@ -67,7 +67,7 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-brand-950 px-4 py-5 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-64 print:hidden! shrink-0 flex-col bg-brand-950 px-4 py-5 md:flex">
         <div className="mb-8 px-2">
           <Logo tone="light" />
         </div>
@@ -75,7 +75,7 @@ export function Sidebar() {
         {footer}
       </aside>
 
-      <div className="sticky top-0 z-30 flex items-center justify-between bg-brand-950 px-4 py-3 md:hidden">
+      <div className="sticky top-0 z-30 flex items-center justify-between bg-brand-950 px-4 py-3 md:hidden print:hidden">
         <Logo tone="light" />
         <button
           type="button"

@@ -58,7 +58,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar />
 
       <main className="min-w-0 flex-1">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-slate-200/80 bg-white/85 px-4 backdrop-blur sm:px-8">
+        <header className="sticky top-0 z-20 flex h-14 print:hidden items-center justify-between gap-3 border-b border-slate-200/80 bg-white/85 px-4 backdrop-blur sm:px-8">
           <p className="truncate text-sm text-slate-500">
             <span className="hidden sm:inline">{roleLabels[user.role]}</span>
             {section ? (
