@@ -4,10 +4,11 @@ import { fieldClasses, fieldErrorClasses } from "@/components/ui/input";
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
+  hint?: string;
   options: Array<{ value: string; label: string }>;
 }
 
-export function Select({ label, error, options, className = "", ...props }: SelectProps) {
+export function Select({ label, error, hint, options, className = "", ...props }: SelectProps) {
   return (
     <label className="block w-full">
       {label ? <span className="mb-1.5 block text-sm font-medium text-slate-700">{label}</span> : null}
@@ -18,7 +19,11 @@ export function Select({ label, error, options, className = "", ...props }: Sele
           </option>
         ))}
       </select>
-      {error ? <span className="mt-1 block text-xs text-rose-600">{error}</span> : null}
+      {error ? (
+        <span className="mt-1 block text-xs text-rose-600">{error}</span>
+      ) : hint ? (
+        <span className="mt-1 block text-xs text-slate-500">{hint}</span>
+      ) : null}
     </label>
   );
 }
