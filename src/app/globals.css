@@ -26,6 +26,34 @@
   --color-brand-900: #1d3280;
   --color-brand-950: #121d4a;
   --color-star: #f7c600;
+
+  /* Movimento ambiente da página inicial (navio a balançar, ondas, nuvens). */
+  --animate-bob: bob 4s ease-in-out infinite;
+  --animate-wave: wave 5s linear infinite;
+  --animate-drift: drift 60s linear infinite alternate;
+
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-3px) rotate(-0.6deg);
+    }
+  }
+
+  /* Desloca exatamente um período da onda (80 unidades) para o ciclo não saltar. */
+  @keyframes wave {
+    to {
+      transform: translateX(-80px);
+    }
+  }
+
+  @keyframes drift {
+    to {
+      transform: translateX(-120px);
+    }
+  }
 }
 
 * {
