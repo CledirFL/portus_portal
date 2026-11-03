@@ -2,7 +2,11 @@ import Link from "next/link";
 import { ArrowRight, Building2, FileCheck2, PackageCheck, QrCode, Search, Ship, ShieldCheck, Warehouse } from "lucide-react";
 import { CargoTypeIcon } from "@/components/cargo-type-icon";
 import { PublicHeader } from "@/components/layout/public-header";
+import { RotatingText } from "@/components/ui/rotating-text";
 import { cargoTypes } from "@/domain/cargo-types";
+
+// Países de envio em destaque por agora; a preposição muda com o país.
+const heroDispatchPlaces = ["em Portugal", "na América", "em França"];
 
 const journey = [
   { icon: PackageCheck, title: "Pedido e recolha", text: "Escolhe a agência, descreve a carga e entrega-a ou pede a recolha em casa." },
@@ -38,7 +42,14 @@ export default function HomePage() {
               <span className="h-1.5 w-1.5 rounded-full bg-star" /> De qualquer país para Cabo Verde
             </p>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-              De onde estiver até ao levantamento em Cabo Verde.
+              <span className="sr-only">
+                Do envio em Portugal, na América ou em França ao levantamento em Cabo Verde.
+              </span>
+              <span aria-hidden>
+                Do envio <RotatingText items={heroDispatchPlaces} className="text-star" />
+                {/* No telemóvel o resto vai para a linha seguinte, para o espaço reservado não ficar a meio. */}
+                <br className="sm:hidden" /> ao levantamento em Cabo Verde.
+              </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-brand-100/80">
               Caixas, carros, mudanças ou material de construção. Escolha uma agência no país onde está, peça o envio em poucos minutos e acompanhe cada etapa até ao levantamento.
