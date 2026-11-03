@@ -1,6 +1,6 @@
-import { createId, readCollection, writeCollection } from "@/data/browser-store";
+// Registo de empresas ainda simulado: as contas de equipa passam a ser criadas pelo administrador na API.
 import { defaultRouteByRole } from "@/lib/permissions";
-import { mockPassword, mockUserCredentials, mockUsers } from "@/mocks/users";
+import { mockUserCredentials, mockUsers } from "@/mocks/users";
 import type { Role, User } from "@/types/user";
 
 interface RegisterPayload {
@@ -47,76 +47,5 @@ export async function mockRegister(payload: RegisterPayload) {
   return {
     user: createdUser,
     redirectTo: defaultRouteByRole[payload.role],
-  };
-}
-
-// Contas de cliente da demo ficam no navegador para sobreviverem a um refresh.
-// Apenas para demonstração: na Fase 5 isto passa para o servidor com hash.
-const customerAccountsKey = "portus-customer-accounts";
-
-interface CustomerAccount {
-  user: User;
-  password: string;
-}
-
-interface CustomerRegisterPayload {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-}
-
-export async function mockRegisterCustomer(payload: CustomerRegisterPayload) {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  const email = payload.email.trim().toLowerCase();
-  const accounts = readCollection<CustomerAccount>(customerAccountsKey);
-
-  if (
-    mockUsers.some((user) => user.email.toLowerCase() === email) ||
-    accounts.some((account) => account.user.email === email)
-  ) {
-    throw new Error("Este email já tem conta. Entre com a sua palavra-passe.");
-  }
-
-  const user: User = {
-    id: `cli-${createId()}`,
-    name: payload.name.trim(),
-    email,
-    phone: payload.phone,
-    role: "cliente",
-    company: "Particular",
-    status: "active",
-    lastActive: "Agora",
-    createdAt: new Date().toISOString().slice(0, 10),
-  };
-
-  writeCollection(customerAccountsKey, [...accounts, { user, password: payload.password }]);
-  return { user, redirectTo: defaultRouteByRole.cliente };
-}
-
-export async function mockLogin(email: string, password: string) {
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  const customer = readCollection<CustomerAccount>(customerAccountsKey).find(
-    (account) => account.user.email === email.trim().toLowerCase(),
-  );
-  if (customer) {
-    if (customer.password !== password) {
-      throw new Error("Palavra-passe incorreta.");
-    }
-    return { user: customer.user, redirectTo: defaultRouteByRole.cliente };
-  }
-
-  const user = mockUsers.find((entry) => entry.email.toLowerCase() === email.toLowerCase());
-  const savedPassword = mockUserCredentials[email.toLowerCase()] ?? mockPassword;
-
-  if (!user || password !== savedPassword) {
-    throw new Error("Credenciais inválidas. Confirme o email e a palavra-passe.");
-  }
-
-  return {
-    user,
-    redirectTo: defaultRouteByRole[user.role],
   };
 }

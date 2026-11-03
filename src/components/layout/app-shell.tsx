@@ -4,8 +4,8 @@ import { useEffect, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { isAllowedRoute, roleLabels, roleNavigation } from "@/lib/permissions";
-import { mockUsers } from "@/mocks/users";
 import { useAuthStore } from "@/store/auth-store";
+import { logout } from "@/services/api/auth";
 import { Sidebar, findActiveNavItem } from "@/components/layout/sidebar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -13,30 +13,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
-  const setUser = useAuthStore((state) => state.setUser);
-  const clearUser = useAuthStore((state) => state.clearUser);
   // O persist do Zustand já repõe a sessão; só esperamos que termine.
   const isHydrated = useSyncExternalStore(
     (onChange) => useAuthStore.persist.onFinishHydration(onChange),
     () => useAuthStore.persist.hasHydrated(),
     () => false,
   );
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const demoRole = params.get("demo");
-
-    if (demoRole && !user) {
-      const demoUser = mockUsers.find((entry) => entry.role === demoRole);
-      if (demoUser) {
-        setUser(demoUser);
-      }
-    }
-  }, [user, setUser]);
 
   useEffect(() => {
     const publicRoutes = ["/login", "/unauthorized", "/enviar", "/acompanhar"];
@@ -96,8 +78,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
             <button
               type="button"
-              onClick={() => {
-                clearUser();
+              onClick={async () => {
+                await logout().catch(() => undefined);
                 router.push("/login");
               }}
               className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"

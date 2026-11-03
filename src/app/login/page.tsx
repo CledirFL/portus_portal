@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { fieldClasses } from "@/components/ui/input";
 import { Logo } from "@/components/ui/logo";
 import { useHydrated } from "@/lib/use-hydrated";
-import { mockLogin } from "@/services/mock/auth";
-import { useAuthStore } from "@/store/auth-store";
+import { login } from "@/services/api/auth";
 
 const loginSchema = z.object({
   email: z.string().email("Insira um email válido."),
@@ -23,7 +22,6 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const setUser = useAuthStore((state) => state.setUser);
   const [serverError, setServerError] = useState("");
   const isHydrated = useHydrated();
 
@@ -42,8 +40,7 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginValues) => {
     try {
       setServerError("");
-      const result = await mockLogin(values.email, values.password);
-      setUser(result.user);
+      const result = await login(values.email, values.password);
       router.push(result.redirectTo);
     } catch (error) {
       setServerError(error instanceof Error ? error.message : "Erro ao iniciar sessão.");
@@ -69,7 +66,7 @@ export default function LoginPage() {
             Para agências, transitários, terminal, Alfândega e portaria.
           </p>
         </div>
-        <p className="relative text-sm text-brand-200/60">Portugal → Cabo Verde</p>
+        <p className="relative text-sm text-brand-200/60">De qualquer país para Cabo Verde</p>
       </section>
 
       <section className="flex items-center justify-center px-4 py-12 sm:px-8">

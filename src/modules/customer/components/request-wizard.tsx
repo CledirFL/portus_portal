@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useWatch, type FieldPath } from "react-hook-form";
 import { Check, CheckCircle2, Copy, MapPin, Truck, Store as StoreIcon, CalendarDays } from "lucide-react";
 import { CargoTypeIcon } from "@/components/cargo-type-icon";
@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, fieldClasses, fieldErrorClasses } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { agenciesFor } from "@/domain/agency";
+import { agenciesFor, servedCountryCodes, type Agency } from "@/domain/agency";
+import { getDispatchCountry, dispatchCountries } from "@/domain/countries";
 import { cargoTypes, getCargoType, missingPublicFields } from "@/domain/cargo-types";
 import {
   caboVerdeIslands,
@@ -18,28 +19,40 @@ import {
   type ShipmentRequest,
   type ShipmentRequestInput,
 } from "@/domain/shipment-request";
-import { submitShipmentRequest } from "@/data/requests-repository";
+import { ApiError } from "@/lib/api-client";
 import { useHydrated } from "@/lib/use-hydrated";
-import { mockAgencies } from "@/mocks/agencies";
-import { mockRegisterCustomer } from "@/services/mock/auth";
+import { fetchAgencies } from "@/services/api/agencies";
+import { registerCustomer } from "@/services/api/auth";
+import { submitShipmentRequest } from "@/services/api/shipment-requests";
 import { useAuthStore } from "@/store/auth-store";
 
 const steps = ["O que vai enviar", "Destino e agência", "Contactos", "Confirmar"] as const;
 
 const defaultValues: ShipmentRequestInput = {
+  dispatchCountry: "",
   agencyId: "",
   category: "encomenda_pequena",
   description: "",
   details: {},
   handover: "entrega_na_agencia",
   pickupAddress: "",
-  sender: { name: "", phone: "+351 ", email: "" },
+  sender: { name: "", phone: "", email: "" },
   recipient: { name: "", phone: "+238 ", island: "Santiago", nif: "" },
+};
+
+// Nomes legíveis para erros devolvidos pela API sobre campos de outros passos.
+const fieldNames: Record<string, string> = {
+  agencyId: "Agência",
+  handover: "Entrega da carga",
+  dispatchCountry: "País de onde envia",
+  "recipient.island": "Ilha de destino",
+  "recipient.phone": "Telefone do destinatário",
+  "sender.phone": "O seu telefone",
 };
 
 const stepFields: Array<FieldPath<ShipmentRequestInput>[]> = [
   ["category", "description"],
-  ["recipient.island", "agencyId", "handover"],
+  ["dispatchCountry", "recipient.island", "agencyId", "handover"],
   ["sender.name", "sender.phone", "sender.email", "recipient.name", "recipient.phone", "recipient.nif"],
 ];
 
@@ -49,7 +62,6 @@ function formatDate(value?: string) {
 
 export function RequestWizard() {
   const user = useAuthStore((state) => state.user);
-  const setUser = useAuthStore((state) => state.setUser);
   const isCustomer = user?.role === "cliente";
   const isHydrated = useHydrated();
 
@@ -60,6 +72,19 @@ export function RequestWizard() {
   const [account, setAccount] = useState({ email: "", password: "" });
   const [accountError, setAccountError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [linkedToAccount, setLinkedToAccount] = useState(false);
+  const [allAgencies, setAllAgencies] = useState<Agency[] | null>(null);
+  const [agenciesError, setAgenciesError] = useState("");
+
+  useEffect(() => {
+    fetchAgencies()
+      .then(setAllAgencies)
+      .catch(() => setAgenciesError("Não foi possível carregar as agências. Verifique a ligação e recarregue a página."));
+  }, []);
+
+  // Só se oferecem países de onde envia onde existe pelo menos uma agência ativa.
+  const servedCodes = servedCountryCodes(allAgencies ?? []);
+  const countryOptions = dispatchCountries.filter((country) => servedCodes.includes(country.code));
 
   const {
     control,
@@ -76,7 +101,7 @@ export function RequestWizard() {
     defaultValues: {
       ...defaultValues,
       sender: isCustomer
-        ? { name: user.name, phone: user.phone ?? "+351 ", email: user.email }
+        ? { name: user.name, phone: user.phone ?? "", email: user.email }
         : defaultValues.sender,
     },
   });
@@ -84,8 +109,13 @@ export function RequestWizard() {
   const values = useWatch({ control });
   const category = values.category ?? "encomenda_pequena";
   const cargoType = getCargoType(category);
-  const agencies = agenciesFor(mockAgencies, { category, island: values.recipient?.island });
+  const agencies = agenciesFor(allAgencies ?? [], {
+    countryCode: values.dispatchCountry,
+    category,
+    island: values.recipient?.island,
+  });
   const selectedAgency = agencies.find((agency) => agency.id === values.agencyId);
+  const dispatchCountry = values.dispatchCountry ? getDispatchCountry(values.dispatchCountry) : undefined;
 
   const goNext = async () => {
     let valid = await trigger(stepFields[step]);
@@ -119,38 +149,41 @@ export function RequestWizard() {
     setSubmitError("");
     setAccountError("");
 
-    try {
-      let customerId = isCustomer ? user.id : undefined;
-
-      if (!isCustomer && createAccount) {
-        if (!/^\S+@\S+\.\S+$/.test(account.email) || account.password.length < 8) {
-          setAccountError("Indique um email válido e uma palavra-passe com pelo menos 8 caracteres.");
-          return;
-        }
-        const result = await mockRegisterCustomer({
+    if (!isCustomer && createAccount) {
+      if (!/^\S+@\S+\.\S+$/.test(account.email) || account.password.length < 8) {
+        setAccountError("Indique um email válido e uma palavra-passe com pelo menos 8 caracteres.");
+        return;
+      }
+      try {
+        // Cria a conta e inicia sessão; o pedido seguinte fica associado a ela.
+        await registerCustomer({
           name: input.sender.name,
           email: account.email,
           phone: input.sender.phone,
           password: account.password,
         });
-        setUser(result.user);
-        customerId = result.user.id;
+      } catch (error) {
+        setAccountError(error instanceof Error ? error.message : "Não foi possível criar a conta.");
+        return;
       }
+    }
 
-      setSubmitted(await submitShipmentRequest(input, customerId));
+    try {
+      const request = await submitShipmentRequest(input);
+      setLinkedToAccount(useAuthStore.getState().user?.role === "cliente");
+      setSubmitted(request);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Não foi possível enviar o pedido.";
-      if (createAccount) {
-        setAccountError(message);
+      if (error instanceof ApiError && error.issues.length) {
+        setSubmitError(error.issues.map((issue) => `${fieldNames[issue.path] ?? issue.path}: ${issue.message}`).join(" "));
       } else {
-        setSubmitError(message);
+        setSubmitError(error instanceof Error ? error.message : "Não foi possível enviar o pedido.");
       }
     }
   };
 
   if (submitted) {
-    const agency = mockAgencies.find((item) => item.id === submitted.agencyId);
+    const { agency } = submitted;
     return (
       <Card className="mx-auto max-w-xl text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
@@ -176,7 +209,7 @@ export function RequestWizard() {
           </button>
         </div>
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
-          {submitted.customerId ? (
+          {linkedToAccount ? (
             <Link href="/cliente">
               <Button className="w-full sm:w-auto">Ver os meus pedidos</Button>
             </Link>
@@ -293,19 +326,51 @@ export function RequestWizard() {
       {step === 1 ? (
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Para onde e com que agência?</h2>
-            <p className="text-sm text-slate-500">Mostramos só as agências que enviam {cargoType.publicLabel.toLowerCase()} para a ilha escolhida.</p>
+            <h2 className="text-lg font-semibold text-slate-900">De onde envia, para onde e com que agência?</h2>
+            <p className="text-sm text-slate-500">Mostramos só as agências do país de onde envia que levam {cargoType.publicLabel.toLowerCase()} para a ilha escolhida.</p>
           </div>
-          <div className="max-w-xs">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Select
-              label="Ilha de destino"
+              label="País de onde envia"
+              options={[
+                { value: "", label: "Escolha o país" },
+                ...countryOptions.map((country) => ({ value: country.code, label: country.name })),
+              ]}
+              {...register("dispatchCountry", {
+                onChange: (event: { target: { value: string } }) => {
+                  clearErrors("dispatchCountry");
+                  setValue("agencyId", "");
+                  // Sugere o indicativo enquanto o remetente ainda não escreveu o número.
+                  const dialCode = getDispatchCountry(event.target.value)?.dialCode;
+                  const currentPhone = getValues("sender.phone").trim();
+                  if (dialCode && (!currentPhone || /^\+\d{0,4}$/.test(currentPhone))) {
+                    setValue("sender.phone", `${dialCode} `);
+                  }
+                },
+              })}
+              error={errors.dispatchCountry?.message}
+            />
+            <Select
+              label="Ilha de destino em Cabo Verde"
               options={caboVerdeIslands.map((island) => ({ value: island, label: island }))}
               {...register("recipient.island")}
               error={errors.recipient?.island?.message}
             />
           </div>
 
-          {agencies.length ? (
+          {agenciesError ? (
+            <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-8 text-center text-sm text-rose-700">
+              {agenciesError}
+            </div>
+          ) : !allAgencies ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
+              A carregar agências…
+            </div>
+          ) : !values.dispatchCountry ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
+              Escolha o país de onde envia para ver as agências disponíveis.
+            </div>
+          ) : agencies.length ? (
             <div className="grid gap-3">
               {agencies.map((agency) => {
                 const selected = values.agencyId === agency.id;
@@ -351,7 +416,7 @@ export function RequestWizard() {
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
-              Nenhuma agência registada envia este tipo de carga para {values.recipient?.island}. Experimente outra ilha ou tipo de carga.
+              Nenhuma agência em {dispatchCountry?.name} envia este tipo de carga para {values.recipient?.island}. Experimente outra ilha ou tipo de carga.
             </div>
           )}
           {errors.agencyId ? <p className="text-sm text-rose-600">{errors.agencyId.message}</p> : null}
@@ -394,10 +459,10 @@ export function RequestWizard() {
 
       {step === 2 ? (
         <div className="grid gap-6 md:grid-cols-2">
-          <Card title="Quem envia" subtitle="Você, em Portugal.">
+          <Card title="Quem envia" subtitle={dispatchCountry ? `Em ${dispatchCountry.name}.` : "No país de onde envia."}>
             <div className="space-y-4">
               <Input label="Nome" autoComplete="name" {...register("sender.name")} error={errors.sender?.name?.message} />
-              <Input label="Telefone" type="tel" autoComplete="tel" {...register("sender.phone")} error={errors.sender?.phone?.message} hint="Com indicativo, ex.: +351 912 345 678" />
+              <Input label="Telefone" type="tel" autoComplete="tel" {...register("sender.phone")} error={errors.sender?.phone?.message} hint={`Com indicativo do país, ex.: ${dispatchCountry?.dialCode ?? "+33"} …`} />
               <Input label="Email (opcional)" type="email" autoComplete="email" {...register("sender.email")} error={errors.sender?.email?.message} />
             </div>
           </Card>
@@ -416,6 +481,7 @@ export function RequestWizard() {
           <Card title="Resumo do pedido">
             <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
               <Summary label="Tipo de carga" value={cargoType.publicLabel} />
+              <Summary label="Enviado de" value={dispatchCountry?.name} />
               <Summary label="Agência" value={selectedAgency?.name} />
               <Summary label="Descrição" value={values.description} />
               <Summary

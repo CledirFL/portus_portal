@@ -3,12 +3,11 @@ import { CargoTypeIcon } from "@/components/cargo-type-icon";
 import { Card } from "@/components/ui/card";
 import { getCargoType } from "@/domain/cargo-types";
 import type { ShipmentRequest } from "@/domain/shipment-request";
-import { getAgency } from "@/mocks/agencies";
 import { RequestStatusBadge, RequestTimeline } from "@/modules/customer/components/request-status";
 
 export function RequestCard({ request }: { request: ShipmentRequest }) {
   const cargoType = getCargoType(request.category);
-  const agency = getAgency(request.agencyId);
+  const { agency } = request;
 
   return (
     <Card>

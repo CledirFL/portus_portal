@@ -6,17 +6,18 @@ import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { findRequestPublic } from "@/data/requests-repository";
+import { lookupShipmentRequest } from "@/services/api/shipment-requests";
 import { useHydrated } from "@/lib/use-hydrated";
 import type { ShipmentRequest } from "@/domain/shipment-request";
 import { RequestCard } from "@/modules/customer/components/request-card";
 
 export function RequestLookup({ initialReference = "" }: { initialReference?: string }) {
   const [reference, setReference] = useState(initialReference);
-  const [phone, setPhone] = useState("+351 ");
+  const [phone, setPhone] = useState("");
   const [result, setResult] = useState<ShipmentRequest | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState("");
   const isHydrated = useHydrated();
 
   return (
@@ -29,10 +30,18 @@ export function RequestLookup({ initialReference = "" }: { initialReference?: st
           onSubmit={async (event) => {
             event.preventDefault();
             setIsSearching(true);
-            const found = await findRequestPublic(reference, phone);
-            setResult(found);
-            setNotFound(!found);
-            setIsSearching(false);
+            setError("");
+            try {
+              const found = await lookupShipmentRequest(reference, phone);
+              setResult(found);
+              setNotFound(!found);
+            } catch (cause) {
+              setResult(null);
+              setNotFound(false);
+              setError(cause instanceof Error ? cause.message : "Não foi possível consultar o pedido.");
+            } finally {
+              setIsSearching(false);
+            }
           }}
         >
           <Input
@@ -64,6 +73,11 @@ export function RequestLookup({ initialReference = "" }: { initialReference?: st
         </p>
       </Card>
 
+      {error ? (
+        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-4 text-center text-sm text-rose-700">
+          {error}
+        </div>
+      ) : null}
       {notFound ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
           Não encontrámos nenhum pedido com esse código e telefone. Confirme os dados.

@@ -3,6 +3,11 @@
 Base: *Documento de Requisitos v1.0 (26/10/2026)* + pedido novo de **portal público do cliente**.
 Data da análise: 02/11/2026.
 
+> **Âmbito:** a plataforma cobre envios para Cabo Verde a partir de **qualquer país** onde os cabo-verdianos
+> vivem ou compram (Portugal, França, Espanha, Américas, China, entre outros). O documento de requisitos fala
+> de Portugal, mas é apenas um desses países de envio. O destino é sempre Cabo Verde. Na interface diz-se
+> "país de onde envia" e não "país de origem", que é o país de fabrico das mercadorias (campo aduaneiro).
+
 ---
 
 ## 1. Diagnóstico do código atual
@@ -41,14 +46,14 @@ Não existe servidor, base de dados nem API. Quase todas as páginas da Parte A 
 - Cabeçalho repete “Portal de operações” em todas as páginas em vez do título da página e do utilizador.
 - Cartões de métricas com números grandes sem contexto nem hierarquia; muitos tons de azul/cinza sem identidade.
 - Tabelas sem estado vazio em português, sem pesquisa/filtros consistentes, sem densidade adequada.
-- A página inicial fala de “exportação” e “TEUs”, não do produto real (encomendas Portugal → Cabo Verde).
+- A página inicial fala de “exportação” e “TEUs”, não do produto real (encomendas de qualquer país para Cabo Verde).
 
 ---
 
 ## 2. Requisito novo: portal público do cliente
 
 Um cliente (remetente) pode, **sem criar conta**:
-1. Escolher a **agência** que vai tratar o envio (lista de agências com cidade, ilhas servidas, contacto).
+1. Escolher o **país de onde envia** e a **agência** que vai tratar o envio (agências desse país, com cidade, ilhas servidas, contacto).
 2. Escolher o **tipo de carga** de forma simples — *Caixa / encomenda pequena*, *Veículo*, *Mudança / móveis*, *Material de construção*, *Máquina / equipamento*, *Mercadoria comercial*, *Outro*.
 3. Dar uma descrição curta e só os dados mínimos de cada tipo (ex.: caixa → nº de caixas e peso aproximado; carro → marca, modelo, ano).
 4. Indicar contactos do remetente e do destinatário (ilha de destino).
@@ -113,6 +118,9 @@ Proposta:
 
 ### Fase 5 — Backend real e segurança
 - [ ] Postgres + API, autenticação forte, 2FA para Alfândega/Enapor/admin, permissões no servidor (BR 28), cifragem e retenção (BR 30), backups.
+
+### Fase 5b — Multi-idioma
+- [ ] Internacionalização (locale) da interface e das mensagens da API; português como idioma base.
 
 ### Fase 6 — Fase 2/3 do documento
 - [ ] SMS, rastreio público com estados reais, pagamentos eletrónicos, decodificação de VIN por API, estimativa de despacho com tarifas versionadas, integrações Alfândega/Enapor/RNI/GOV.CV.

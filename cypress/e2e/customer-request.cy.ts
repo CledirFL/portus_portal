@@ -29,6 +29,8 @@ describe("pedido de envio pelo cliente", () => {
     cy.screenshot("01-enviar-tipo-de-carga", { capture: "fullPage" });
     cy.contains("button", "Continuar").click();
 
+    cy.contains("Escolha o país de onde envia para ver as agências").should("be.visible");
+    field("País de onde envia").select("Portugal");
     field("Ilha de destino").select("São Vicente");
     cy.contains("label", "Morabeza Envios").click();
     cy.contains("label", "Quero que recolham").click();
@@ -111,12 +113,14 @@ describe("pedido de envio pelo cliente", () => {
     field("Descrição curta").type("Carrinha usada a gasóleo");
     cy.contains("button", "Continuar").click();
 
-    cy.contains("label", "Djarfogo Cargas").click();
+    field("País de onde envia").select("Estados Unidos");
+    cy.contains("label", "Morabeza Envios").should("not.exist");
+    cy.contains("label", "Atlantic Bridge Shipping").click();
     cy.contains("button", "Continuar").click();
 
     cy.contains("Quem envia").parents("div.rounded-2xl").first().within(() => {
       field("Nome").type("Carlos Semedo");
-      field("Telefone").clear().type("+351 933 222 111");
+      field("Telefone").should("have.value", "+1 ").clear().type("+1 508 555 0199");
     });
     cy.contains("Quem recebe").parents("div.rounded-2xl").first().within(() => {
       field("Nome").type("Ana Semedo");
@@ -125,7 +129,8 @@ describe("pedido de envio pelo cliente", () => {
     cy.contains("button", "Continuar").click();
 
     cy.contains("label", "Criar conta para ver todos os meus envios").click();
-    field("Email").type("carlos@example.com");
+    // Email único por execução: a conta fica guardada na base de dados do backend.
+    field("Email").type(`carlos.${Date.now()}@example.com`);
     field("Palavra-passe").type("segredo123");
     cy.contains("button", "Enviar pedido à agência").click();
 

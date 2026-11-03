@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAllowedRoute } from "@/lib/permissions";
+import { defaultRouteByRole, isAllowedRoute } from "@/lib/permissions";
 
 describe("isAllowedRoute", () => {
   it("allows nested detail routes for the same module", () => {
@@ -19,5 +19,13 @@ describe("isAllowedRoute", () => {
   it("blocks routes outside the current role", () => {
     expect(isAllowedRoute("exporter", "/cv/navios/V-010")).toBe(false);
     expect(isAllowedRoute("exporter", "/agent/collections")).toBe(false);
+  });
+});
+
+describe("defaultRouteByRole", () => {
+  it("sends each role to its workspace after login", () => {
+    expect(defaultRouteByRole.agente_recolha).toBe("/agent/collections");
+    expect(defaultRouteByRole.cliente).toBe("/cliente");
+    expect(defaultRouteByRole.exporter).toBe("/exporter/dashboard");
   });
 });
