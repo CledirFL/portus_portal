@@ -39,6 +39,7 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Recolhas", href: "/agent/collections", icon: "package" },
     { label: "Nova recolha", href: "/agent/collections/new", icon: "plus" },
     { label: "Pedidos de clientes", href: "/agencia/pedidos", icon: "inbox" },
+    { label: "Encomendas", href: "/agencia/encomendas", icon: "boxes" },
   ],
   cv_operator: [
     { label: "Painel geral", href: "/dashboard", icon: "dashboard" },
@@ -54,6 +55,7 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Painel geral", href: "/dashboard", icon: "dashboard" },
     { label: "Utilizadores", href: "/admin/users", icon: "users" },
     { label: "Pedidos de clientes", href: "/agencia/pedidos", icon: "inbox" },
+    { label: "Encomendas", href: "/agencia/encomendas", icon: "boxes" },
     { label: "Exportação", href: "/exporter/dashboard", icon: "globe" },
     { label: "Operações CV", href: "/cv/navios", icon: "ship" },
     { label: "Auditoria", href: "/cv/auditoria", icon: "shield" },
