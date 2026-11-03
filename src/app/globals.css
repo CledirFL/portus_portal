@@ -31,6 +31,9 @@
   --animate-bob: bob 4s ease-in-out infinite;
   --animate-wave: wave 5s linear infinite;
   --animate-drift: drift 60s linear infinite alternate;
+  --animate-swell: swell 18s linear infinite;
+  --animate-marquee: swell 45s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
 
   @keyframes bob {
     0%,
@@ -52,6 +55,23 @@
   @keyframes drift {
     to {
       transform: translateX(-120px);
+    }
+  }
+
+  /* Para conteúdo repetido duas vezes lado a lado: metade da largura é um ciclo. */
+  @keyframes swell {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
     }
   }
 }
