@@ -10,18 +10,18 @@ import {
   type VolumeStatus,
 } from "@/domain/state-machine";
 
-const volume = { id: "V1", status: "Rascunho" as VolumeStatus, history: [] as StatusChange<VolumeStatus>[] };
+const volume = { id: "V1", status: "draft" as VolumeStatus, history: [] as StatusChange<VolumeStatus>[] };
 
 describe("volume state machine (BR 22)", () => {
-  it("follows the happy path to Entregue", () => {
+  it("follows the happy path to delivered", () => {
     const path: VolumeStatus[] = [
-      "Recolhido",
-      "Consolidado",
-      "Embarcado",
-      "Chegado",
-      "Desconsolidado",
-      "Liberado",
-      "Entregue",
+      "collected",
+      "consolidated",
+      "shipped",
+      "arrived",
+      "deconsolidated",
+      "released",
+      "delivered",
     ];
 
     const delivered = path.reduce(
@@ -29,11 +29,11 @@ describe("volume state machine (BR 22)", () => {
       volume,
     );
 
-    expect(delivered.status).toBe("Entregue");
+    expect(delivered.status).toBe("delivered");
     expect(delivered.history).toHaveLength(path.length);
     expect(delivered.history[0]).toEqual({
-      from: "Rascunho",
-      to: "Recolhido",
+      from: "draft",
+      to: "collected",
       userId: "u-1",
       at: "2026-11-02T10:00:00Z",
       reason: undefined,
@@ -42,28 +42,28 @@ describe("volume state machine (BR 22)", () => {
   });
 
   it("rejects skipping states", () => {
-    expect(() => transitionVolume(volume, "Embarcado", { userId: "u-1" })).toThrow(InvalidTransitionError);
+    expect(() => transitionVolume(volume, "shipped", { userId: "u-1" })).toThrow(InvalidTransitionError);
   });
 
   it("allows holding and then releasing", () => {
-    expect(canTransitionVolume("Desconsolidado", "Retido")).toBe(true);
-    expect(canTransitionVolume("Retido", "Liberado")).toBe(true);
-    expect(canTransitionVolume("Retido", "Entregue")).toBe(false);
+    expect(canTransitionVolume("deconsolidated", "held")).toBe(true);
+    expect(canTransitionVolume("held", "released")).toBe(true);
+    expect(canTransitionVolume("held", "delivered")).toBe(false);
   });
 
   it("does not mutate the original entity", () => {
-    transitionVolume(volume, "Recolhido", { userId: "u-1" });
-    expect(volume.status).toBe("Rascunho");
+    transitionVolume(volume, "collected", { userId: "u-1" });
+    expect(volume.status).toBe("draft");
     expect(volume.history).toHaveLength(0);
   });
 });
 
 describe("container state machine", () => {
   it("can reopen a closed container but not an embarked one", () => {
-    const container = { status: "Fechado" as ContainerStatus, history: [] as StatusChange<ContainerStatus>[] };
-    expect(transitionContainer(container, "Aberto", { userId: "u-1" }).status).toBe("Aberto");
+    const container = { status: "sealed" as ContainerStatus, history: [] as StatusChange<ContainerStatus>[] };
+    expect(transitionContainer(container, "open", { userId: "u-1" }).status).toBe("open");
 
-    const embarked = transitionContainer(container, "Embarcado", { userId: "u-1" });
-    expect(() => transitionContainer(embarked, "Aberto", { userId: "u-1" })).toThrow(InvalidTransitionError);
+    const embarked = transitionContainer(container, "shipped", { userId: "u-1" });
+    expect(() => transitionContainer(embarked, "open", { userId: "u-1" })).toThrow(InvalidTransitionError);
   });
 });

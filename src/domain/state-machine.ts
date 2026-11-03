@@ -1,45 +1,46 @@
 // Máquinas de estado do volume (secção 3.1) e do contentor (secção 3.2).
+// Códigos estáveis na API; os textos visíveis (Rascunho, Recolhido…) ficam no frontend.
 // BR 22: transições inválidas são rejeitadas; cada transição regista
 // utilizador, data/hora e motivo.
 
 export const volumeStatuses = [
-  "Rascunho",
-  "Recolhido",
-  "Consolidado",
-  "Embarcado",
-  "Chegado",
-  "Desconsolidado",
-  "Retido",
-  "Liberado",
-  "Entregue",
-  "Abandonado",
+  "draft",
+  "collected",
+  "consolidated",
+  "shipped",
+  "arrived",
+  "deconsolidated",
+  "held",
+  "released",
+  "delivered",
+  "abandoned",
 ] as const;
 
 export type VolumeStatus = (typeof volumeStatuses)[number];
 
 const volumeTransitions: Record<VolumeStatus, readonly VolumeStatus[]> = {
-  Rascunho: ["Recolhido"],
-  Recolhido: ["Consolidado"],
-  Consolidado: ["Embarcado"],
-  Embarcado: ["Chegado"],
-  Chegado: ["Desconsolidado"],
-  Desconsolidado: ["Retido", "Liberado", "Abandonado"],
-  Retido: ["Liberado", "Abandonado"],
-  Liberado: ["Entregue", "Abandonado"],
-  Entregue: [],
-  Abandonado: [],
+  draft: ["collected"],
+  collected: ["consolidated"],
+  consolidated: ["shipped"],
+  shipped: ["arrived"],
+  arrived: ["deconsolidated"],
+  deconsolidated: ["held", "released", "abandoned"],
+  held: ["released", "abandoned"],
+  released: ["delivered", "abandoned"],
+  delivered: [],
+  abandoned: [],
 };
 
-export const containerStatuses = ["Aberto", "Fechado", "Embarcado", "Chegado", "Desconsolidado"] as const;
+export const containerStatuses = ["open", "sealed", "shipped", "arrived", "deconsolidated"] as const;
 
 export type ContainerStatus = (typeof containerStatuses)[number];
 
 const containerTransitions: Record<ContainerStatus, readonly ContainerStatus[]> = {
-  Aberto: ["Fechado"],
-  Fechado: ["Aberto", "Embarcado"],
-  Embarcado: ["Chegado"],
-  Chegado: ["Desconsolidado"],
-  Desconsolidado: [],
+  open: ["sealed"],
+  sealed: ["open", "shipped"],
+  shipped: ["arrived"],
+  arrived: ["deconsolidated"],
+  deconsolidated: [],
 };
 
 export interface StatusChange<S extends string> {

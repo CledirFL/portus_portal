@@ -1,3 +1,5 @@
+import { validateVin } from "@/domain/validators";
+
 // Tipos de carga (secção 1.4 / BR 32). O tipo determina os campos pedidos
 // ao cliente, os campos obrigatórios para a agência validar e os documentos.
 
@@ -16,11 +18,13 @@ export interface CargoFieldDefinition {
   label: string;
   /** Etiqueta curta para resumos (ex.: "Volumes" em vez da pergunta). */
   shortLabel?: string;
-  type: "text" | "number" | "select";
+  type: "text" | "number" | "select" | "textarea";
   placeholder?: string;
   options?: string[];
   required?: boolean;
   unit?: string;
+  /** Validação extra do valor, quando preenchido. */
+  format?: "vin" | "hs" | "year" | "positive";
 }
 
 export interface CargoTypeDefinition {
@@ -33,12 +37,16 @@ export interface CargoTypeDefinition {
   icon: "package" | "car" | "cog" | "brick" | "sofa" | "factory" | "store" | "alert";
   /** Campos mínimos pedidos ao cliente — poucos e sem jargão. */
   publicFields: CargoFieldDefinition[];
-  /** Campos que a agência/transitário tem de completar para validar (BR 32). */
-  operatorRequiredFields: string[];
+  /**
+   * Campos que a agência completa na encomenda; os obrigatórios são exigidos para validar (BR 32).
+   * Peso, dimensões e conteúdo ficam em cada volume.
+   */
+  operatorFields: CargoFieldDefinition[];
   requiredDocuments: string[];
 }
 
 const conditionOptions = ["Novo", "Usado"];
+const fuelOptions = ["Gasolina", "Gasóleo", "Híbrido", "Elétrico", "GPL"];
 
 export const cargoTypes: CargoTypeDefinition[] = [
   {
@@ -52,7 +60,7 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "quantity", label: "Quantas caixas ou volumes?", shortLabel: "Volumes", type: "number", required: true, placeholder: "1" },
       { key: "approxWeightKg", label: "Peso aproximado total", type: "number", unit: "kg", placeholder: "25" },
     ],
-    operatorRequiredFields: ["weightKg", "dimensions", "declaredContent"],
+    operatorFields: [],
     requiredDocuments: [],
   },
   {
@@ -69,7 +77,17 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "condition", label: "Estado", type: "select", options: conditionOptions },
       { key: "vin", shortLabel: "VIN", label: "VIN / nº de quadro (se souber)", type: "text", placeholder: "17 caracteres" },
     ],
-    operatorRequiredFields: ["vin", "make", "model", "year", "engineCc", "fuel", "condition", "value"],
+    operatorFields: [
+      { key: "vin", label: "VIN", type: "text", required: true, format: "vin", placeholder: "17 caracteres" },
+      { key: "make", label: "Marca", type: "text", required: true },
+      { key: "model", label: "Modelo", type: "text", required: true },
+      { key: "year", label: "Ano", type: "number", required: true, format: "year" },
+      { key: "engineCc", label: "Cilindrada", type: "number", unit: "cm³", required: true, format: "positive" },
+      { key: "fuel", label: "Combustível", type: "select", required: true, options: fuelOptions },
+      { key: "condition", label: "Estado", type: "select", required: true, options: conditionOptions },
+      { key: "value", label: "Valor de compra", type: "number", unit: "€", required: true, format: "positive" },
+      { key: "mileageKm", label: "Quilometragem", type: "number", unit: "km", format: "positive" },
+    ],
     requiredDocuments: ["Fatura ou prova de compra", "Documento de registo de origem", "Fotos do estado"],
   },
   {
@@ -84,7 +102,13 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "condition", label: "Estado", type: "select", options: conditionOptions },
       { key: "hasBatteries", shortLabel: "Baterias", label: "Inclui baterias?", type: "select", options: ["Não", "Sim"] },
     ],
-    operatorRequiredFields: ["partReference", "hsCode", "condition"],
+    operatorFields: [
+      { key: "partReference", label: "Referência da peça", type: "text", required: true },
+      { key: "hsCode", label: "Código SH", type: "text", required: true, format: "hs", placeholder: "870899" },
+      { key: "condition", label: "Estado", type: "select", required: true, options: conditionOptions },
+      { key: "compatibleVin", label: "VIN do veículo compatível", type: "text", format: "vin" },
+      { key: "hazardClass", label: "Classe de perigo (baterias)", type: "text" },
+    ],
     requiredDocuments: ["Ficha de segurança (baterias)"],
   },
   {
@@ -98,7 +122,11 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "approxWeightKg", label: "Peso aproximado", type: "number", unit: "kg", placeholder: "800" },
       { key: "pallets", shortLabel: "Paletes", label: "Nº de paletes (se houver)", type: "number", placeholder: "2" },
     ],
-    operatorRequiredFields: ["weightKg", "hsCode", "packaging"],
+    operatorFields: [
+      { key: "hsCode", label: "Código SH", type: "text", required: true, format: "hs", placeholder: "252329" },
+      { key: "packaging", label: "Embalagem", type: "select", required: true, options: ["Paletes", "Carga solta"] },
+      { key: "hazardClass", label: "Classe de perigo (tintas, solventes)", type: "text" },
+    ],
     requiredDocuments: ["Ficha de segurança (tintas e solventes)"],
   },
   {
@@ -112,7 +140,10 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "rooms", shortLabel: "Dimensão", label: "Divisões / dimensão da mudança", type: "select", options: ["Alguns itens", "T1", "T2", "T3 ou maior"] },
       { key: "approxItems", shortLabel: "Itens", label: "Nº aproximado de itens", type: "number", placeholder: "15" },
     ],
-    operatorRequiredFields: ["inventory", "declaredValue"],
+    operatorFields: [
+      { key: "inventory", label: "Inventário (itens e valores)", type: "textarea", required: true },
+      { key: "declaredValue", label: "Valor declarado total", type: "number", unit: "€", required: true, format: "positive" },
+    ],
     requiredDocuments: ["Inventário detalhado com valores", "Declaração de bens pessoais"],
   },
   {
@@ -126,7 +157,11 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "approxWeightKg", label: "Peso aproximado", type: "number", unit: "kg", placeholder: "350" },
       { key: "condition", label: "Estado", type: "select", options: conditionOptions },
     ],
-    operatorRequiredFields: ["serialNumber", "power", "dimensions", "weightKg"],
+    operatorFields: [
+      { key: "serialNumber", label: "Nº de série", type: "text", required: true },
+      { key: "power", label: "Potência", type: "text", required: true, placeholder: "5 kVA" },
+      { key: "condition", label: "Estado", type: "select", options: conditionOptions },
+    ],
     requiredDocuments: ["Ficha técnica"],
   },
   {
@@ -140,7 +175,12 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "approxWeightKg", label: "Peso aproximado", type: "number", unit: "kg", placeholder: "200" },
       { key: "approxValueEur", label: "Valor aproximado", type: "number", unit: "€", placeholder: "1500" },
     ],
-    operatorRequiredFields: ["commercialInvoice", "hsCode", "importer", "countryOfOrigin"],
+    operatorFields: [
+      { key: "invoiceNumber", label: "Nº da fatura comercial", type: "text", required: true },
+      { key: "hsCode", label: "Código SH", type: "text", required: true, format: "hs" },
+      { key: "importer", label: "Importador", type: "text", required: true },
+      { key: "countryOfOrigin", label: "País de origem/fabrico", type: "text", required: true },
+    ],
     requiredDocuments: ["Fatura comercial"],
   },
   {
@@ -153,7 +193,11 @@ export const cargoTypes: CargoTypeDefinition[] = [
     publicFields: [
       { key: "approxWeightKg", label: "Peso aproximado", type: "number", unit: "kg", placeholder: "10" },
     ],
-    operatorRequiredFields: ["hazardClass", "safetySheet"],
+    operatorFields: [
+      { key: "hazardClass", label: "Classe de perigo", type: "text", required: true },
+      { key: "safetySheet", label: "Ficha de segurança entregue?", type: "select", required: true, options: ["Sim", "Não"] },
+      { key: "temperature", label: "Temperatura de transporte", type: "text", placeholder: "2–8 °C" },
+    ],
     requiredDocuments: ["Ficha de segurança", "Licenças aplicáveis"],
   },
 ];
@@ -175,4 +219,63 @@ export function missingPublicFields(category: CargoCategory, details: Record<str
   return getCargoType(category)
     .publicFields.filter((field) => field.required && !details[field.key]?.trim())
     .map((field) => field.key);
+}
+
+export interface FieldIssue {
+  key: string;
+  message: string;
+}
+
+/** Verifica o formato dos campos preenchidos (VIN, código SH, ano, números positivos). */
+export function checkFieldFormat(field: CargoFieldDefinition, value: string): string | null {
+  switch (field.format) {
+    case "vin": {
+      const result = validateVin(value);
+      if (result.valid) return null;
+      return result.reason === "check-digit"
+        ? "O dígito de controlo do VIN não confere."
+        : "O VIN tem 17 caracteres, sem as letras I, O e Q.";
+    }
+    case "hs":
+      return /^\d{6,10}$/.test(value.replace(/[\s.]/g, "")) ? null : "O código SH tem 6 a 10 algarismos.";
+    case "year": {
+      const year = Number(value);
+      const max = new Date().getFullYear() + 1;
+      return Number.isInteger(year) && year >= 1950 && year <= max ? null : `Indique um ano entre 1950 e ${max}.`;
+    }
+    case "positive":
+      return Number(value.replace(",", ".")) > 0 ? null : "Indique um número maior que zero.";
+    default:
+      return null;
+  }
+}
+
+/**
+ * Problemas nos detalhes do operador. Com `requireAll`, também exige os campos obrigatórios
+ * do tipo de carga (usado ao validar a encomenda, BR 32); sem ele, só verifica formatos.
+ */
+export function operatorFieldIssues(
+  category: CargoCategory,
+  details: Record<string, string>,
+  { requireAll }: { requireAll: boolean },
+): FieldIssue[] {
+  const issues: FieldIssue[] = [];
+  for (const field of getCargoType(category).operatorFields) {
+    const value = details[field.key]?.trim() ?? "";
+    if (!value) {
+      if (requireAll && field.required) {
+        issues.push({ key: field.key, message: `${field.label} é obrigatório para ${getCargoType(category).label.toLowerCase()}.` });
+      }
+      continue;
+    }
+    if (field.type === "select" && field.options && !field.options.includes(value)) {
+      issues.push({ key: field.key, message: `${field.label}: escolha uma das opções.` });
+      continue;
+    }
+    const formatError = checkFieldFormat(field, value);
+    if (formatError) {
+      issues.push({ key: field.key, message: formatError });
+    }
+  }
+  return issues;
 }
