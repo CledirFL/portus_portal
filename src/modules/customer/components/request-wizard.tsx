@@ -303,12 +303,12 @@ export function RequestWizard() {
       {step === 1 ? (
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">De onde, para onde e com que agência?</h2>
-            <p className="text-sm text-slate-500">Mostramos só as agências do país de origem que enviam {cargoType.publicLabel.toLowerCase()} para a ilha escolhida.</p>
+            <h2 className="text-lg font-semibold text-slate-900">De onde envia, para onde e com que agência?</h2>
+            <p className="text-sm text-slate-500">Mostramos só as agências do país de onde envia que levam {cargoType.publicLabel.toLowerCase()} para a ilha escolhida.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Select
-              label="País de origem"
+              label="País de onde envia"
               options={[
                 { value: "", label: "Escolha o país" },
                 ...countryOptions.map((country) => ({ value: country.code, label: country.name })),
@@ -337,7 +337,7 @@ export function RequestWizard() {
 
           {!values.dispatchCountry ? (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
-              Escolha o país de origem para ver as agências disponíveis.
+              Escolha o país de onde envia para ver as agências disponíveis.
             </div>
           ) : agencies.length ? (
             <div className="grid gap-3">
@@ -428,7 +428,7 @@ export function RequestWizard() {
 
       {step === 2 ? (
         <div className="grid gap-6 md:grid-cols-2">
-          <Card title="Quem envia" subtitle={dispatchCountry ? `Em ${dispatchCountry.name}.` : "No país de origem."}>
+          <Card title="Quem envia" subtitle={dispatchCountry ? `Em ${dispatchCountry.name}.` : "No país de onde envia."}>
             <div className="space-y-4">
               <Input label="Nome" autoComplete="name" {...register("sender.name")} error={errors.sender?.name?.message} />
               <Input label="Telefone" type="tel" autoComplete="tel" {...register("sender.phone")} error={errors.sender?.phone?.message} hint={`Com indicativo do país, ex.: ${dispatchCountry?.dialCode ?? "+33"} …`} />
@@ -450,7 +450,7 @@ export function RequestWizard() {
           <Card title="Resumo do pedido">
             <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
               <Summary label="Tipo de carga" value={cargoType.publicLabel} />
-              <Summary label="Origem" value={dispatchCountry?.name} />
+              <Summary label="Enviado de" value={dispatchCountry?.name} />
               <Summary label="Agência" value={selectedAgency?.name} />
               <Summary label="Descrição" value={values.description} />
               <Summary

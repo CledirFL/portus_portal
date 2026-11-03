@@ -29,8 +29,8 @@ describe("pedido de envio pelo cliente", () => {
     cy.screenshot("01-enviar-tipo-de-carga", { capture: "fullPage" });
     cy.contains("button", "Continuar").click();
 
-    cy.contains("Escolha o país de origem para ver as agências").should("be.visible");
-    field("País de origem").select("Portugal");
+    cy.contains("Escolha o país de onde envia para ver as agências").should("be.visible");
+    field("País de onde envia").select("Portugal");
     field("Ilha de destino").select("São Vicente");
     cy.contains("label", "Morabeza Envios").click();
     cy.contains("label", "Quero que recolham").click();
@@ -113,7 +113,7 @@ describe("pedido de envio pelo cliente", () => {
     field("Descrição curta").type("Carrinha usada a gasóleo");
     cy.contains("button", "Continuar").click();
 
-    field("País de origem").select("Estados Unidos");
+    field("País de onde envia").select("Estados Unidos");
     cy.contains("label", "Morabeza Envios").should("not.exist");
     cy.contains("label", "Atlantic Bridge Shipping").click();
     cy.contains("button", "Continuar").click();

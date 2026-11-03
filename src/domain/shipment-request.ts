@@ -83,7 +83,7 @@ const phoneField = z
 
 export const shipmentRequestSchema = z
   .object({
-    dispatchCountry: z.string().length(2, "Escolha o país de origem."),
+    dispatchCountry: z.string().length(2, "Escolha o país de onde envia."),
     agencyId: z.string().min(1, "Escolha uma agência."),
     category: z.enum(cargoTypes.map((type) => type.id) as [CargoCategory, ...CargoCategory[]], {
       message: "Escolha o tipo de carga.",

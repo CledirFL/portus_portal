@@ -38,7 +38,7 @@ export default function HomePage() {
               <span className="h-1.5 w-1.5 rounded-full bg-star" /> De qualquer país para Cabo Verde
             </p>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-              Do país de origem ao levantamento em Cabo Verde.
+              De onde estiver até ao levantamento em Cabo Verde.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-brand-100/80">
               Caixas, carros, mudanças ou material de construção. Escolha uma agência no país onde está, peça o envio em poucos minutos e acompanhe cada etapa até ao levantamento.
