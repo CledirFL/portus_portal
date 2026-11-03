@@ -19,8 +19,11 @@ export const dispatchCountries: DispatchCountry[] = [
   { code: "IT", name: "Itália", dialCode: "+39" },
   { code: "DE", name: "Alemanha", dialCode: "+49" },
   { code: "GB", name: "Reino Unido", dialCode: "+44" },
+  { code: "CH", name: "Suíça", dialCode: "+41" },
   { code: "US", name: "Estados Unidos", dialCode: "+1" },
+  { code: "CA", name: "Canadá", dialCode: "+1" },
   { code: "BR", name: "Brasil", dialCode: "+55" },
+  { code: "AR", name: "Argentina", dialCode: "+54" },
   { code: "SN", name: "Senegal", dialCode: "+221" },
   { code: "CN", name: "China", dialCode: "+86" },
 ];
