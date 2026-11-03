@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarClock, CheckCircle2, Clock3, Inbox, PackageCheck, Phone, Truck, XCircle } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
@@ -26,7 +27,7 @@ const filters: Array<{ key: string; label: string; statuses: RequestStatus[] }> 
 const actionLabels: Record<AgencyTarget, string> = {
   accepted: "Aceitar",
   pickup_scheduled: "Agendar",
-  converted: "Carga recebida",
+  converted: "Carga recebida (criar encomenda)",
   rejected: "Recusar",
   cancelled: "Cancelar",
 };
@@ -251,6 +252,18 @@ function RequestPanel({ request, onChange }: { request: ShipmentRequest; onChang
         <p className="mt-2 text-sm text-slate-600">
           <span className="font-medium">Última nota ao cliente:</span> {request.agencyNote}
         </p>
+      ) : null}
+
+      {request.shipment ? (
+        <Link
+          href={`/agencia/encomendas/${request.shipment.id}`}
+          className="mt-3 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 hover:bg-emerald-100"
+        >
+          <span>
+            Encomenda <span className="font-mono font-semibold">{request.shipment.code}</span>
+          </span>
+          <span className="font-medium">Abrir para pesar e etiquetar →</span>
+        </Link>
       ) : null}
 
       {type.requiredDocuments.length ? (

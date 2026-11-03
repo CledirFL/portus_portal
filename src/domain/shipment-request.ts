@@ -78,6 +78,8 @@ export interface ShipmentRequest {
   scheduledFor: string | null;
   agencyNote: string | null;
   agency: { id: string; name: string; city: string; address: string; phone: string };
+  /** Encomenda criada quando a agência recebeu a carga. */
+  shipment: { id: string; code: string } | null;
   history: Array<{ from: RequestStatus | null; to: RequestStatus; reason: string | null; at: string }>;
   createdAt: string;
   updatedAt: string;
