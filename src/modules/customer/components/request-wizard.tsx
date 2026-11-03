@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useWatch, type FieldPath } from "react-hook-form";
 import { Check, CheckCircle2, Copy, MapPin, Truck, Store as StoreIcon, CalendarDays } from "lucide-react";
 import { CargoTypeIcon } from "@/components/cargo-type-icon";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, fieldClasses, fieldErrorClasses } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { agenciesFor, servedCountryCodes } from "@/domain/agency";
+import { agenciesFor, servedCountryCodes, type Agency } from "@/domain/agency";
 import { getDispatchCountry, dispatchCountries } from "@/domain/countries";
 import { cargoTypes, getCargoType, missingPublicFields } from "@/domain/cargo-types";
 import {
@@ -21,12 +21,9 @@ import {
 } from "@/domain/shipment-request";
 import { submitShipmentRequest } from "@/data/requests-repository";
 import { useHydrated } from "@/lib/use-hydrated";
-import { mockAgencies } from "@/mocks/agencies";
+import { fetchAgencies } from "@/services/api/agencies";
 import { mockRegisterCustomer } from "@/services/mock/auth";
 import { useAuthStore } from "@/store/auth-store";
-
-// Só se oferecem origens onde existe pelo menos uma agência ativa.
-const countryOptions = dispatchCountries.filter((country) => servedCountryCodes(mockAgencies).includes(country.code));
 
 const steps = ["O que vai enviar", "Destino e agência", "Contactos", "Confirmar"] as const;
 
@@ -65,6 +62,18 @@ export function RequestWizard() {
   const [account, setAccount] = useState({ email: "", password: "" });
   const [accountError, setAccountError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [allAgencies, setAllAgencies] = useState<Agency[] | null>(null);
+  const [agenciesError, setAgenciesError] = useState("");
+
+  useEffect(() => {
+    fetchAgencies()
+      .then(setAllAgencies)
+      .catch(() => setAgenciesError("Não foi possível carregar as agências. Verifique a ligação e recarregue a página."));
+  }, []);
+
+  // Só se oferecem países de onde envia onde existe pelo menos uma agência ativa.
+  const servedCodes = servedCountryCodes(allAgencies ?? []);
+  const countryOptions = dispatchCountries.filter((country) => servedCodes.includes(country.code));
 
   const {
     control,
@@ -89,7 +98,7 @@ export function RequestWizard() {
   const values = useWatch({ control });
   const category = values.category ?? "encomenda_pequena";
   const cargoType = getCargoType(category);
-  const agencies = agenciesFor(mockAgencies, {
+  const agencies = agenciesFor(allAgencies ?? [], {
     countryCode: values.dispatchCountry,
     category,
     island: values.recipient?.island,
@@ -160,7 +169,7 @@ export function RequestWizard() {
   };
 
   if (submitted) {
-    const agency = mockAgencies.find((item) => item.id === submitted.agencyId);
+    const agency = allAgencies?.find((item) => item.id === submitted.agencyId);
     return (
       <Card className="mx-auto max-w-xl text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
@@ -335,7 +344,15 @@ export function RequestWizard() {
             />
           </div>
 
-          {!values.dispatchCountry ? (
+          {agenciesError ? (
+            <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-8 text-center text-sm text-rose-700">
+              {agenciesError}
+            </div>
+          ) : !allAgencies ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
+              A carregar agências…
+            </div>
+          ) : !values.dispatchCountry ? (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
               Escolha o país de onde envia para ver as agências disponíveis.
             </div>
