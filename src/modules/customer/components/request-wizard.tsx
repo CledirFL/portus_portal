@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Input, fieldClasses, fieldErrorClasses } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { agenciesFor, servedCountryCodes, type Agency } from "@/domain/agency";
-import { getDispatchCountry, dispatchCountries } from "@/domain/countries";
+import { getDispatchCountry, dispatchCountries, guessDispatchCountry, readBrowserLocation } from "@/domain/countries";
 import { cargoTypes, getCargoType, missingPublicFields } from "@/domain/cargo-types";
 import {
   caboVerdeIslands,
@@ -75,12 +75,7 @@ export function RequestWizard() {
   const [linkedToAccount, setLinkedToAccount] = useState(false);
   const [allAgencies, setAllAgencies] = useState<Agency[] | null>(null);
   const [agenciesError, setAgenciesError] = useState("");
-
-  useEffect(() => {
-    fetchAgencies()
-      .then(setAllAgencies)
-      .catch(() => setAgenciesError("Não foi possível carregar as agências. Verifique a ligação e recarregue a página."));
-  }, []);
+  const [suggestedCountry, setSuggestedCountry] = useState("");
 
   // Só se oferecem países de onde envia onde existe pelo menos uma agência ativa.
   const servedCodes = servedCountryCodes(allAgencies ?? []);
@@ -105,6 +100,32 @@ export function RequestWizard() {
         : defaultValues.sender,
     },
   });
+
+  // Sugere o indicativo enquanto o remetente ainda não escreveu o número.
+  function suggestDialCode(countryCode: string) {
+    const dialCode = getDispatchCountry(countryCode)?.dialCode;
+    const currentPhone = getValues("sender.phone").trim();
+    if (dialCode && (!currentPhone || /^\+\d{0,4}$/.test(currentPhone))) {
+      setValue("sender.phone", `${dialCode} `);
+    }
+  }
+
+  useEffect(() => {
+    fetchAgencies()
+      .then((agencies) => {
+        setAllAgencies(agencies);
+        // Pré-escolhe o país onde a pessoa parece estar, se ainda não escolheu nenhum.
+        if (getValues("dispatchCountry")) return;
+        const guess = guessDispatchCountry(readBrowserLocation(), servedCountryCodes(agencies));
+        if (!guess) return;
+        setValue("dispatchCountry", guess);
+        setSuggestedCountry(guess);
+        suggestDialCode(guess);
+      })
+      .catch(() => setAgenciesError("Não foi possível carregar as agências. Verifique a ligação e recarregue a página."));
+    // Carrega uma vez; as funções do formulário são estáveis.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const values = useWatch({ control });
   const category = values.category ?? "encomenda_pequena";
@@ -340,15 +361,16 @@ export function RequestWizard() {
                 onChange: (event: { target: { value: string } }) => {
                   clearErrors("dispatchCountry");
                   setValue("agencyId", "");
-                  // Sugere o indicativo enquanto o remetente ainda não escreveu o número.
-                  const dialCode = getDispatchCountry(event.target.value)?.dialCode;
-                  const currentPhone = getValues("sender.phone").trim();
-                  if (dialCode && (!currentPhone || /^\+\d{0,4}$/.test(currentPhone))) {
-                    setValue("sender.phone", `${dialCode} `);
-                  }
+                  setSuggestedCountry("");
+                  suggestDialCode(event.target.value);
                 },
               })}
               error={errors.dispatchCountry?.message}
+              hint={
+                suggestedCountry && values.dispatchCountry === suggestedCountry
+                  ? "Escolhido pela sua localização. Pode mudar se envia de outro país."
+                  : undefined
+              }
             />
             <Select
               label="Ilha de destino em Cabo Verde"
