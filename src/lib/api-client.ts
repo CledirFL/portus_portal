@@ -13,6 +13,8 @@ export class ApiError extends Error {
     readonly status: number,
     message: string,
     readonly issues: ApiIssue[] = [],
+    /** Corpo completo do erro, para campos específicos (ex.: `duplicates` num 409). */
+    readonly body: Record<string, unknown> = {},
   ) {
     super(message);
     this.name = "ApiError";
@@ -50,7 +52,7 @@ export function toUser(user: ApiUser): User {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
   /**
    * required: envia o token e renova a sessão se expirar.
@@ -98,12 +100,15 @@ async function send(path: string, options: RequestOptions) {
 }
 
 async function toApiError(response: Response) {
-  const body = (await response.json().catch(() => null)) as { message?: string | string[]; issues?: ApiIssue[] } | null;
+  const body = (await response.json().catch(() => null)) as
+    | ({ message?: string | string[]; issues?: ApiIssue[] } & Record<string, unknown>)
+    | null;
   const message = Array.isArray(body?.message) ? body.message.join(" ") : body?.message;
   return new ApiError(
     response.status,
     message ?? (response.status === 429 ? "Demasiados pedidos. Tente daqui a um minuto." : "Ocorreu um erro inesperado."),
     body?.issues ?? [],
+    body ?? {},
   );
 }
 
