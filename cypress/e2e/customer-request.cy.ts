@@ -129,7 +129,8 @@ describe("pedido de envio pelo cliente", () => {
     cy.contains("button", "Continuar").click();
 
     cy.contains("label", "Criar conta para ver todos os meus envios").click();
-    field("Email").type("carlos@example.com");
+    // Email único por execução: a conta fica guardada na base de dados do backend.
+    field("Email").type(`carlos.${Date.now()}@example.com`);
     field("Palavra-passe").type("segredo123");
     cy.contains("button", "Enviar pedido à agência").click();
 
