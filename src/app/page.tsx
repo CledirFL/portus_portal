@@ -1,19 +1,13 @@
 import Link from "next/link";
-import { ArrowRight, Building2, FileCheck2, PackageCheck, QrCode, Search, Ship, ShieldCheck, Warehouse } from "lucide-react";
+import { ArrowRight, Building2, FileCheck2, Search, ShieldCheck, Warehouse } from "lucide-react";
 import { CargoTypeIcon } from "@/components/cargo-type-icon";
 import { PublicHeader } from "@/components/layout/public-header";
 import { RotatingText } from "@/components/ui/rotating-text";
 import { cargoTypes } from "@/domain/cargo-types";
+import { JourneyScroll } from "@/modules/landing/components/journey-scroll";
 
 // Países de envio em destaque por agora; a preposição muda com o país.
 const heroDispatchPlaces = ["em Portugal", "na América", "em França"];
-
-const journey = [
-  { icon: PackageCheck, title: "Pedido e recolha", text: "Escolhe a agência, descreve a carga e entrega-a ou pede a recolha em casa." },
-  { icon: QrCode, title: "Etiqueta QR", text: "Cada volume recebe um código único que o acompanha em todas as etapas." },
-  { icon: Ship, title: "Contentor e navio", text: "A carga é consolidada, selada e segue com manifesto enviado antes da chegada." },
-  { icon: Warehouse, title: "Levantamento em Cabo Verde", text: "Recebe aviso quando estiver liberada e levanta com documento e código." },
-];
 
 const professionals = [
   { icon: Building2, title: "Agências e transitários", text: "Pedidos de clientes, recolhas, consolidação em BL Master e manifestos." },
@@ -117,26 +111,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-slate-100 bg-slate-50/70">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-700">Como funciona</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Quatro etapas, sempre visíveis.</h2>
-          <ol className="mt-10 grid gap-6 md:grid-cols-4">
-            {journey.map((step, index) => (
-              <li key={step.title}>
-                <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-brand-700 shadow-sm ring-1 ring-slate-200">
-                    <step.icon className="h-5 w-5" strokeWidth={1.75} />
-                  </span>
-                  <span className="text-xs font-semibold text-slate-400">0{index + 1}</span>
-                </div>
-                <p className="mt-4 font-semibold text-slate-900">{step.title}</p>
-                <p className="mt-1 text-sm leading-6 text-slate-500">{step.text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
+      <JourneyScroll />
 
       <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
