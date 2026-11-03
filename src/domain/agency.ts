@@ -4,7 +4,7 @@ export interface Agency {
   id: string;
   code: string;
   name: string;
-  /** País de origem onde a agência recebe a carga (ISO 3166-1 alfa-2). */
+  /** País onde a agência recebe a carga para enviar (ISO 3166-1 alfa-2). */
   countryCode: string;
   city: string;
   address: string;

@@ -9,7 +9,7 @@ import {
 } from "@/domain/shipment-request";
 
 const validInput: ShipmentRequestInput = {
-  originCountry: "PT",
+  dispatchCountry: "PT",
   agencyId: "AG-LIS",
   category: "encomenda_pequena",
   description: "Roupa e alimentos para a família",

@@ -21,7 +21,7 @@ const agencies: Agency[] = [
 ];
 
 describe("agenciesFor", () => {
-  it("filters by origin country, cargo type and island", () => {
+  it("filters by dispatch country, cargo type and island", () => {
     expect(agenciesFor(agencies, { countryCode: "US", category: "veiculo", island: "Santiago" }).map((a) => a.id)).toEqual(["us"]);
     expect(agenciesFor(agencies, { countryCode: "US", category: "encomenda_pequena" })).toEqual([]);
   });

@@ -1,14 +1,15 @@
-// Países de origem. Cabo Verde importa de muitos países; Portugal é só um deles.
+// Países de onde se envia carga para Cabo Verde (onde vive a diáspora e onde se compra).
+// Não confundir com o país de origem/fabrico das mercadorias, que é um campo aduaneiro do item.
 // Os nomes ficam aqui em português até existir i18n.
 
-export interface OriginCountry {
+export interface DispatchCountry {
   /** ISO 3166-1 alfa-2 */
   code: string;
   name: string;
   dialCode: string;
 }
 
-export const originCountries: OriginCountry[] = [
+export const dispatchCountries: DispatchCountry[] = [
   { code: "PT", name: "Portugal", dialCode: "+351" },
   { code: "ES", name: "Espanha", dialCode: "+34" },
   { code: "FR", name: "França", dialCode: "+33" },
@@ -24,6 +25,6 @@ export const originCountries: OriginCountry[] = [
   { code: "CN", name: "China", dialCode: "+86" },
 ];
 
-export function getOriginCountry(code: string) {
-  return originCountries.find((country) => country.code === code);
+export function getDispatchCountry(code: string) {
+  return dispatchCountries.find((country) => country.code === code);
 }

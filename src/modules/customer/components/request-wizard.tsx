@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Input, fieldClasses, fieldErrorClasses } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { agenciesFor, servedCountryCodes } from "@/domain/agency";
-import { getOriginCountry, originCountries } from "@/domain/countries";
+import { getDispatchCountry, dispatchCountries } from "@/domain/countries";
 import { cargoTypes, getCargoType, missingPublicFields } from "@/domain/cargo-types";
 import {
   caboVerdeIslands,
@@ -26,12 +26,12 @@ import { mockRegisterCustomer } from "@/services/mock/auth";
 import { useAuthStore } from "@/store/auth-store";
 
 // Só se oferecem origens onde existe pelo menos uma agência ativa.
-const countryOptions = originCountries.filter((country) => servedCountryCodes(mockAgencies).includes(country.code));
+const countryOptions = dispatchCountries.filter((country) => servedCountryCodes(mockAgencies).includes(country.code));
 
 const steps = ["O que vai enviar", "Destino e agência", "Contactos", "Confirmar"] as const;
 
 const defaultValues: ShipmentRequestInput = {
-  originCountry: "",
+  dispatchCountry: "",
   agencyId: "",
   category: "encomenda_pequena",
   description: "",
@@ -44,7 +44,7 @@ const defaultValues: ShipmentRequestInput = {
 
 const stepFields: Array<FieldPath<ShipmentRequestInput>[]> = [
   ["category", "description"],
-  ["originCountry", "recipient.island", "agencyId", "handover"],
+  ["dispatchCountry", "recipient.island", "agencyId", "handover"],
   ["sender.name", "sender.phone", "sender.email", "recipient.name", "recipient.phone", "recipient.nif"],
 ];
 
@@ -90,12 +90,12 @@ export function RequestWizard() {
   const category = values.category ?? "encomenda_pequena";
   const cargoType = getCargoType(category);
   const agencies = agenciesFor(mockAgencies, {
-    countryCode: values.originCountry,
+    countryCode: values.dispatchCountry,
     category,
     island: values.recipient?.island,
   });
   const selectedAgency = agencies.find((agency) => agency.id === values.agencyId);
-  const originCountry = values.originCountry ? getOriginCountry(values.originCountry) : undefined;
+  const dispatchCountry = values.dispatchCountry ? getDispatchCountry(values.dispatchCountry) : undefined;
 
   const goNext = async () => {
     let valid = await trigger(stepFields[step]);
@@ -313,19 +313,19 @@ export function RequestWizard() {
                 { value: "", label: "Escolha o país" },
                 ...countryOptions.map((country) => ({ value: country.code, label: country.name })),
               ]}
-              {...register("originCountry", {
+              {...register("dispatchCountry", {
                 onChange: (event: { target: { value: string } }) => {
-                  clearErrors("originCountry");
+                  clearErrors("dispatchCountry");
                   setValue("agencyId", "");
                   // Sugere o indicativo enquanto o remetente ainda não escreveu o número.
-                  const dialCode = getOriginCountry(event.target.value)?.dialCode;
+                  const dialCode = getDispatchCountry(event.target.value)?.dialCode;
                   const currentPhone = getValues("sender.phone").trim();
                   if (dialCode && (!currentPhone || /^\+\d{0,4}$/.test(currentPhone))) {
                     setValue("sender.phone", `${dialCode} `);
                   }
                 },
               })}
-              error={errors.originCountry?.message}
+              error={errors.dispatchCountry?.message}
             />
             <Select
               label="Ilha de destino em Cabo Verde"
@@ -335,7 +335,7 @@ export function RequestWizard() {
             />
           </div>
 
-          {!values.originCountry ? (
+          {!values.dispatchCountry ? (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
               Escolha o país de origem para ver as agências disponíveis.
             </div>
@@ -385,7 +385,7 @@ export function RequestWizard() {
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
-              Nenhuma agência em {originCountry?.name} envia este tipo de carga para {values.recipient?.island}. Experimente outra ilha ou tipo de carga.
+              Nenhuma agência em {dispatchCountry?.name} envia este tipo de carga para {values.recipient?.island}. Experimente outra ilha ou tipo de carga.
             </div>
           )}
           {errors.agencyId ? <p className="text-sm text-rose-600">{errors.agencyId.message}</p> : null}
@@ -428,10 +428,10 @@ export function RequestWizard() {
 
       {step === 2 ? (
         <div className="grid gap-6 md:grid-cols-2">
-          <Card title="Quem envia" subtitle={originCountry ? `Em ${originCountry.name}.` : "No país de origem."}>
+          <Card title="Quem envia" subtitle={dispatchCountry ? `Em ${dispatchCountry.name}.` : "No país de origem."}>
             <div className="space-y-4">
               <Input label="Nome" autoComplete="name" {...register("sender.name")} error={errors.sender?.name?.message} />
-              <Input label="Telefone" type="tel" autoComplete="tel" {...register("sender.phone")} error={errors.sender?.phone?.message} hint={`Com indicativo do país, ex.: ${originCountry?.dialCode ?? "+33"} …`} />
+              <Input label="Telefone" type="tel" autoComplete="tel" {...register("sender.phone")} error={errors.sender?.phone?.message} hint={`Com indicativo do país, ex.: ${dispatchCountry?.dialCode ?? "+33"} …`} />
               <Input label="Email (opcional)" type="email" autoComplete="email" {...register("sender.email")} error={errors.sender?.email?.message} />
             </div>
           </Card>
@@ -450,7 +450,7 @@ export function RequestWizard() {
           <Card title="Resumo do pedido">
             <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
               <Summary label="Tipo de carga" value={cargoType.publicLabel} />
-              <Summary label="Origem" value={originCountry?.name} />
+              <Summary label="Origem" value={dispatchCountry?.name} />
               <Summary label="Agência" value={selectedAgency?.name} />
               <Summary label="Descrição" value={values.description} />
               <Summary
