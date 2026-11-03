@@ -11,6 +11,7 @@ import {
   type MotionValue,
 } from "motion/react";
 import { useRef, useState } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 import { JourneyScene } from "@/modules/landing/components/journey-scene";
 import { journeySteps, stepIndexAt, type JourneyStep } from "@/modules/landing/journey-timeline";
 
@@ -20,7 +21,9 @@ import { journeySteps, stepIndexAt, type JourneyStep } from "@/modules/landing/j
  */
 export function JourneyScroll() {
   const reduceMotion = useReducedMotion();
-  return reduceMotion ? <JourneyStatic /> : <JourneyAnimated />;
+  // O servidor não conhece a preferência: só troca de versão depois de hidratar.
+  const isHydrated = useHydrated();
+  return isHydrated && reduceMotion ? <JourneyStatic /> : <JourneyAnimated />;
 }
 
 function SectionHeading() {
@@ -67,10 +70,10 @@ function JourneyAnimated() {
   return (
     <section ref={sectionRef} aria-labelledby="journey-title" className="relative h-[520vh] bg-brand-950">
       <StepsForScreenReaders />
-      <div className="sticky top-16 mx-auto flex h-[calc(100svh-4rem)] max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6 lg:gap-5 lg:py-8">
+      <div className="sticky top-16 mx-auto flex h-[calc(100svh-4rem)] max-w-6xl flex-col justify-center gap-4 px-4 py-6 sm:px-6 lg:justify-start lg:gap-5 lg:py-8">
         <SectionHeading />
 
-        <div className="relative aspect-[15/8] w-full overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-2xl shadow-black/40 lg:aspect-auto lg:min-h-0 lg:flex-1">
+        <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-2xl shadow-black/40 sm:aspect-15/8 lg:aspect-auto lg:min-h-0 lg:flex-1">
           <JourneyScene progress={scrollYProgress} className="absolute inset-0 h-full w-full" />
         </div>
 
@@ -87,7 +90,7 @@ function JourneyAnimated() {
               />
             ))}
           </div>
-          <div className="mt-4 min-h-[4.5rem]">
+          <div className="mt-4 min-h-18">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={step.id}
@@ -167,7 +170,7 @@ function JourneyStatic() {
 function StaticScene({ progress }: { progress: number }) {
   const value = useMotionValue(progress);
   return (
-    <div className="relative aspect-[15/8] overflow-hidden rounded-xl ring-1 ring-white/10">
+    <div className="relative aspect-15/8 overflow-hidden rounded-xl ring-1 ring-white/10">
       <JourneyScene progress={value} className="absolute inset-0 h-full w-full" />
     </div>
   );
