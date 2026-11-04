@@ -47,6 +47,7 @@ apenas conveniência.
 | `/enviar`, `/acompanhar`, `/cliente` (pedidos de envio) | **API** |
 | `/agencia/pedidos` (fila e ações da agência) | **API** |
 | `/agencia/encomendas` (encomendas, volumes, validação, etiquetas) | **API** |
+| `/agencia/importar` (importar listas .xlsx/.csv) | **API** |
 | Lista de agências no assistente | **API** |
 | `/agent/collections` (recolha no terreno, OCR) | IndexedDB do navegador (passa para a API na fase B7) |
 | `/exporter/*`, `/cv/*`, `/dashboard`, `/admin/*` | Dados de exemplo (`src/mocks`), substituídos nas fases B3–B6 |
@@ -113,6 +114,7 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/agencia/encomendas/[id]` | agente, admin | Detalhe, volumes, validar, cancelar |
 | `/agencia/encomendas/[id]/editar` | agente, admin | Editar dados de um rascunho |
 | `/agencia/encomendas/[id]/etiquetas` | agente, admin | Etiquetas QR para imprimir (uma por volume) |
+| `/agencia/importar` | agente, admin | Importar lista .xlsx/.csv: escolher colunas, pré-visualizar erros e duplicados, importar (há um modelo CSV para descarregar) |
 | `/agent/collections` | agente | Recolhas no terreno com fotografia e OCR |
 | `/exporter/*`, `/cv/*`, `/admin/*`, `/dashboard` | perfis respetivos | Plataforma de gestão (dados de exemplo) |
 
@@ -141,6 +143,7 @@ No terminal do VS Code, o Cypress precisa de `ELECTRON_RUN_AS_NODE` removido:
   - veículo incompleto → a validação lista os campos em falta → editar → validar;
   - encomenda repetida → alerta de duplicado → registar mesmo assim;
   - pedido de cliente recebido → abre a encomenda criada;
+  - lista CSV com `;` → mapeamento sugerido → pré-visualização com uma linha errada → importar a válida;
   - recolha no terreno com OCR simulado (o Cypress injeta um resultado fixo de OCR).
 
 Os testes E2E criam pedidos reais na base de dados de desenvolvimento do backend.
