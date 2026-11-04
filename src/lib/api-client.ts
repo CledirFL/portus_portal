@@ -88,13 +88,15 @@ export function refreshSession() {
 async function send(path: string, options: RequestOptions) {
   const token = options.auth === "none" ? null : useAuthStore.getState().accessToken;
   const headers: Record<string, string> = {};
-  if (options.body !== undefined) headers["content-type"] = "application/json";
+  // FormData (upload de ficheiros) leva o seu próprio content-type com o boundary.
+  const isForm = typeof FormData !== "undefined" && options.body instanceof FormData;
+  if (options.body !== undefined && !isForm) headers["content-type"] = "application/json";
   if (token) headers.authorization = `Bearer ${token}`;
 
   return fetch(`${apiBaseUrl}${path}`, {
     method: options.method ?? "GET",
     headers,
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    body: isForm ? (options.body as FormData) : options.body !== undefined ? JSON.stringify(options.body) : undefined,
     credentials: "include",
   });
 }

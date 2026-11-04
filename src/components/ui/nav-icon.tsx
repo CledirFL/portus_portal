@@ -8,6 +8,11 @@ import {
   FileText,
   Globe2,
   Inbox,
+  Anchor,
+  Receipt,
+  ScanLine,
+  Stamp,
+  Upload,
   LayoutDashboard,
   MapPin,
   Package,
@@ -37,6 +42,11 @@ const icons: Record<NavIconName, LucideIcon> = {
   tag: Tag,
   shield: ShieldCheck,
   inbox: Inbox,
+  upload: Upload,
+  anchor: Anchor,
+  scan: ScanLine,
+  stamp: Stamp,
+  receipt: Receipt,
   plus: Plus,
 };
 

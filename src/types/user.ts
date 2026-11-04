@@ -43,6 +43,11 @@ export type NavIcon =
   | "tag"
   | "shield"
   | "inbox"
+  | "upload"
+  | "anchor"
+  | "scan"
+  | "stamp"
+  | "receipt"
   | "plus";
 
 export interface NavItem {

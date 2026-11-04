@@ -80,3 +80,29 @@ describe("apiRequest", () => {
     expect(window.localStorage.getItem("portus-auth")).not.toContain("secret");
   });
 });
+
+describe("apiRequest with files", () => {
+  const fetchMock = vi.fn<typeof fetch>();
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", fetchMock);
+    useAuthStore.getState().setSession({ id: "u-1", name: "Rui", email: "a", role: "agente_recolha", company: "" }, "tok");
+  });
+
+  afterEach(() => {
+    fetchMock.mockReset();
+    vi.unstubAllGlobals();
+  });
+
+  it("sends FormData as is so the browser sets the multipart boundary", async () => {
+    fetchMock.mockResolvedValueOnce(new Response("{}", { status: 201 }));
+    const form = new FormData();
+    form.append("file", new Blob(["a;b"]), "lista.csv");
+
+    await apiRequest("/imports", { method: "POST", body: form });
+
+    const init = fetchMock.mock.calls[0]![1]!;
+    expect(init.body).toBe(form);
+    expect(init.headers).not.toHaveProperty("content-type");
+  });
+});
