@@ -8,10 +8,11 @@ import { CargoTypeIcon } from "@/components/cargo-type-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { Pagination } from "@/components/ui/pagination";
 import { getCargoType } from "@/domain/cargo-types";
 import type { ShipmentStatus } from "@/domain/status-labels";
 import { ShipmentStatusBadge } from "@/modules/shipments/components/shipment-status";
-import { listShipments, type Shipment } from "@/services/api/shipments";
+import { listShipments, type ShipmentPage } from "@/services/api/shipments";
 import { useAuthStore } from "@/store/auth-store";
 
 const tabs: Array<{ key: ShipmentStatus | "all"; label: string }> = [
@@ -26,18 +27,22 @@ export default function ShipmentsPage() {
   const [tab, setTab] = useState<ShipmentStatus | "all">("all");
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
-  const [shipments, setShipments] = useState<Shipment[] | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [result, setResult] = useState<ShipmentPage | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
-    listShipments({ status: tab === "all" ? undefined : tab, q: search })
-      .then((items) => {
-        setShipments(items);
+    listShipments({ status: tab === "all" ? undefined : tab, q: search, page, pageSize })
+      .then((shipmentPage) => {
+        setResult(shipmentPage);
         setError("");
       })
       .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Não foi possível carregar as encomendas."));
-  }, [user, tab, search]);
+  }, [user, tab, search, page, pageSize]);
+
+  const shipments = result?.items ?? null;
 
   return (
     <AppShell>
@@ -60,7 +65,10 @@ export default function ShipmentsPage() {
               key={item.key}
               role="tab"
               aria-selected={tab === item.key}
-              onClick={() => setTab(item.key)}
+              onClick={() => {
+                setTab(item.key);
+                setPage(1);
+              }}
               className={`rounded-md px-3 py-1.5 text-sm font-medium ${
                 tab === item.key ? "bg-brand-700 text-white" : "text-slate-600 hover:text-slate-900"
               }`}
@@ -74,6 +82,7 @@ export default function ShipmentsPage() {
           onSubmit={(event) => {
             event.preventDefault();
             setSearch(query);
+            setPage(1);
           }}
         >
           <Input
@@ -97,7 +106,7 @@ export default function ShipmentsPage() {
 
       {shipments === null ? (
         <p className="py-10 text-center text-sm text-slate-500">A carregar…</p>
-      ) : shipments.length ? (
+      ) : result && shipments.length ? (
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
           <table className="min-w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500">
@@ -147,6 +156,17 @@ export default function ShipmentsPage() {
               })}
             </tbody>
           </table>
+          <Pagination
+            page={result.page}
+            pageSize={result.pageSize}
+            total={result.total}
+            itemLabel="encomendas"
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+          />
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center text-sm text-slate-500">

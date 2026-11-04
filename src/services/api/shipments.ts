@@ -87,12 +87,21 @@ export function possibleDuplicates(error: unknown): PossibleDuplicate[] | null {
   return null;
 }
 
-export function listShipments(query: { status?: ShipmentStatus; q?: string } = {}) {
+export interface ShipmentPage {
+  items: Shipment[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export function listShipments(query: { status?: ShipmentStatus; q?: string; page?: number; pageSize?: number } = {}) {
   const params = new URLSearchParams();
   if (query.status) params.set("status", query.status);
   if (query.q?.trim()) params.set("q", query.q.trim());
+  if (query.page) params.set("page", String(query.page));
+  if (query.pageSize) params.set("pageSize", String(query.pageSize));
   const search = params.toString();
-  return apiRequest<Shipment[]>(`/shipments${search ? `?${search}` : ""}`);
+  return apiRequest<ShipmentPage>(`/shipments${search ? `?${search}` : ""}`);
 }
 
 export function getShipment(id: string) {
