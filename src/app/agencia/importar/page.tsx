@@ -324,7 +324,7 @@ function ReportView({ report, footer }: { report: ImportReport; footer: React.Re
       <Card title="Encomendas no ficheiro" subtitle="As linhas com erros não são importadas; corrija o ficheiro e carregue-o de novo.">
         <ul className="divide-y divide-slate-100" data-cy="import-report">
           {report.groups.map((group) => (
-            <li key={group.key} className="py-3 text-sm">
+            <li key={group.key} data-cy="import-group" className="py-3 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium text-slate-900">
                   {group.key.startsWith("linha ") ? `Linha ${group.rows[0]}` : group.key}{" "}
