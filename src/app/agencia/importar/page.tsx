@@ -128,7 +128,7 @@ export default function ImportPage() {
         title="Importar lista"
         description="Carregue a lista da agência em Excel (.xlsx) ou CSV. Cada linha é um volume; linhas com o mesmo nº de guia formam uma encomenda."
         actions={
-          <Button variant="outline" onClick={downloadTemplate}>
+          <Button variant="outline" className="whitespace-nowrap" onClick={downloadTemplate}>
             <Download className="h-4 w-4" aria-hidden /> Modelo CSV
           </Button>
         }
@@ -327,7 +327,10 @@ function ReportView({ report, footer }: { report: ImportReport; footer: React.Re
             <li key={group.key} className="py-3 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium text-slate-900">
-                  {group.key} <span className="font-normal text-slate-500">· linha{group.rows.length > 1 ? "s" : ""} {group.rows.join(", ")}</span>
+                  {group.key.startsWith("linha ") ? `Linha ${group.rows[0]}` : group.key}{" "}
+                  {group.key.startsWith("linha ") ? null : (
+                    <span className="font-normal text-slate-500">· linha{group.rows.length > 1 ? "s" : ""} {group.rows.join(", ")}</span>
+                  )}
                 </span>
                 <span className="flex items-center gap-3">
                   <span className="text-slate-500">
