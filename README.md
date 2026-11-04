@@ -6,6 +6,8 @@ Frontend da plataforma **PORTUS**, que acompanha cargas enviadas para **Cabo Ver
 - **Portal público:** o cliente escolhe a agência no país de onde envia e faz o pedido **sem conta**; acompanha
   com código + telefone, ou cria conta se quiser ver todos os envios.
 - **Área das agências:** fila de pedidos de clientes para aceitar, agendar recolha, receber ou recusar.
+  Registo de **encomendas** e volumes, validação por tipo de carga, alerta de duplicados e **etiquetas QR
+  assinadas** para imprimir.
 - **Plataforma de gestão** (exportação, operações CV, administração) e **recolha no terreno** com OCR.
 
 A API está no repositório [`portus_service`](../portus_service). O plano de melhorias está em
@@ -44,6 +46,7 @@ apenas conveniência.
 | Login, logout, sessão, conta de cliente | **API** |
 | `/enviar`, `/acompanhar`, `/cliente` (pedidos de envio) | **API** |
 | `/agencia/pedidos` (fila e ações da agência) | **API** |
+| `/agencia/encomendas` (encomendas, volumes, validação, etiquetas) | **API** |
 | Lista de agências no assistente | **API** |
 | `/agent/collections` (recolha no terreno, OCR) | IndexedDB do navegador (passa para a API na fase B7) |
 | `/exporter/*`, `/cv/*`, `/dashboard`, `/admin/*` | Dados de exemplo (`src/mocks`), substituídos nas fases B3–B6 |
@@ -105,6 +108,11 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/login` | público | Entrada |
 | `/cliente` | cliente | Os meus pedidos |
 | `/agencia/pedidos` | agente, admin | Fila de pedidos da agência e ações |
+| `/agencia/encomendas` | agente, admin | Encomendas: lista, pesquisa (código, guia, VIN, nome, telefone) |
+| `/agencia/encomendas/nova` | agente, admin | Registar encomenda no balcão com volumes |
+| `/agencia/encomendas/[id]` | agente, admin | Detalhe, volumes, validar, cancelar |
+| `/agencia/encomendas/[id]/editar` | agente, admin | Editar dados de um rascunho |
+| `/agencia/encomendas/[id]/etiquetas` | agente, admin | Etiquetas QR para imprimir (uma por volume) |
 | `/agent/collections` | agente | Recolhas no terreno com fotografia e OCR |
 | `/exporter/*`, `/cv/*`, `/admin/*`, `/dashboard` | perfis respetivos | Plataforma de gestão (dados de exemplo) |
 
@@ -129,6 +137,10 @@ No terminal do VS Code, o Cypress precisa de `ELECTRON_RUN_AS_NODE` removido:
 - **E2E (Cypress) contra a API real:**
   - pedido sem conta → consulta com código e telefone → a agência aceita e agenda → o cliente vê a marcação;
   - pedido a partir dos EUA com criação de conta → aparece em `/cliente`;
+  - encomenda com 2 volumes → validar → etiquetas → o QR é aceite pela verificação da API;
+  - veículo incompleto → a validação lista os campos em falta → editar → validar;
+  - encomenda repetida → alerta de duplicado → registar mesmo assim;
+  - pedido de cliente recebido → abre a encomenda criada;
   - recolha no terreno com OCR simulado (o Cypress injeta um resultado fixo de OCR).
 
 Os testes E2E criam pedidos reais na base de dados de desenvolvimento do backend.
@@ -142,6 +154,7 @@ src/
   domain/                 regras de negócio puras (mesma origem que portus_service/src/domain)
   lib/                    api-client, config, permissões, utilitários
   modules/customer/       assistente de pedido, consulta e cartões de pedido
+  modules/shipments/      formulário de encomenda, volumes, estados e QR
   modules/field-agent/    recolha no terreno e OCR
   services/api/           chamadas à API (auth, agências, pedidos)
   services/mock/          registo de empresas ainda simulado
@@ -158,6 +171,7 @@ docs/                     plano de melhorias
 | `next` 16, `react` 19 | Framework e interface (React Compiler ativo) |
 | `tailwindcss` 4 | Estilos; paleta `brand` e acento `star` em `src/app/globals.css` |
 | `react-hook-form` + `zod` | Formulários e validação (os mesmos esquemas que a API) |
+| `qrcode` | QR das etiquetas gerado no navegador (SVG) |
 | `zustand` | Estado de autenticação |
 | `lucide-react` | Ícones |
 | `tesseract.js` | OCR em português no navegador (recolha no terreno) |
@@ -172,3 +186,9 @@ docs/                     plano de melhorias
 | Login dá "Email ou palavra-passe incorretos" com as contas de demo | Repor no backend: `npm run db:seed -- --reset-passwords` |
 | Cypress: `bad option: --smoke-test` | Corra com `env -u ELECTRON_RUN_AS_NODE` |
 | Mudou `NEXT_PUBLIC_API_URL` e nada mudou | A variável entra no build: reinicie o `npm run dev` |
+
+### Imprimir etiquetas
+
+Em `/agencia/encomendas/[id]/etiquetas` use **Imprimir**: o menu e o cabeçalho desaparecem e cada etiqueta fica
+inteira numa página. Para impressoras de etiquetas (ex.: 100 × 150 mm), escolha esse tamanho de papel no diálogo
+de impressão do navegador.
