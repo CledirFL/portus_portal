@@ -63,6 +63,8 @@ function formatDate(value?: string) {
 export function RequestWizard() {
   const user = useAuthStore((state) => state.user);
   const isCustomer = user?.role === "cliente";
+  // Quem envia com a própria conta (cliente ou exportador): o remetente vem preenchido com os dados da conta.
+  const accountSender = user?.role === "cliente" || user?.role === "exporter" ? user : null;
   const isHydrated = useHydrated();
 
   const [step, setStep] = useState(0);
@@ -93,13 +95,21 @@ export function RequestWizard() {
     formState: { errors, isSubmitting },
   } = useForm<ShipmentRequestInput>({
     resolver: zodResolver(shipmentRequestSchema),
-    defaultValues: {
-      ...defaultValues,
-      sender: isCustomer
-        ? { name: user.name, phone: user.phone ?? "", email: user.email }
-        : defaultValues.sender,
-    },
+    defaultValues,
   });
+
+  // A sessão pode chegar depois do primeiro desenho: preenche o remetente quando chega, só nos campos vazios
+  // (o indicativo sugerido pelo país conta como vazio), para nunca apagar o que a pessoa já escreveu.
+  const accountSenderId = accountSender?.id;
+  useEffect(() => {
+    if (!accountSender) return;
+    const current = getValues("sender");
+    if (!current.name.trim() && accountSender.name) setValue("sender.name", accountSender.name);
+    if (/^\+?\d{0,4}\s*$/.test(current.phone.trim()) && accountSender.phone) setValue("sender.phone", accountSender.phone);
+    if (!current.email?.trim() && accountSender.email) setValue("sender.email", accountSender.email);
+    // Uma vez por conta; as funções do formulário são estáveis.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountSenderId]);
 
   // Sugere o indicativo enquanto o remetente ainda não escreveu o número.
   function suggestDialCode(countryCode: string) {
@@ -128,6 +138,8 @@ export function RequestWizard() {
   }, []);
 
   const values = useWatch({ control });
+  // Enquanto o remetente for o da conta, o cartão "Quem envia" explica de onde vêm os dados.
+  const senderFromAccount = Boolean(accountSender && values.sender?.name === accountSender.name && values.sender?.email === accountSender.email);
   const category = values.category ?? "encomenda_pequena";
   const cargoType = getCargoType(category);
   const agencies = agenciesFor(allAgencies ?? [], {
@@ -496,7 +508,16 @@ export function RequestWizard() {
 
       {step === 2 ? (
         <div className="grid gap-6 md:grid-cols-2">
-          <Card title="Quem envia" subtitle={dispatchCountry ? `Em ${dispatchCountry.name}.` : "No país de onde envia."}>
+          <Card
+            title="Quem envia"
+            subtitle={
+              senderFromAccount
+                ? "Preenchido com os dados da sua conta. Pode alterar se envia em nome de outra pessoa."
+                : dispatchCountry
+                  ? `Em ${dispatchCountry.name}.`
+                  : "No país de onde envia."
+            }
+          >
             <div className="space-y-4">
               <Input label="Nome" autoComplete="name" {...register("sender.name")} error={errors.sender?.name?.message} />
               <Input label="Telefone" type="tel" autoComplete="tel" {...register("sender.phone")} error={errors.sender?.phone?.message} hint={`Com indicativo do país, ex.: ${dispatchCountry?.dialCode ?? "+33"} …`} />
@@ -537,6 +558,10 @@ export function RequestWizard() {
 
           {isCustomer ? (
             <p className="text-sm text-slate-500">O pedido fica associado à sua conta ({user.email}).</p>
+          ) : accountSender ? (
+            <p className="text-sm text-slate-500">
+              Está a enviar com a sua conta ({accountSender.email}). Acompanhe o pedido pelo link que recebe no fim e por email.
+            </p>
           ) : (
             <Card title="Quer criar conta?" subtitle="Opcional. Sem conta acompanha o pedido com o código e o seu telefone.">
               <div className="grid gap-3 sm:grid-cols-2">
