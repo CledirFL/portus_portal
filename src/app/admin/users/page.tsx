@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
 import { Select } from "@/components/ui/select";
 import { roleLabels } from "@/lib/permissions";
-import { userScopeLabel, userStatusTones } from "@/modules/admin/user-labels";
+import { roleLabel, userScopeLabel, userStatusTones } from "@/modules/admin/user-labels";
 import { listUsers, staffRoles, type UserStatus, userStatusLabels } from "@/services/api/users";
 import { useAuthStore } from "@/store/auth-store";
 import type { Role } from "@/types/user";
@@ -149,7 +149,7 @@ export default function AdminUsersPage() {
                       {item.organization ? ` · ${item.organization}` : ""}
                     </p>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">{roleLabels[item.role]}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{roleLabel(item.role)}</td>
                   <td className="px-4 py-3">{userScopeLabel(item)}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-slate-500">
                     {item.lastLoginAt ? new Date(item.lastLoginAt).toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short" }) : "Nunca"}

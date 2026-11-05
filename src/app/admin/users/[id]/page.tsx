@@ -7,10 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { roleLabels } from "@/lib/permissions";
 import { TemporaryPassword } from "@/modules/admin/temporary-password";
 import { fieldErrors, toStaffInput, UserFields, type UserFormValues } from "@/modules/admin/user-form";
-import { userScopeLabel, userStatusTones } from "@/modules/admin/user-labels";
+import { roleLabel, userScopeLabel, userStatusTones } from "@/modules/admin/user-labels";
 import { getUser, type ManagedUser, resetUserPassword, staffRoles, updateUser, type UserStatus, userStatusLabels } from "@/services/api/users";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -71,7 +70,7 @@ export default function AdminUserPage({ params }: PageProps<"/admin/users/[id]">
 
   return (
     <AppShell>
-      <PageHeader backHref="/admin/users" title={user?.name ?? "Utilizador"} description={user ? `${roleLabels[user.role]} · ${userScopeLabel(user)}` : undefined} />
+      <PageHeader backHref="/admin/users" title={user?.name ?? "Utilizador"} description={user ? `${roleLabel(user.role)} · ${userScopeLabel(user)}` : undefined} />
 
       {message ? (
         <div

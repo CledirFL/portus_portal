@@ -70,7 +70,8 @@ export function UserFields({ values, onChange, errors, emailLocked = false, role
         label="Perfil"
         value={values.role}
         onChange={(event) => set({ role: event.target.value as Role })}
-        options={roles.map((role) => ({ value: role, label: roleLabels[role] }))}
+        // O perfil atual aparece sempre, mesmo fora da lista, para o campo nunca ficar em branco.
+        options={(roles.includes(values.role) ? roles : [values.role, ...roles]).map((role) => ({ value: role, label: roleLabels[role] ?? role }))}
         error={errors.role}
       />
       {scope === "agency" ? (
