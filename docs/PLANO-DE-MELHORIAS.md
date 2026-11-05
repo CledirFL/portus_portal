@@ -104,11 +104,11 @@ Proposta:
 - [x] Auditoria real com valores antes/depois em todas as escritas (BR 27). *(B1, em todas as fases)*
 
 ### Fase 3 — Chegada a Cabo Verde (MVP)
-- [ ] Desconsolidação por leitura de QR (câmara), ocorrências com fotos, localização no armazém (RF-A17–20).
-- [ ] Despacho manual: canal verde/vermelho, retenção/libertação com histórico, bloqueio sem manifesto validado (RF-A21–23).
-- [ ] Tarifas configuráveis e cálculo de taxas, registo de pagamento/isenção (RF-A25–26).
-- [ ] Levantamento: validação de documento + QR, terceiros autorizados, Gate Pass, estado Entregue (RF-A30–32).
-- [ ] Novos perfis: Alfândega, Terminal, Portaria, Destinatário; âmbito por porto/agência.
+- [x] Desconsolidação por leitura de QR (câmara), ocorrências com fotos, localização no armazém (RF-A17–20). *(B6)*
+- [x] Despacho manual: canal verde/vermelho, retenção/libertação com histórico, bloqueio sem manifesto validado (RF-A21–23). *(B6)*
+- [x] Tarifas configuráveis e cálculo de taxas, registo de pagamento/isenção (RF-A25–26). *(B6)*
+- [x] Levantamento: validação de documento + QR, terceiros autorizados, Gate Pass, estado Entregue (RF-A30–32). *(B6)*
+- [x] Novos perfis: Alfândega, Terminal, Portaria; âmbito por porto/agência. *(B6; o portal do destinatário fica por fazer)*
 - [ ] Painel e relatórios com dados reais (RF-A36–37).
 
 ### Fase 4 — Parte B completa (MVP-B)
