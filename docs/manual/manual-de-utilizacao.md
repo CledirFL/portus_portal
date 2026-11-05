@@ -4,8 +4,8 @@ Este manual explica como usar o Portus do princípio ao fim: desde o pedido do c
 levantamento da carga em Cabo Verde. Segue a ordem real do processo e, em cada etapa, diz **quem** faz, **onde**,
 **que passos** seguir e **o que verificar**.
 
-Serve também de roteiro de testes. Marque cada ☐ à medida que testa e anote no
-[registo de problemas](#8-registo-de-problemas) o que falhar, o que faltar ou o que puder melhorar.
+Serve também de roteiro de testes. Marque cada ☐ à medida que testa. Quando algo falhar, faltar ou puder
+melhorar, use o botão **Reportar problema** no cabeçalho do portal (ver [a secção 9](#9-registo-de-problemas)).
 
 Legenda:
 
@@ -19,10 +19,13 @@ Legenda:
 
 ### 1.1 Arrancar a plataforma
 
-1. Base de dados: o contentor Docker do PostgreSQL (`portus-service-postgres-1`, porta 5435) tem de estar a correr.
+1. Base de dados e emails: em `portus_service`, `docker compose up -d`. Arranca o PostgreSQL (porta 5435) e o
+   **Mailpit**, que apanha os emails enviados pela plataforma.
 2. Backend: em `portus_service`, `npm run dev`. A API fica em `http://localhost:4000/api`.
 3. Portal: em `portus`, `npm run dev`. O portal fica em `http://localhost:3000`.
 4. Se faltarem contas ou agências: em `portus_service`, `npm run db:seed`.
+5. **Caixa de correio de testes:** <http://localhost:8025>. Todos os emails da plataforma (para clientes e equipa)
+   aparecem aqui; nenhum sai para a Internet.
 
 ### 1.2 Contas de demonstração
 
@@ -38,8 +41,8 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
 | `alfandega@portus.cv` | Alfândega | Porto da Praia | Despacho aduaneiro |
 | `portaria@portus.cv` | Portaria | Porto da Praia | Levantamentos |
 | `joao@portus.cv` | Administrador | Todas as agências e portos | Utilizadores |
-| `ana@portus.cv` | Exportador | — | Ecrãs de demonstração 🧪 |
-| `bruno@portus.cv` | Transitário | — | Conta em revisão: **não entra** |
+| `ana@portus.cv` | Exportador | — | Área em preparação ⏳ |
+| `bruno@portus.cv` | Transitário | — | Pedido de acesso em revisão: **não entra** até o administrador o aprovar |
 | `duarte@portus.cv` | Operador do terminal | — | Conta bloqueada: **não entra** |
 
 ### 1.3 Dicas antes de testar
@@ -53,6 +56,8 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
 - **Preencha o NIF ou o documento do destinatário.** Sem um deles, a Alfândega sugere canal vermelho e a portaria
   não consegue entregar a carga (ver a etapa 9).
 - **A viagem tem de chegar à Praia** (`CVRAI`), porque as contas de Cabo Verde só veem esse porto.
+- **Use emails inventados** nos pedidos (ex.: `rosa@teste.pt`). Os emails vão todos para o Mailpit
+  (<http://localhost:8025>); ninguém os recebe de verdade.
 
 ---
 
@@ -80,7 +85,7 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
 | 7 | Chegada e conferência | Terminal / agente marítimo | **Chegado → Desconsolidado** | ✅ |
 | 8 | Despacho aduaneiro | Alfândega | **Liberado** (ou **Retido**) | ✅ |
 | 9 | Taxas e levantamento | Portaria | **Entregue** | ✅ |
-| — | Acompanhamento | Cliente | — | ✅ até "Carga recebida" |
+| — | Acompanhamento e emails | Cliente | — | ✅ até à entrega |
 
 > **Agência e agente de recolha.** A agência não tem uma conta própria. Quem trabalha nela entra como **agente
 > de recolha** e trata os pedidos e as encomendas da agência. O **transitário** é da mesma agência e trata do
@@ -103,11 +108,12 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
    - agência (só aparecem as que servem esse país, essa carga e essa ilha);
    - como entrega a carga: **recolha** na sua morada (só nas agências que fazem recolha) ou **entrega na
      agência**.
-3. **Contactos:** remetente (o indicativo do telefone é preenchido conforme o país) e destinatário. Preencha o
-   **NIF do destinatário**.
+3. **Contactos:** remetente (o indicativo do telefone é preenchido conforme o país), com **email**, e destinatário.
+   Preencha o **NIF do destinatário**.
 4. **Confirmar:** reveja tudo. Se quiser, crie uma conta (opcional) e envie.
 
-No fim aparece o **código do pedido** (ex.: `PED-7KQ2M9`), com um botão para o copiar.
+No fim aparece o **código do pedido** (ex.: `PED-7KQ2M9`), com um botão para o copiar, e o **link do seu pedido**.
+Com email indicado, chega também um email com o código e o botão **Ver ou cancelar o pedido**.
 
 **O que verificar**
 - ☐ O país vem preenchido com o país onde está e pode ser mudado.
@@ -115,6 +121,7 @@ No fim aparece o **código do pedido** (ex.: `PED-7KQ2M9`), com um botão para o
 - ☐ A opção de recolha só aparece nas agências que a fazem.
 - ☐ Os campos obrigatórios mostram erro se ficarem vazios.
 - ☐ Recebe o código `PED-…` no fim.
+- ☐ O email "Pedido PED-… recebido" chega ao Mailpit e o botão abre o pedido (`/pedido/…`).
 - ☐ Com conta criada, o pedido aparece em **Os meus pedidos** (`/cliente`).
 
 ### Etapa 2 — Agência: tratar o pedido ✅
@@ -138,6 +145,8 @@ ações:
 - ☐ Recusar e cancelar não avançam sem motivo.
 - ☐ Agendar não aceita datas passadas.
 - ☐ O agente só vê os pedidos da sua agência.
+- ☐ A cada ação (aceitar, agendar, recusar, cancelar, carga recebida) o cliente recebe um email; o do agendamento
+  tem a data na hora local da agência.
 
 ### Etapa 3 — Agente de recolha: receber a carga ✅
 
@@ -209,16 +218,25 @@ Uma encomenda, em rascunho ou já validada, pode ser **cancelada** com motivo.
 
 ### Acompanhamento pelo cliente ✅ (em qualquer momento)
 
-- **Sem conta:** **Acompanhar pedido** (`/acompanhar`), com o código do pedido e o telefone do remetente.
-- **Com conta:** **Os meus pedidos** (`/cliente`).
+O cliente acompanha o pedido de três formas:
+- **Link do email** (`/pedido/…`): sem conta e sem escrever nada.
+- **Acompanhar pedido** (`/acompanhar`): com o código do pedido e o telefone do remetente.
+- **Os meus pedidos** (`/cliente`): com conta.
 
-O cliente vê o estado (**Submetido → Aceite → Recolha agendada → Carga recebida**), a data marcada e as notas da
-agência.
+**Antes de a agência receber a carga**, vê o estado (**Submetido → Aceite → Recolha agendada**), a data marcada e as
+notas da agência, e pode **cancelar o pedido** (com motivo opcional). Recebe um email a confirmar.
+
+**Depois de "Carga recebida"**, vê a **linha do tempo da encomenda**: recebida na agência → etiquetada → no
+contentor → em viagem (navio e chegada prevista) → chegou a Cabo Verde → pronta para levantar → entregue. Quando a
+carga está pronta, aparece o **código de levantamento** `LEV-…` (para passar ao destinatário), o porto e as taxas
+a pagar nesse dia. Também recebe um email em cada marco: em viagem, chegou, pronta para levantar e entregue.
 
 **O que verificar**
-- ☐ Com o telefone errado, o pedido não aparece.
+- ☐ Com o telefone errado, o pedido não aparece. Um link alterado mostra "Este link não é válido".
 - ☐ O estado, a data e a nota mudam depois de cada ação da agência.
-- ☐ ⏳ Depois de **Carga recebida**, o cliente não vê mais nada (ver a secção 6).
+- ☐ Cancelar funciona até a agência receber a carga; depois o botão desaparece.
+- ☐ A linha do tempo avança com a carga (etapas 4 a 9) e não mostra a localização no armazém nem a inspeção.
+- ☐ Os emails dos marcos chegam ao Mailpit; o de "pronta para levantar" tem o código e as taxas.
 
 ### Etapa 5 — Transitário: consolidar no contentor ✅
 
@@ -272,6 +290,7 @@ agência.
 - ☐ Ao reabrir um contentor depois do envio, o manifesto fica desatualizado e o alerta volta.
 - ☐ O manifesto tem os volumes por contentor e BL Master, os totais e os proprietários.
 - ☐ Não regista a partida com contentores por selar.
+- ☐ Na partida, o remetente recebe o email "A sua carga está a caminho de Cabo Verde" com a chegada prevista.
 
 ---
 
@@ -296,6 +315,7 @@ agência.
 - ☐ Cada volume lido aparece com a localização.
 - ☐ O excesso e as ocorrências ficam registados, com as fotografias.
 - ☐ Não fecha com volumes por conferir.
+- ☐ Ao registar a chegada, o remetente recebe o email "A sua carga chegou a Cabo Verde".
 - ☐ ⏳ Contra-Marca: ainda não existe.
 
 ### Etapa 8 — Alfândega: despacho ✅
@@ -311,13 +331,14 @@ agência.
 3. Atribua o canal (**Canal verde** ou **Canal vermelho**; no vermelho, escreva o resultado da inspeção).
 4. **Reter**, com motivo: os volumes ficam **Retido**. Ou **Libertar**, com os direitos em CVE: os volumes ficam
    **Liberado** e aparece o **código de levantamento** (`LEV-…`).
-5. Comunique o código ao destinatário (por agora à mão; ⏳ o SMS ainda não existe).
+5. O remetente recebe por email o código e as taxas, e vê-os na linha do tempo. Ao destinatário, por agora, o código
+   chega pelo remetente ou à mão (⏳ o SMS ainda não existe).
 
 **O que verificar**
 - ☐ Não liberta nada antes de validar o manifesto.
 - ☐ A sugestão de canal muda com as ocorrências registadas na etapa 7.
 - ☐ Uma encomenda retida pode ser libertada depois.
-- ☐ O código `LEV-…` aparece depois de libertar.
+- ☐ O código `LEV-…` aparece depois de libertar e chega ao remetente no email "Carga pronta para levantar".
 
 ### Etapa 9 — Portaria: taxas e levantamento ✅
 
@@ -345,19 +366,55 @@ agência.
 - ☐ O Gate Pass mostra os volumes, quem levantou e o pagamento.
 - ☐ Um destinatário **sem NIF e sem documento** registados não consegue levantar. Confirme se é isto que se
   pretende.
-
-### Administrador ✅ / 🧪
-
-**Quem:** `joao@portus.cv`. Tem todos os menus acima, em todas as agências e portos.
-
-- **Tarifas** (`/admin/tarifas`) ✅: valores de manuseamento e armazenagem e dias grátis.
-- **Utilizadores** (`/admin/users`) 🧪: lista fictícia. Ainda não aprova nem bloqueia contas.
-- **Painel geral** (`/dashboard`) e **Auditoria** (`/cv/auditoria`) 🧪: números fictícios. A auditoria é gravada
-  no servidor, mas ainda não há ecrã que a mostre.
+- ☐ Na entrega, o remetente recebe o email "Carga entregue" e a linha do tempo fica completa.
 
 ---
 
-## 5. Casos especiais a testar
+## 5. Administração ✅
+
+**Quem:** `joao@portus.cv`. Tem todos os menus das etapas, em todas as agências e portos, e ainda:
+
+### Painel geral (`/dashboard`)
+Pedidos por tratar, carga por levantar (quantos volumes já pagam armazenagem e quantos estão perto do abandono),
+retidos na Alfândega, cobrado no mês, volumes por estado, manifestos em atraso (72 h), navios a caminho e
+encomendas dos últimos 30 dias por agência e por país.
+- ☐ Os números mudam à medida que faz as etapas.
+
+### Utilizadores (`/admin/users`)
+1. **Pedidos de acesso:** quem trabalha numa agência ou no porto pede acesso em **Pedir acesso** (`/register`,
+   ligação no ecrã de entrada). A conta fica em revisão e a pessoa recebe um email.
+2. No separador **Pedidos de acesso**, abra a pessoa, confirme a empresa e onde trabalha, escolha a **agência**
+   (agente de recolha, transitário) ou o **porto** (agente marítimo, terminal, Alfândega, portaria) e clique em
+   **Aprovar**. A pessoa recebe um email e já pode entrar.
+3. **Nova conta:** cria uma conta da equipa já ativa e mostra uma **palavra-passe temporária**, só dessa vez. Entregue-a
+   pessoalmente ou por telefone.
+4. Numa conta: alterar o nome, o telefone, o perfil e a agência ou o porto; **Bloquear** ou **Desbloquear**;
+   **Repor palavra-passe** (gera outra temporária).
+- ☐ Não aprova sem a agência ou o porto do perfil.
+- ☐ Uma conta bloqueada deixa de conseguir entrar.
+- ☐ Depois de repor, a palavra-passe antiga deixa de funcionar.
+- ☐ Não consegue bloquear a sua própria conta.
+
+### Auditoria (`/admin/auditoria`)
+Todas as alterações, de todos os perfis: quem, quando, a ação e o registo. Clique numa linha para ver o **antes e o
+depois** de cada campo. Filtra por tipo de registo, ação (ex.: `shipment.validate`), pessoa e dias.
+- ☐ Cada ação feita nas etapas aparece aqui com o seu nome.
+
+### Tarifas e prazo de abandono (`/admin/tarifas`)
+- **Tarifas:** manuseamento por volume, armazenagem por dia e dias grátis.
+- **Prazo de abandono:** dias depois da chegada do navio até a carga liberada e não levantada passar a
+  **Abandonado** (60 por omissão), e quantos dias antes o remetente é avisado por email (10). A verificação corre
+  de hora a hora; **Verificar agora** corre-a logo.
+- ☐ Para testar sem esperar: ponha o prazo em 1 dia e o aviso em 0 com uma carga liberada cujo navio chegou há mais de um dia (o prazo conta a partir da chegada), e
+  clique em **Verificar agora**. A carga passa a Abandonado e o cliente vê "Abandonada".
+
+### Problemas reportados (`/admin/problemas`)
+O que a equipa reportou com o botão **Reportar problema**: tipo, prioridade, descrição, página, navegador e captura
+de ecrã. Mude o estado (Novo, Em análise, Resolvido, Não é erro) e escreva uma nota.
+
+---
+
+## 6. Casos especiais a testar
 
 | Regra | Como provocar | Resultado esperado |
 |---|---|---|
@@ -376,43 +433,45 @@ agência.
 | Identidade (BR 18–19) | Documento errado ou terceiro sem autorização | Recusado |
 | Etiqueta falsa (BR 5) | Alterar um carácter do QR | "Etiqueta inválida" |
 | Âmbito (BR 28) | Abrir pelo endereço uma encomenda de outra agência | Não encontrada |
+| Cancelar tarde | Cancelar pelo link depois de "Carga recebida" | "Este pedido já não pode ser cancelado" |
+| Link falsificado | Mudar uma letra do link `/pedido/…` | "Este link não é válido" |
+| Aprovação sem âmbito (BR 28) | Aprovar um pedido de acesso da Alfândega sem escolher o porto | "Escolha o porto deste utilizador." |
+| Abandono (BR 25) | Prazo curto e **Verificar agora** | Aviso por email uma só vez; depois Abandonado |
 
 ---
 
-## 6. O que ainda não existe (não registar como erro)
+## 7. O que ainda não existe (não registar como erro)
 
 Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas for prioritária, anote-a como
 **melhoria**.
 
 | Área | Situação |
 |---|---|
-| Cliente: acompanhar depois de "Carga recebida" | ⏳ O cliente não vê a encomenda nem o estado dos volumes (embarcado, chegado, liberado, entregue) |
-| Cliente: cancelar ou alterar o pedido no portal | ⏳ O servidor já permite cancelar a quem tem conta, mas o portal não tem botão |
-| Recolha: período (manhã/tarde) e data preferida | ⏳ Proposto e adiado |
-| Portal do destinatário em Cabo Verde | ⏳ |
-| SMS e email ao cliente e ao destinatário | ⏳ O código `LEV-…` é comunicado à mão |
+| Cliente: alterar a data da recolha | ⏳ Só cancelar; alterar fica para a próxima versão |
+| Recolha: período (manhã/tarde) e data preferida | ⏳ Próxima versão, depois do feedback das partes interessadas |
+| Portal do destinatário em Cabo Verde | ⏳ O destinatário recebe o código pelo remetente |
+| SMS ao destinatário | ⏳ Só há emails ao remetente |
+| Emails para fora (fornecedor real) | ⏳ Em teste vão todos para o Mailpit; falta escolher o fornecedor (SES, Resend, Brevo) |
 | Recolha sem internet (B7) | ⏳ O protótipo `/agent/collections` guarda só no navegador 🧪 |
 | Contra-Marca e ligações eletrónicas à Alfândega e à Enapor | ⏳ |
-| Estado "Abandonado" por prazo de armazenagem | ⏳ |
-| Gestão de utilizadores (aprovar ou bloquear contas) | 🧪 |
-| Painel e relatórios com dados reais | 🧪 |
-| Ecrã de auditoria | 🧪 (a auditoria já é gravada no servidor) |
-| Ecrãs do exportador (`/exporter/...`) | 🧪 |
+| Relatórios exportáveis (RF-A37) | ⏳ O painel mostra os números, mas ainda não exporta |
+| Área do exportador | ⏳ Os ecrãs de demonstração foram retirados |
+| Obrigar a mudar a palavra-passe temporária no primeiro acesso | ⏳ |
 | Pagamentos eletrónicos | ⏳ Regista-se o pagamento feito ao balcão |
 | Outros idiomas | ⏳ Só português |
 
 ---
 
-## 7. Teste de ponta a ponta (cerca de 30 minutos)
+## 8. Teste de ponta a ponta (cerca de 30 minutos)
 
 Uma única encomenda do pedido até ao Gate Pass. Anote os códigos à medida que aparecem.
 
 | # | Conta | Ação | Anotar |
 |---|---|---|---|
-| 1 | Cliente (janela anónima) | `/enviar`: caixa, Portugal → Santiago, agência Morabeza (Lisboa), **recolha**; destinatário **com NIF** | `PED-…` |
-| 2 | Cliente | `/acompanhar` com o código e o telefone: **Submetido** | |
+| 1 | Cliente (janela anónima) | `/enviar`: caixa, Portugal → Santiago, agência Morabeza (Lisboa), **recolha**; remetente **com email**; destinatário **com NIF** | `PED-…` |
+| 2 | Cliente | No Mailpit (<http://localhost:8025>), abra o email e clique em **Ver ou cancelar o pedido**: **Submetido** | link |
 | 3 | `agente` | **Pedidos de clientes**: **Aceitar**, depois **Agendar** para amanhã | |
-| 4 | Cliente | `/acompanhar`: **Recolha agendada**, com a data | |
+| 4 | Cliente | Link do pedido: **Recolha agendada**, com a data; email do agendamento no Mailpit | |
 | 5 | `agente` | **Carga recebida (criar encomenda)** | `ENC-…` |
 | 6 | `agente` | Encomenda: acrescentar 2 volumes, **Validar**, **Imprimir etiquetas** | `ENC-…-01`, `-02` |
 | 7 | `transitario` | **Contentores**: novo contentor `CSQU3054383` (ou outro válido), BL Master, ler os 2 códigos, **Selar e fechar** | |
@@ -420,13 +479,18 @@ Uma única encomenda do pedido até ao Gate Pass. Anote os códigos à medida qu
 | 9 | `terminal` | **Chegadas**: **Registar chegada**; abrir o contentor; localização `A-01-1`; ler os 2 códigos; **Fechar desconsolidação** | |
 | 10 | `alfandega` | Validar o manifesto; **Despachar encomendas**; **Canal verde**; **Libertar** com direitos | `LEV-…` |
 | 11 | `portaria` | Procurar o `LEV-…`; **Registar pagamento**; NIF do destinatário; ler os 2 códigos; código `LEV-…`; **Entregar** | `GP-…` |
-| 12 | Cliente | `/acompanhar`: confirme o que o cliente vê agora | |
+| 12 | Cliente | Link do pedido: linha do tempo completa até **Entregue**; no Mailpit, os emails de cada marco | |
+| 13 | `joao` | **Auditoria**: as ações de 3 a 11; **Painel geral**: os números mudaram | |
 
 ---
 
-## 8. Registo de problemas
+## 9. Registo de problemas
 
-Copie esta tabela para registar o que encontrar. Em **Tipo**, use:
+**No portal:** clique em **Reportar problema** no cabeçalho, na página onde aconteceu. Escolha o tipo, a prioridade,
+descreva o que fez, o que aconteceu e o que esperava e, se ajudar, junte uma captura de ecrã. A página e o navegador
+ficam registados sozinhos. O administrador vê tudo em **Problemas reportados**.
+
+**Em papel:** se preferir, use esta tabela. Em **Tipo**, use:
 - **Erro**: não funciona como descrito.
 - **Falta**: devia existir e não existe.
 - **Melhoria**: funciona, mas pode ficar mais fácil ou mais claro.
