@@ -1,5 +1,5 @@
 // Textos visíveis dos estados devolvidos pela API (português; passam para o i18n mais tarde).
-import type { VolumeStatus } from "@/domain/state-machine";
+import type { ContainerStatus, VolumeStatus } from "@/domain/state-machine";
 
 export type ShipmentStatus = "draft" | "validated" | "cancelled";
 
@@ -20,4 +20,27 @@ export const volumeStatusLabels: Record<VolumeStatus, string> = {
   released: "Liberado",
   delivered: "Entregue",
   abandoned: "Abandonado",
+};
+
+export const containerStatusLabels: Record<ContainerStatus, string> = {
+  open: "Aberto",
+  sealed: "Selado",
+  shipped: "Embarcado",
+  arrived: "Chegado",
+  deconsolidated: "Desconsolidado",
+};
+
+export type VoyageStatus = "planned" | "departed" | "arrived";
+
+export const voyageStatusLabels: Record<VoyageStatus, string> = {
+  planned: "Planeada",
+  departed: "Em viagem",
+  arrived: "Chegou",
+};
+
+export type ManifestStatus = "generated" | "sent";
+
+export const manifestStatusLabels: Record<ManifestStatus, string> = {
+  generated: "Gerado",
+  sent: "Enviado",
 };
