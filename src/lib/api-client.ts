@@ -114,7 +114,7 @@ async function toApiError(response: Response) {
   );
 }
 
-export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function authorizedFetch(path: string, options: RequestOptions) {
   const auth = options.auth ?? "required";
   const state = useAuthStore.getState();
 
@@ -131,5 +131,30 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (!response.ok) {
     throw await toApiError(response);
   }
+  return response;
+}
+
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const response = await authorizedFetch(path, options);
   return (response.status === 204 ? undefined : await response.json()) as T;
+}
+
+/** Ficheiro devolvido pela API (ex.: exportação), com o nome indicado em `content-disposition`. */
+export async function apiDownload(path: string, fallbackName: string) {
+  const response = await authorizedFetch(path, {});
+  const disposition = response.headers.get("content-disposition") ?? "";
+  const fileName = /filename="([^"]+)"/.exec(disposition)?.[1] ?? fallbackName;
+  return { blob: await response.blob(), fileName };
+}
+
+/** Pede ao navegador para guardar o ficheiro. */
+export function saveFile(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
