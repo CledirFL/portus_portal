@@ -21,6 +21,7 @@ Legenda:
 | `joao@portus.cv` | Administrador | Vê todas as agências |
 | `ana@portus.cv` | Exportador | Ecrãs de demonstração |
 | `carla@portus.cv` | Agente marítimo | Porto da Praia; ecrãs de demonstração |
+| `transitario@portus.cv` | Transitário | Agência Morabeza Envios, Lisboa: contentores, viagens e manifestos |
 | `bruno@portus.cv` | Transitário | Conta em revisão: não consegue entrar |
 | `duarte@portus.cv` | Operador CV | Conta bloqueada: não consegue entrar |
 
@@ -39,9 +40,9 @@ empresas (exportador, transitário, agente marítimo, operador CV) pedem acesso 
 2. Agência aceita e agenda a recolha        ✅
 3. Agente recolhe a carga → encomenda       ✅
 4. Agente valida e cola as etiquetas QR     ✅
+5. Consolidação no contentor (BL Master)    ✅
+6. Viagem e manifesto                       ✅
    ─────────── a parte que funciona termina aqui ───────────
-5. Consolidação no contentor (BL Master)    🧪 / ⏳
-6. Viagem e manifesto                       🧪 / ⏳
 7. Chegada e desconsolidação em Cabo Verde  🧪 / ⏳
 8. Alfândega, taxas e pagamento             ⏳
 9. Levantamento com Gate Pass               🧪 / ⏳
@@ -144,27 +145,43 @@ Vê o estado (**Submetido → Aceite → Recolha agendada → Carga recebida**),
 
 ---
 
-## 6. Transitário / exportador: consolidar no contentor 🧪 ⏳
+## 6. Transitário: consolidar no contentor ✅
 
-**Quem:** transitário ou exportador.
-**Onde (demonstração):** **Contentores**, **BL**, **Embarques** e **Volumes** (`/exporter/...`).
+**Quem:** transitário (`transitario@portus.cv`) ou administrador.
+**Onde:** **Contentores** (`/agencia/contentores`).
 
-O que vai acontecer:
+1. Clique em **Novo contentor** e escreva o número. A plataforma valida-o pela norma **ISO 6346** enquanto escreve
+   e diz qual devia ser o último algarismo se estiver errado (exemplo válido: `CSQU3054383`). Escolha o tipo
+   (20', 40', high cube…): a carga máxima e o volume são preenchidos e podem ser ajustados.
+2. No contentor, acrescente um **BL Master** (LCL para grupagem, FCL para contentor completo; o limite de peso é
+   opcional). As encomendas pequenas de várias pessoas ficam sob o mesmo BL Master.
+3. Em **Ler volumes**, escolha o BL Master e leia o **QR** de cada etiqueta com o leitor (ou escreva o código
+   `ENC-…-01` e carregue Enter). O volume passa a **Consolidado**. Se ler duas vezes, aparece "Já estava neste
+   contentor". Uma etiqueta falsificada ou desatualizada é recusada.
+4. A plataforma **bloqueia** a leitura se o peso ou o volume ultrapassar a capacidade do contentor ou o limite do
+   BL Master e pede uma recontagem física. Para corrigir, use **Retirar** num volume (o motivo fica registado).
+5. Escreva o **nº do selo** e clique em **Selar e fechar**. Não fecha se houver volumes sem BL Master: a mensagem
+   lista quais. Escolha o BL de cada um na tabela e volte a selar.
+6. Se for preciso abrir de novo antes da partida, use **Reabrir contentor** com o motivo (o selo fica quebrado).
+7. Em qualquer momento pode descarregar a **lista de carga** do contentor em `.xlsx`, `.pdf` ou `.csv`.
 
-1. Criar o **contentor**; o número é validado pela norma ISO 6346.
-2. Criar o **BL Master**. As encomendas pequenas de várias pessoas ficam sob o mesmo BL Master.
-3. Ler o QR de cada volume para o associar ao contentor. O volume passa a **Consolidado**.
-4. A plataforma **bloqueia** se o peso ou o volume total ultrapassar a capacidade do contentor.
-5. Registar o **selo** e **fechar** o contentor. Não fecha se ficarem volumes no armazém sem BL.
+## 7. Transitário: viagem e manifesto ✅
 
-## 7. Transitário / agente marítimo: viagem e manifesto 🧪 ⏳
+**Onde:** **Viagens e manifestos** (`/agencia/viagens`).
 
-**Onde (demonstração):** **Manifestos** (`/exporter/manifestos`) e **Navios** (`/cv/navios`).
-
-1. Criar a **viagem** (navio, portos, ETA) e associar os contentores.
-2. Gerar o **manifesto** (`.xlsx`, `.pdf`, `.csv`) e enviá-lo à Alfândega e à Enapor **pelo menos 72 horas
-   antes da chegada**. A plataforma avisa quando o prazo se aproxima.
-3. Quando o navio parte, os volumes passam a **Embarcado**.
+1. Clique em **Nova viagem**: navio, nº da viagem, porto de embarque (código UN/LOCODE, ex.: `PTLIS` Lisboa,
+   `FRLEH` Le Havre, `USBOS` Boston), porto de chegada (Praia ou Mindelo), partida (ETD) e chegada (ETA).
+2. Na viagem, **associe** os contentores.
+3. Clique em **Gerar nova versão** do manifesto. Se algum contentor ainda estiver aberto ou houver volumes sem BL
+   Master, a versão fica **incompleta** e a plataforma diz o que falta.
+4. Descarregue o manifesto em `.xlsx`, `.pdf` ou `.csv`: tem a lista de volumes por contentor e BL Master, os
+   totais de volumes e pesos e a lista de proprietários. Envie-o à Alfândega e à Enapor pelos canais habituais
+   (a ligação eletrónica fica para uma fase seguinte) e clique em **Registar envio**.
+5. **Alerta das 72 horas:** quando faltam menos de 72 horas para o ETA sem manifesto enviado, a viagem mostra um
+   aviso vermelho e a lista de viagens indica quantas estão nessa situação. Se a carga mudar depois do envio (por
+   exemplo, reabrir um contentor), o manifesto fica **desatualizado** e o aviso volta: gere e envie nova versão.
+6. Quando o navio sai, clique em **Registar partida**. Todos os contentores têm de estar selados. Contentores e
+   volumes passam a **Embarcado** e a viagem a **Em viagem**.
 
 ## 8. Cabo Verde: chegada e desconsolidação 🧪 ⏳
 
@@ -198,7 +215,8 @@ O que vai acontecer:
 | **Cliente** | Faz o pedido, guarda o código e acompanha | ✅ |
 | **Agente de recolha (agência)** | Aceita, recusa e agenda pedidos; recebe a carga; cria, completa e valida encomendas; imprime etiquetas | ✅ |
 | **Administrador** | O mesmo que a agência, em todas as agências; gere utilizadores | ✅ agência · 🧪 utilizadores |
-| **Transitário / exportador** | Contentor, BL Master, consolidação, selo, viagem, manifesto | 🧪 / ⏳ |
+| **Transitário** | Contentor, BL Master, consolidação, selo, viagem, manifesto, partida; também regista encomendas e importa listas | ✅ |
+| **Exportador** | Ecrãs de exportação | 🧪 |
 | **Agente marítimo** | Navios, chegada, conferência, Gate Pass | 🧪 / ⏳ |
 | **Operador CV** | Contra-Marca, Gate Pass, auditoria | 🧪 / ⏳ |
 | **Destinatário** | Levanta a carga em Cabo Verde | ⏳ |
@@ -213,4 +231,9 @@ O que vai acontecer:
 5. **Agente:** no pedido, clique em **Carga recebida (criar encomenda)**.
 6. **Agente:** em **Encomendas**, abra a nova encomenda, complete os dados e os volumes e clique em **Validar**.
 7. **Agente:** clique em **Imprimir etiquetas**.
-8. **Fim do que funciona hoje.** A seguir viria a consolidação no contentor.
+8. **Transitário:** entre com `transitario@portus.cv`, abra **Contentores**, crie um contentor (`CSQU3054383`), um
+   BL Master, leia os códigos dos volumes da encomenda e sele o contentor.
+9. **Transitário:** em **Viagens e manifestos**, crie uma viagem com ETA daqui a 2 dias (aparece o alerta das
+   72 h), associe o contentor, gere o manifesto, descarregue-o e registe o envio. O alerta desaparece.
+10. **Transitário:** registe a partida. Os volumes ficam **Embarcado**.
+11. **Fim do que funciona hoje.** A seguir viria a chegada a Cabo Verde.
