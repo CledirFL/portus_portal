@@ -36,12 +36,20 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     if (!user) return;
+    // Respostas de filtros antigos chegam por vezes depois das novas: ignoram-se.
+    let isCurrent = true;
     listUsers({ status: tab === "all" ? undefined : tab, role: role || undefined, q: search, page, pageSize })
       .then((users) => {
+        if (!isCurrent) return;
         setResult(users);
         setError("");
       })
-      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Não foi possível carregar os utilizadores."));
+      .catch((cause: unknown) => {
+        if (isCurrent) setError(cause instanceof Error ? cause.message : "Não foi possível carregar os utilizadores.");
+      });
+    return () => {
+      isCurrent = false;
+    };
   }, [user, tab, role, search, page, pageSize]);
 
   return (

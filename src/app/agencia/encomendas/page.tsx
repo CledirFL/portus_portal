@@ -34,12 +34,20 @@ export default function ShipmentsPage() {
 
   useEffect(() => {
     if (!user) return;
+    // Respostas de filtros antigos chegam por vezes depois das novas: ignoram-se.
+    let isCurrent = true;
     listShipments({ status: tab === "all" ? undefined : tab, q: search, page, pageSize })
       .then((shipmentPage) => {
+        if (!isCurrent) return;
         setResult(shipmentPage);
         setError("");
       })
-      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Não foi possível carregar as encomendas."));
+      .catch((cause: unknown) => {
+        if (isCurrent) setError(cause instanceof Error ? cause.message : "Não foi possível carregar as encomendas.");
+      });
+    return () => {
+      isCurrent = false;
+    };
   }, [user, tab, search, page, pageSize]);
 
   const shipments = result?.items ?? null;
