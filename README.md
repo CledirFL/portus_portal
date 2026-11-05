@@ -10,7 +10,10 @@ Frontend da plataforma **PORTUS**, que acompanha cargas enviadas para **Cabo Ver
   assinadas** para imprimir.
 - **Transitário:** **contentores** (ISO 6346) e **BL Master**, consolidação por leitura de QR com bloqueio de
   capacidade, selo, **viagens**, **manifestos** versionados em .xlsx/.pdf/.csv e alerta das 72 h antes do ETA.
-- **Plataforma de gestão** (exportação, operações CV, administração) e **recolha no terreno** com OCR.
+- **Cabo Verde:** **chegadas** e conferência por QR com localização e ocorrências com fotografia; **Alfândega**
+  (validar manifesto, canal, reter, libertar); **portaria** (taxas, pagamento, isenção, terceiros autorizados,
+  entrega com Gate Pass); **tarifas** para o administrador.
+- **Plataforma de gestão** (exportação, administração) e **recolha no terreno** com OCR.
 
 A API está no repositório [`portus_service`](../portus_service). O plano de melhorias está em
 [docs/PLANO-DE-MELHORIAS.md](docs/PLANO-DE-MELHORIAS.md) e o estado do backend em
@@ -51,9 +54,10 @@ apenas conveniência.
 | `/agencia/encomendas` (encomendas, volumes, validação, etiquetas) | **API** |
 | `/agencia/importar` (importar listas .xlsx/.csv) | **API** |
 | `/agencia/contentores`, `/agencia/viagens` (consolidação, viagens, manifestos) | **API** |
+| `/cv/chegadas`, `/alfandega`, `/portaria`, `/admin/tarifas` | **API** |
 | Lista de agências no assistente | **API** |
 | `/agent/collections` (recolha no terreno, OCR) | IndexedDB do navegador (passa para a API na fase B7) |
-| `/exporter/*`, `/cv/*`, `/dashboard`, `/admin/*` | Dados de exemplo (`src/mocks`), substituídos na fase B6 |
+| `/exporter/*`, `/dashboard`, `/admin/users`, outras páginas `/cv/*` | Dados de exemplo (`src/mocks`), já fora do menu dos perfis com páginas reais |
 | `/register` (pedido de acesso de empresas) | Simulado; as contas de equipa vão ser criadas pelo admin na API |
 
 ---
@@ -95,6 +99,9 @@ Criadas pelo `npm run db:seed` do backend. Palavra-passe: a de `SEED_DEMO_PASSWO
 | --- | --- | --- |
 | `agente@portus.cv` | agente de recolha (Morabeza Envios, Lisboa) | `/agent/collections`, `/agencia/pedidos` |
 | `transitario@portus.cv` | transitário (Morabeza Envios, Lisboa) | `/agencia/viagens`, `/agencia/contentores` |
+| `terminal@portus.cv` | operador do terminal (Praia) | `/cv/chegadas` |
+| `alfandega@portus.cv` | Alfândega (Praia) | `/alfandega` |
+| `portaria@portus.cv` | portaria (Praia) | `/portaria` |
 | `joao@portus.cv` | administrador (vê todas as agências) | `/admin/users`, `/agencia/pedidos` |
 | `ana@portus.cv` | exportador | `/exporter/dashboard` |
 | `carla@portus.cv` | agente marítimo | `/cv/navios` |
@@ -123,6 +130,12 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/agencia/contentores/[id]` | transitário, admin | Ler QR (leitor tipo teclado ou código), BL Master, capacidade, retirar volumes, selar, reabrir, lista de carga |
 | `/agencia/viagens` | transitário, admin | Viagens com o prazo do manifesto e o filtro "Com alerta" (72 h) |
 | `/agencia/viagens/[id]` | transitário, admin | Contentores da viagem, versões do manifesto, descarregar, registar envio, partida |
+| `/cv/chegadas` · `/cv/chegadas/[id]` | terminal, admin | Navios a caminho e chegados ao porto; registar a chegada; progresso por contentor |
+| `/cv/chegadas/contentores/[id]` | terminal, admin | Conferir por QR com localização, ocorrências com fotografia (câmara do telemóvel), fechar (BR 23) |
+| `/alfandega` · `/alfandega/viagens/[id]` | Alfândega, admin | Validar/rejeitar manifestos; por encomenda: sugestão de canal, canal, reter, libertar com direitos |
+| `/portaria` | portaria, admin | Procurar por código/QR, taxas, pagamento, isenção, terceiros autorizados, entrega com documento, QR e código ou assinatura |
+| `/portaria/gate-pass/[id]` | portaria, admin | Gate Pass para imprimir |
+| `/admin/tarifas` | admin | Tarifas e dias grátis de armazenagem |
 | `/agent/collections` | agente | Recolhas no terreno com fotografia e OCR |
 | `/exporter/*`, `/cv/*`, `/admin/*`, `/dashboard` | perfis respetivos | Plataforma de gestão (dados de exemplo) |
 
@@ -154,6 +167,8 @@ No terminal do VS Code, o Cypress precisa de `ELECTRON_RUN_AS_NODE` removido:
   - lista CSV com `;` → mapeamento sugerido → pré-visualização com uma linha errada → importar a válida;
   - contentor com dígito ISO 6346 errado e depois certo → BL Master → leitura do QR (e leitura repetida) → selar
     bloqueado por volume sem BL → associar → selar → viagem a 48 h com alerta → manifesto → envio → partida;
+  - chegada → conferência por QR com localização → excesso registado → fecho → Alfândega valida o manifesto, canal
+    verde, liberta com direitos → portaria paga, lê os QR, código de levantamento → Gate Pass;
   - recolha no terreno com OCR simulado (o Cypress injeta um resultado fixo de OCR).
 
 Os testes E2E criam pedidos reais na base de dados de desenvolvimento do backend.
@@ -170,6 +185,7 @@ src/
   modules/shipments/      formulário de encomenda, volumes, estados e QR
   modules/field-agent/    recolha no terreno e OCR
   modules/consolidation/  contentores, viagens e manifestos (estados, capacidade, exportação, formulário de viagem)
+  modules/arrivals/       chegada, Alfândega e portaria (badges, fotografias protegidas, assinatura)
   services/api/           chamadas à API (auth, agências, pedidos, encomendas, importação, contentores, viagens)
   services/mock/          registo de empresas ainda simulado
   mocks/                  dados de exemplo das áreas ainda não ligadas à API
