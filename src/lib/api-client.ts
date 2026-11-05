@@ -53,7 +53,7 @@ export function toUser(user: ApiUser): User {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   /**
    * required: envia o token e renova a sessão se expirar.
