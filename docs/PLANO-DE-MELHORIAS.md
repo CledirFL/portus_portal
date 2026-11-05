@@ -96,12 +96,12 @@ Proposta:
 - [x] Nova página inicial focada no produto real.
 
 ### Fase 2 — Núcleo da Plataforma A (MVP)
-- [ ] Entidades Encomenda, Volume (novo modelo), Agência; registo manual por tipo de carga (RF-A01, RF-A39).
-- [ ] Etiquetas QR imprimíveis (RF-A06, BR 5).
-- [ ] Importação `.xlsx`/`.csv` com mapeamento de colunas, relatório de erros e duplicados (RF-A02–04).
-- [ ] Contentor + BL Master: associar volumes, bloqueio de capacidade, selo, fecho (RF-A07–11).
-- [ ] Viagem + manifesto com exportação `.xlsx`/`.pdf`/`.csv` e alerta de 72 h (RF-A12–14).
-- [ ] Auditoria real com valores antes/depois em todas as escritas (BR 27).
+- [x] Entidades Encomenda, Volume (novo modelo), Agência; registo manual por tipo de carga (RF-A01, RF-A39). *(B3)*
+- [x] Etiquetas QR imprimíveis (RF-A06, BR 5). *(B3)*
+- [x] Importação `.xlsx`/`.csv` com mapeamento de colunas, relatório de erros e duplicados (RF-A02–04). *(B4)*
+- [x] Contentor + BL Master: associar volumes, bloqueio de capacidade, selo, fecho (RF-A07–11). *(B5)*
+- [x] Viagem + manifesto com exportação `.xlsx`/`.pdf`/`.csv` e alerta de 72 h (RF-A12–14). *(B5)*
+- [x] Auditoria real com valores antes/depois em todas as escritas (BR 27). *(B1, em todas as fases)*
 
 ### Fase 3 — Chegada a Cabo Verde (MVP)
 - [ ] Desconsolidação por leitura de QR (câmara), ocorrências com fotos, localização no armazém (RF-A17–20).
