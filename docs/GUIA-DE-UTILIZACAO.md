@@ -20,7 +20,10 @@ Legenda:
 | `agente@portus.cv` | Agente de recolha | Agência Morabeza Envios, Lisboa |
 | `joao@portus.cv` | Administrador | Vê todas as agências |
 | `ana@portus.cv` | Exportador | Ecrãs de demonstração |
-| `carla@portus.cv` | Agente marítimo | Porto da Praia; ecrãs de demonstração |
+| `carla@portus.cv` | Agente marítimo | Porto da Praia: chegadas |
+| `terminal@portus.cv` | Operador do terminal | Porto da Praia: chegadas, conferência e ocorrências |
+| `alfandega@portus.cv` | Alfândega | Porto da Praia: manifestos e despacho |
+| `portaria@portus.cv` | Portaria | Porto da Praia: taxas, pagamentos e Gate Pass |
 | `transitario@portus.cv` | Transitário | Agência Morabeza Envios, Lisboa: contentores, viagens e manifestos |
 | `bruno@portus.cv` | Transitário | Conta em revisão: não consegue entrar |
 | `duarte@portus.cv` | Operador CV | Conta bloqueada: não consegue entrar |
@@ -42,10 +45,10 @@ empresas (exportador, transitário, agente marítimo, operador CV) pedem acesso 
 4. Agente valida e cola as etiquetas QR     ✅
 5. Consolidação no contentor (BL Master)    ✅
 6. Viagem e manifesto                       ✅
-   ─────────── a parte que funciona termina aqui ───────────
-7. Chegada e desconsolidação em Cabo Verde  🧪 / ⏳
-8. Alfândega, taxas e pagamento             ⏳
-9. Levantamento com Gate Pass               🧪 / ⏳
+7. Chegada e desconsolidação em Cabo Verde  ✅
+8. Alfândega, taxas e pagamento             ✅
+9. Levantamento com Gate Pass               ✅
+   ─────────── por construir: modo offline (B7), SMS, Contra-Marca, ligações à Alfândega e Enapor ───────────
 ```
 
 Os estados de cada volume ao longo do percurso são: **Rascunho → Recolhido → Consolidado → Embarcado → Chegado →
@@ -183,28 +186,54 @@ Vê o estado (**Submetido → Aceite → Recolha agendada → Carga recebida**),
 6. Quando o navio sai, clique em **Registar partida**. Todos os contentores têm de estar selados. Contentores e
    volumes passam a **Embarcado** e a viagem a **Em viagem**.
 
-## 8. Cabo Verde: chegada e desconsolidação 🧪 ⏳
+## 8. Cabo Verde: chegada e desconsolidação ✅
 
-**Quem:** agente marítimo e operador CV.
-**Onde (demonstração):** **Navios**, **Contra-Marca** e **Conferência** (`/cv/...`).
+**Quem:** operador do terminal (`terminal@portus.cv`) ou agente marítimo. Cada um só vê o seu porto.
+**Onde:** **Chegadas e conferência** (`/cv/chegadas`).
 
-1. Registar a **chegada** do navio e a descarga do contentor. Os volumes passam a **Chegado**.
-2. Registar a **Contra-Marca** e cruzá-la com a descarga.
-3. Abrir o contentor e **conferir** cada volume, lendo o QR. Registar ocorrências (falta, dano, selo violado,
-   excesso), com fotografias.
-4. O contentor só fica **Desconsolidado** quando todos os volumes estiverem conferidos ou tiverem ocorrência.
-5. Indicar onde fica cada volume no armazém.
+1. Em **A caminho**, abra o navio e clique em **Registar chegada**. Contentores e volumes passam a **Chegado** e
+   cada encomenda fica à espera de despacho na Alfândega.
+2. Abra o contentor. Escreva a **localização** no armazém (ex.: `B-04-2`) e leia o **QR** de cada volume: o volume
+   passa a **Desconsolidado** com essa localização. A localização fica para os volumes seguintes até a mudar, e pode
+   ser corrigida na tabela.
+3. Se ler um volume que não é deste contentor, a plataforma avisa e oferece **Registar excesso**.
+4. Para um volume com problema, use **Ocorrência**: dano, selo violado ou falta. Junte **fotografias** (no telemóvel
+   abre a câmara).
+5. Clique em **Fechar desconsolidação**. Só fecha quando todos os volumes estiverem conferidos ou com ocorrência; se
+   faltar algum, a mensagem diz quais.
 
-## 9. Alfândega, pagamento e levantamento 🧪 ⏳
+⏳ A Contra-Marca (cruzamento com a Enapor) fica para a fase das ligações eletrónicas.
 
-**Quem:** operador CV, com o destinatário.
-**Onde (demonstração):** **Gate Pass** (`/cv/gate-pass`).
+## 9. Alfândega, pagamento e levantamento ✅
 
-1. **Despacho:** a Alfândega atribui o canal. Com canal verde, o volume fica **Liberado**. Com canal vermelho,
-   documentação em falta ou taxa por pagar, fica **Retido**.
-2. **Taxas e pagamento.**
-3. **Levantamento:** o destinatário identifica-se e é emitido o **Gate Pass**. O volume fica **Entregue**.
-4. Se o prazo de armazenagem for ultrapassado, o volume fica **Abandonado**.
+### Alfândega (`alfandega@portus.cv`, **Despacho aduaneiro**, `/alfandega`)
+
+1. Em cada navio aparece o manifesto enviado pelo transitário. **Valide-o** com a referência da Alfândega ou
+   **rejeite-o** com o motivo (o transitário envia nova versão). **Sem manifesto validado nenhuma encomenda é
+   libertada.**
+2. Em **Despachar encomendas**, cada encomenda mostra o destinatário, os volumes, as ocorrências e a **sugestão de
+   canal**: vermelho com selo violado, divergência, dano ou destinatário sem identificação; verde nos outros casos.
+3. Atribua o **canal**. Pode **reter** (os volumes ficam **Retido**, com o motivo) ou **libertar**, indicando os
+   direitos em CVE; no canal vermelho escreva o resultado da inspeção. Os volumes ficam **Liberado** e aparece o
+   **código de levantamento** (`LEV-…`), que deve ser comunicado ao destinatário com a localização (o envio por SMS
+   chega numa fase seguinte).
+
+### Portaria (`portaria@portus.cv`, **Levantamentos**, `/portaria`)
+
+1. Procure pelo **código de levantamento**, pelo **QR** de um volume ou pelo código da encomenda.
+2. **Taxas:** manuseamento por volume, armazenagem por volume e por dia depois dos dias grátis, e os direitos.
+   Registe o **pagamento** (numerário, cartão ou transferência) ou a **isenção** com o fundamento. Sem isso não há
+   entrega.
+3. Se levanta **outra pessoa**, registe primeiro a **autorização** com o nome, o NIF e o documento dela e a validade.
+4. Em **Entregar**, escolha quem levanta, escreva o nº do documento apresentado (tem de coincidir com o registado),
+   leia o **QR de cada volume** e peça o **código de levantamento** ou a **assinatura** no ecrã.
+5. É emitido o **Gate Pass** (`GP-…`) para imprimir. Os volumes ficam **Entregue**.
+
+### Administrador
+
+Em **Tarifas** (`/admin/tarifas`) altera os valores e os dias grátis de armazenagem.
+
+⏳ O estado **Abandonado** por prazo de armazenagem ultrapassado chega com os prazos da Enapor e da Alfândega (fase 2).
 
 ---
 
@@ -217,9 +246,10 @@ Vê o estado (**Submetido → Aceite → Recolha agendada → Carga recebida**),
 | **Administrador** | O mesmo que a agência, em todas as agências; gere utilizadores | ✅ agência · 🧪 utilizadores |
 | **Transitário** | Contentor, BL Master, consolidação, selo, viagem, manifesto, partida; também regista encomendas e importa listas | ✅ |
 | **Exportador** | Ecrãs de exportação | 🧪 |
-| **Agente marítimo** | Navios, chegada, conferência, Gate Pass | 🧪 / ⏳ |
-| **Operador CV** | Contra-Marca, Gate Pass, auditoria | 🧪 / ⏳ |
-| **Destinatário** | Levanta a carga em Cabo Verde | ⏳ |
+| **Agente marítimo / operador do terminal** | Chegada, conferência por QR, localização, ocorrências com fotografias | ✅ |
+| **Alfândega** | Valida manifestos, canal, retenção e libertação com direitos | ✅ |
+| **Portaria** | Taxas, pagamento, isenção, terceiros autorizados, entrega com Gate Pass | ✅ |
+| **Destinatário** | Levanta a carga com documento e código; portal de rastreio próprio por construir | ✅ levantamento · ⏳ portal |
 
 ## Teste rápido de ponta a ponta (o que funciona hoje)
 
@@ -236,4 +266,9 @@ Vê o estado (**Submetido → Aceite → Recolha agendada → Carga recebida**),
 9. **Transitário:** em **Viagens e manifestos**, crie uma viagem com ETA daqui a 2 dias (aparece o alerta das
    72 h), associe o contentor, gere o manifesto, descarregue-o e registe o envio. O alerta desaparece.
 10. **Transitário:** registe a partida. Os volumes ficam **Embarcado**.
-11. **Fim do que funciona hoje.** A seguir viria a chegada a Cabo Verde.
+11. **Terminal:** entre com `terminal@portus.cv` (a viagem tem de ter chegada à **Praia**), registe a chegada, abra o
+    contentor, leia os QR com uma localização e feche a desconsolidação.
+12. **Alfândega:** entre com `alfandega@portus.cv`, valide o manifesto, atribua o canal e liberte. Anote o código
+    `LEV-…`.
+13. **Portaria:** entre com `portaria@portus.cv`, procure o código, registe o pagamento, escreva o documento do
+    destinatário (o registado na encomenda), leia os QR e o código. Imprima o Gate Pass.
