@@ -13,6 +13,19 @@ Legenda:
 - 🧪 **Demonstração**: o ecrã existe, mas mostra dados fictícios e não guarda nada.
 - ⏳ **Por construir**: ainda não existe.
 
+**Índice**
+
+1. [Preparação](#1-preparação): arrancar, contas de demonstração, dicas
+2. [Visão geral do processo](#2-visão-geral-do-processo): etapas, estados e menus de cada perfil
+3. [Etapas no país de envio](#3-etapas-no-país-de-envio): pedido, agência, encomenda, contentor, viagem
+4. [Etapas em Cabo Verde](#4-etapas-em-cabo-verde): chegada, Alfândega, levantamento
+5. [Administração](#5-administração-): painel, utilizadores, auditoria, tarifas, problemas reportados
+6. [Casos especiais a testar](#6-casos-especiais-a-testar)
+7. [O que ainda não existe](#7-o-que-ainda-não-existe-não-registar-como-erro)
+8. [Teste de ponta a ponta](#8-teste-de-ponta-a-ponta-cerca-de-30-minutos)
+9. [Registo de problemas](#9-registo-de-problemas)
+10. [Glossário](#10-glossário)
+
 ---
 
 ## 1. Preparação
@@ -85,11 +98,29 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
 | 7 | Chegada e conferência | Terminal / agente marítimo | **Chegado → Desconsolidado** | ✅ |
 | 8 | Despacho aduaneiro | Alfândega | **Liberado** (ou **Retido**) | ✅ |
 | 9 | Taxas e levantamento | Portaria | **Entregue** | ✅ |
+| — | Carga não levantada no prazo | Automático (prazo nas Tarifas) | **Abandonado** | ✅ |
 | — | Acompanhamento e emails | Cliente | — | ✅ até à entrega |
+| — | Administração | Administrador | — | ✅ |
 
 > **Agência e agente de recolha.** A agência não tem uma conta própria. Quem trabalha nela entra como **agente
 > de recolha** e trata os pedidos e as encomendas da agência. O **transitário** é da mesma agência e trata do
 > contentor e da viagem. O **administrador** pode fazer tudo, em todas as agências.
+
+### Menus de cada perfil
+
+Cada conta vê só o que lhe diz respeito. Toda a equipa tem também o botão **Reportar problema** no cabeçalho.
+
+| Perfil | Menus |
+|---|---|
+| Cliente (com conta) | Os meus pedidos |
+| Agente de recolha | Recolhas 🧪 · Nova recolha 🧪 · Pedidos de clientes · Encomendas · Importar lista |
+| Transitário | Viagens e manifestos · Contentores · Encomendas · Importar lista |
+| Agente marítimo | Chegadas |
+| Operador do terminal | Chegadas e conferência |
+| Alfândega | Despacho aduaneiro |
+| Portaria | Levantamentos |
+| Administrador | Painel geral · Utilizadores · Pedidos de clientes · Encomendas · Importar lista · Contentores · Viagens e manifestos · Chegadas e conferência · Despacho aduaneiro · Levantamentos · Tarifas · Auditoria · Problemas reportados |
+| Exportador | Início (área em preparação ⏳) |
 
 ---
 
@@ -500,3 +531,28 @@ ficam registados sozinhos. O administrador vê tudo em **Problemas reportados**.
 | 1 | | | | | | | |
 | 2 | | | | | | | |
 | 3 | | | | | | | |
+
+---
+
+## 10. Glossário
+
+| Termo | O que é |
+|---|---|
+| **Pedido** (`PED-…`) | O que o cliente faz em `/enviar`. Passa a encomenda quando a agência recebe a carga. |
+| **Encomenda** (`ENC-…`) | A carga de um remetente para um destinatário, registada pela agência. Tem um ou mais volumes. |
+| **Volume** (`ENC-…-01`) | Cada caixa, veículo ou palete, com a sua etiqueta QR. É o volume que avança de estado. |
+| **Etiqueta QR** | Etiqueta colada em cada volume. O QR é assinado: uma etiqueta falsificada ou desatualizada é recusada. |
+| **Contentor** | Caixa metálica de transporte. O número segue a norma **ISO 6346** (4 letras, 6 algarismos e um de controlo). |
+| **BL Master** | Documento de transporte que agrupa as encomendas de várias pessoas num contentor. |
+| **LCL / FCL** | Grupagem (vários clientes no mesmo contentor) / contentor completo de um só cliente. |
+| **Selo** | Lacre numerado que fecha o contentor; é conferido à chegada. |
+| **ETD / ETA** | Partida prevista / chegada prevista do navio. |
+| **Manifesto** | Lista oficial da carga de uma viagem, enviada à Alfândega e à Enapor pelo menos 72 horas antes da chegada. |
+| **Desconsolidação** | Abrir o contentor no porto e conferir cada volume. |
+| **Ocorrência** | Problema registado na conferência: falta, dano, selo violado ou excesso. |
+| **Canal verde / vermelho** | Decisão da Alfândega: libertar sem inspeção / inspecionar fisicamente. |
+| **Código de levantamento** (`LEV-…`) | Código dado ao libertar a carga; o destinatário apresenta-o na portaria. |
+| **Gate Pass** (`GP-…`) | Comprovativo de saída da carga do porto, emitido na entrega. |
+| **Abandonado** | Carga liberada que não foi levantada dentro do prazo (BR 25). |
+| **Mailpit** | Caixa de correio de testes onde ficam os emails da plataforma enquanto não há um fornecedor real. |
+| **BR / RF** | Regras de negócio / requisitos funcionais do documento de requisitos (ex.: BR 25, RF-A36). |
