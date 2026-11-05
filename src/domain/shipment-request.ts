@@ -61,6 +61,44 @@ export const requestStatusDescriptions: Record<RequestStatus, string> = {
 
 export type HandoverMethod = "recolha" | "entrega_na_agencia";
 
+export type TrackingStepKey = "received" | "labelled" | "consolidated" | "in_transit" | "arrived" | "cleared" | "delivered";
+export type TrackingStage = TrackingStepKey | "held" | "cancelled";
+
+/** Linha do tempo da encomenda depois de a agência receber a carga (a API calcula os marcos). */
+export interface ShipmentTracking {
+  shipmentCode: string;
+  volumes: number;
+  stage: TrackingStage;
+  steps: Array<{ key: TrackingStepKey; label: string; done: boolean; at: string | null }>;
+  voyage: { vesselName: string; arrivalPort: string; eta: string; departedAt: string | null; arrivedAt: string | null } | null;
+  /** Só quando a carga está pronta para levantar. */
+  pickup: { code: string; port: string; balanceCve: number } | null;
+}
+
+export const trackingStageLabels: Record<TrackingStage, string> = {
+  received: "Carga recebida",
+  labelled: "Pronta para embarque",
+  consolidated: "No contentor",
+  in_transit: "Em viagem",
+  arrived: "Chegou a Cabo Verde",
+  cleared: "Pronta para levantar",
+  delivered: "Entregue",
+  held: "Retida na Alfândega",
+  cancelled: "Encomenda cancelada",
+};
+
+export const trackingStageDescriptions: Record<TrackingStage, string> = {
+  received: "A agência está a registar e a etiquetar a carga.",
+  labelled: "A carga está etiquetada e espera o contentor.",
+  consolidated: "A carga está no contentor, à espera do navio.",
+  in_transit: "A carga está a caminho de Cabo Verde.",
+  arrived: "A carga vai ser conferida no terminal e despachada pela Alfândega.",
+  cleared: "A Alfândega libertou a carga. O destinatário já a pode levantar.",
+  delivered: "A carga foi levantada.",
+  held: "A Alfândega reteve a carga. Contacte a agência para saber o que falta.",
+  cancelled: "A encomenda foi cancelada. Contacte a agência.",
+};
+
 /** Pedido tal como a API o devolve. */
 export interface ShipmentRequest {
   id: string;
@@ -80,6 +118,8 @@ export interface ShipmentRequest {
   agency: { id: string; name: string; city: string; address: string; phone: string };
   /** Encomenda criada quando a agência recebeu a carga. */
   shipment: { id: string; code: string } | null;
+  /** Só nas vistas do cliente, depois de a agência receber a carga. */
+  tracking?: ShipmentTracking | null;
   history: Array<{ from: RequestStatus | null; to: RequestStatus; reason: string | null; at: string }>;
   createdAt: string;
   updatedAt: string;

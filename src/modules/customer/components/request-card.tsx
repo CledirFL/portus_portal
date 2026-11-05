@@ -5,6 +5,7 @@ import { getCargoType } from "@/domain/cargo-types";
 import { customerCanCancel, type ShipmentRequest } from "@/domain/shipment-request";
 import { CancelRequest } from "@/modules/customer/components/cancel-request";
 import { RequestStatusBadge, RequestTimeline } from "@/modules/customer/components/request-status";
+import { ShipmentTimeline, ShipmentTrackingDetails, TrackingStageBadge } from "@/modules/customer/components/shipment-tracking";
 
 interface RequestCardProps {
   request: ShipmentRequest;
@@ -14,7 +15,7 @@ interface RequestCardProps {
 
 export function RequestCard({ request, onCancel }: RequestCardProps) {
   const cargoType = getCargoType(request.category);
-  const { agency } = request;
+  const { agency, tracking } = request;
 
   return (
     <Card>
@@ -30,14 +31,15 @@ export function RequestCard({ request, onCancel }: RequestCardProps) {
             </p>
           </div>
         </div>
-        <RequestStatusBadge status={request.status} />
+        {tracking ? <TrackingStageBadge stage={tracking.stage} /> : <RequestStatusBadge status={request.status} />}
       </div>
 
       <div className="mt-4 grid gap-6 md:grid-cols-[1fr_1.1fr]">
-        <RequestTimeline request={request} />
+        {tracking ? <ShipmentTimeline tracking={tracking} /> : <RequestTimeline request={request} />}
         <div className="space-y-3 text-sm">
+          {tracking ? <ShipmentTrackingDetails tracking={tracking} /> : null}
           <p className="text-slate-700">{request.description}</p>
-          {request.scheduledFor ? (
+          {request.scheduledFor && !tracking ? (
             <p className="rounded-lg bg-brand-50 px-3 py-2 text-brand-800">
               {request.handover === "recolha" ? "Recolha marcada" : "Entrega na agência marcada"} para{" "}
               <strong>{new Date(request.scheduledFor).toLocaleString("pt-PT", { dateStyle: "full", timeStyle: "short" })}</strong>
