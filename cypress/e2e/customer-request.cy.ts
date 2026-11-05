@@ -165,6 +165,45 @@ describe("pedido de envio pelo cliente", () => {
     cy.contains("button", "Cancelar pedido").should("not.exist");
   });
 
+  it("prefills the sender with the logged-in account and lets it be changed", () => {
+    cy.visit("/login");
+    cy.get('[data-cy="login-form"]').should("have.attr", "data-hydrated", "true");
+    cy.get("#email").type("ana@portus.cv");
+    cy.get("#password").type(demoPassword);
+    cy.contains("button", "Entrar").click();
+    cy.location("pathname", { timeout: 60_000 }).should("eq", "/exportador");
+
+    cy.visit("/enviar");
+    waitForHydration("request-wizard");
+    cy.contains("label", "Caixa ou encomenda").click();
+    field("Quantas caixas").type("2");
+    field("Descrição curta").type("Amostras de tecido");
+    cy.contains("button", "Continuar").click();
+    field("País de onde envia").select("Portugal");
+    field("Ilha de destino").select("São Vicente");
+    cy.contains("label", "Morabeza Envios").click();
+    cy.contains("button", "Continuar").click();
+
+    cy.contains("Preenchido com os dados da sua conta").should("be.visible");
+    cy.contains("Quem envia").parents("div.rounded-2xl").first().within(() => {
+      field("Nome").should("have.value", "Ana Silva").clear().type("Ana Silva Lda");
+      field("Email").should("have.value", "ana@portus.cv");
+    });
+    cy.contains("Preenchido com os dados da sua conta").should("not.exist");
+    cy.contains("Quem envia").parents("div.rounded-2xl").first().within(() => {
+      field("Telefone").clear().type("+351 912 345 678");
+    });
+    cy.contains("Quem recebe").parents("div.rounded-2xl").first().within(() => {
+      field("Nome").type("Maria Lopes");
+      field("Telefone").clear().type("+238 991 22 33");
+    });
+    cy.contains("button", "Continuar").click();
+    cy.contains("Remetente").parent().should("contain.text", "Ana Silva Lda");
+    cy.contains("Está a enviar com a sua conta (ana@portus.cv)").should("be.visible");
+    cy.contains("Quer criar conta?").should("not.exist");
+    cy.screenshot("17-remetente-da-conta", { capture: "fullPage" });
+  });
+
   it("emails the guest a personal link to view and cancel the request", () => {
     const email = `rosa.${Date.now()}@example.pt`;
     cy.contains("label", "Caixa ou encomenda").click();
