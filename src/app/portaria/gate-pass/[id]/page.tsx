@@ -7,7 +7,7 @@ import { Printer } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { formatCve } from "@/domain/clearance";
-import { ErrorBanner, formatDateTime } from "@/modules/consolidation/components/consolidation-ui";
+import { ErrorBanner, formatDateTime, formatKg } from "@/modules/consolidation/components/consolidation-ui";
 import { QrCode } from "@/modules/shipments/components/qr-code";
 import { getGatePass, type GatePass } from "@/services/api/arrivals";
 import { useAuthStore } from "@/store/auth-store";
@@ -97,7 +97,7 @@ export default function GatePassPage() {
                 <tr key={volume.code} className="border-b border-slate-200">
                   <td className="py-1 font-mono">{volume.code}</td>
                   <td className="py-1">{volume.contents ?? "—"}</td>
-                  <td className="py-1 text-right">{volume.weightKg !== null ? `${volume.weightKg} kg` : "—"}</td>
+                  <td className="py-1 text-right">{volume.weightKg !== null ? formatKg(volume.weightKg) : "—"}</td>
                 </tr>
               ))}
             </tbody>
