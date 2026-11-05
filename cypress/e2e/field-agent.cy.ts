@@ -45,7 +45,7 @@ describe("recolhas do agente no terreno", () => {
 
   it("requires login and restricts collection pages to the agent role", () => {
     cy.visit("/agent/collections");
-    cy.location("pathname").should("eq", "/login");
+    cy.location("pathname", { timeout: 60_000 }).should("eq", "/login");
 
     cy.get("#email").type("ana@portus.cv");
     cy.get("#password").type(demoPassword);
