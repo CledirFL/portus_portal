@@ -24,10 +24,10 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Manifestos", href: "/exporter/manifestos", icon: "clipboard-list" },
   ],
   transitario: [
-    { label: "Painel geral", href: "/dashboard", icon: "dashboard" },
-    { label: "Embarques", href: "/exporter/shipments", icon: "ship" },
-    { label: "Contentores", href: "/exporter/containers", icon: "container" },
-    { label: "BL", href: "/exporter/bl", icon: "file-text" },
+    { label: "Viagens e manifestos", href: "/agencia/viagens", icon: "ship" },
+    { label: "Contentores", href: "/agencia/contentores", icon: "container" },
+    { label: "Encomendas", href: "/agencia/encomendas", icon: "boxes" },
+    { label: "Importar lista", href: "/agencia/importar", icon: "upload" },
   ],
   agente_maritimo: [
     { label: "Painel geral", href: "/dashboard", icon: "dashboard" },
@@ -58,6 +58,8 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Pedidos de clientes", href: "/agencia/pedidos", icon: "inbox" },
     { label: "Encomendas", href: "/agencia/encomendas", icon: "boxes" },
     { label: "Importar lista", href: "/agencia/importar", icon: "upload" },
+    { label: "Contentores", href: "/agencia/contentores", icon: "container" },
+    { label: "Viagens e manifestos", href: "/agencia/viagens", icon: "anchor" },
     { label: "Exportação", href: "/exporter/dashboard", icon: "globe" },
     { label: "Operações CV", href: "/cv/navios", icon: "ship" },
     { label: "Auditoria", href: "/cv/auditoria", icon: "shield" },
@@ -66,7 +68,7 @@ export const roleNavigation: Record<Role, NavItem[]> = {
 
 export const defaultRouteByRole: Record<Role, string> = {
   exporter: "/exporter/dashboard",
-  transitario: "/dashboard",
+  transitario: "/agencia/viagens",
   agente_maritimo: "/cv/navios",
   agente_recolha: "/agent/collections",
   cv_operator: "/cv/navios",
