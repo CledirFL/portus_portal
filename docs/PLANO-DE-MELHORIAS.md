@@ -109,7 +109,7 @@ Proposta:
 - [x] Tarifas configuráveis e cálculo de taxas, registo de pagamento/isenção (RF-A25–26). *(B6)*
 - [x] Levantamento: validação de documento + QR, terceiros autorizados, Gate Pass, estado Entregue (RF-A30–32). *(B6)*
 - [x] Novos perfis: Alfândega, Terminal, Portaria; âmbito por porto/agência. *(B6; o portal do destinatário fica por fazer)*
-- [ ] Painel e relatórios com dados reais (RF-A36–37).
+- [x] Painel com dados reais (RF-A36). *(B8; relatórios exportáveis RF-A37 por fazer)*
 
 ### Fase 4 — Parte B completa (MVP-B)
 - [ ] Recolha com tipo de carga e vários volumes; telefone com indicativo; itens restritos (BR 26).
@@ -123,4 +123,7 @@ Proposta:
 - [ ] Internacionalização (locale) da interface e das mensagens da API; português como idioma base.
 
 ### Fase 6 — Fase 2/3 do documento
-- [ ] SMS, rastreio público com estados reais, pagamentos eletrónicos, decodificação de VIN por API, estimativa de despacho com tarifas versionadas, integrações Alfândega/Enapor/RNI/GOV.CV.
+- [x] Rastreio público com estados reais até à entrega e emails ao cliente. *(B8)*
+- [x] Gestão de utilizadores, pedidos de acesso e auditoria consultável (RF-A34–35). *(B8)*
+- [x] Abandono por prazo de armazenagem com aviso (BR 25). *(B8)*
+- [ ] SMS, pagamentos eletrónicos, decodificação de VIN por API, estimativa de despacho com tarifas versionadas, integrações Alfândega/Enapor/RNI/GOV.CV.
