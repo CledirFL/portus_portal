@@ -8,6 +8,8 @@ Frontend da plataforma **PORTUS**, que acompanha cargas enviadas para **Cabo Ver
 - **Área das agências:** fila de pedidos de clientes para aceitar, agendar recolha, receber ou recusar.
   Registo de **encomendas** e volumes, validação por tipo de carga, alerta de duplicados e **etiquetas QR
   assinadas** para imprimir.
+- **Transitário:** **contentores** (ISO 6346) e **BL Master**, consolidação por leitura de QR com bloqueio de
+  capacidade, selo, **viagens**, **manifestos** versionados em .xlsx/.pdf/.csv e alerta das 72 h antes do ETA.
 - **Plataforma de gestão** (exportação, operações CV, administração) e **recolha no terreno** com OCR.
 
 A API está no repositório [`portus_service`](../portus_service). O plano de melhorias está em
@@ -22,7 +24,7 @@ A API está no repositório [`portus_service`](../portus_service). O plano de me
  Browser ── Next.js 16 (React 19, :3000) ──fetch──▶ portus_service (/api, :4000) ──▶ PostgreSQL
               │
               ├─ src/lib/api-client.ts   pedidos à API, token em memória, renovação automática da sessão
-              ├─ src/services/api/*      auth, agências, pedidos de envio
+              ├─ src/services/api/*      auth, agências, pedidos, encomendas, importação, contentores, viagens
               ├─ src/domain/*            regras partilhadas (validação, tipos de carga, estados, países)
               └─ src/store/auth-store    perfil do utilizador (o token nunca vai para o localStorage)
 ```
@@ -48,9 +50,10 @@ apenas conveniência.
 | `/agencia/pedidos` (fila e ações da agência) | **API** |
 | `/agencia/encomendas` (encomendas, volumes, validação, etiquetas) | **API** |
 | `/agencia/importar` (importar listas .xlsx/.csv) | **API** |
+| `/agencia/contentores`, `/agencia/viagens` (consolidação, viagens, manifestos) | **API** |
 | Lista de agências no assistente | **API** |
 | `/agent/collections` (recolha no terreno, OCR) | IndexedDB do navegador (passa para a API na fase B7) |
-| `/exporter/*`, `/cv/*`, `/dashboard`, `/admin/*` | Dados de exemplo (`src/mocks`), substituídos nas fases B3–B6 |
+| `/exporter/*`, `/cv/*`, `/dashboard`, `/admin/*` | Dados de exemplo (`src/mocks`), substituídos na fase B6 |
 | `/register` (pedido de acesso de empresas) | Simulado; as contas de equipa vão ser criadas pelo admin na API |
 
 ---
@@ -91,6 +94,7 @@ Criadas pelo `npm run db:seed` do backend. Palavra-passe: a de `SEED_DEMO_PASSWO
 | Email | Perfil | Entra em |
 | --- | --- | --- |
 | `agente@portus.cv` | agente de recolha (Morabeza Envios, Lisboa) | `/agent/collections`, `/agencia/pedidos` |
+| `transitario@portus.cv` | transitário (Morabeza Envios, Lisboa) | `/agencia/viagens`, `/agencia/contentores` |
 | `joao@portus.cv` | administrador (vê todas as agências) | `/admin/users`, `/agencia/pedidos` |
 | `ana@portus.cv` | exportador | `/exporter/dashboard` |
 | `carla@portus.cv` | agente marítimo | `/cv/navios` |
@@ -114,7 +118,11 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/agencia/encomendas/[id]` | agente, admin | Detalhe, volumes, validar, cancelar |
 | `/agencia/encomendas/[id]/editar` | agente, admin | Editar dados de um rascunho |
 | `/agencia/encomendas/[id]/etiquetas` | agente, admin | Etiquetas QR para imprimir (uma por volume) |
-| `/agencia/importar` | agente, admin | Importar lista .xlsx/.csv: escolher colunas, pré-visualizar erros e duplicados, importar (há um modelo CSV para descarregar) |
+| `/agencia/importar` | agente, transitário, admin | Importar lista .xlsx/.csv: escolher colunas, pré-visualizar erros e duplicados, importar (há um modelo CSV para descarregar) |
+| `/agencia/contentores` | transitário, admin | Contentores: lista, pesquisa (nº, BL, selo), registo com validação ISO 6346 |
+| `/agencia/contentores/[id]` | transitário, admin | Ler QR (leitor tipo teclado ou código), BL Master, capacidade, retirar volumes, selar, reabrir, lista de carga |
+| `/agencia/viagens` | transitário, admin | Viagens com o prazo do manifesto e o filtro "Com alerta" (72 h) |
+| `/agencia/viagens/[id]` | transitário, admin | Contentores da viagem, versões do manifesto, descarregar, registar envio, partida |
 | `/agent/collections` | agente | Recolhas no terreno com fotografia e OCR |
 | `/exporter/*`, `/cv/*`, `/admin/*`, `/dashboard` | perfis respetivos | Plataforma de gestão (dados de exemplo) |
 
@@ -144,6 +152,8 @@ No terminal do VS Code, o Cypress precisa de `ELECTRON_RUN_AS_NODE` removido:
   - encomenda repetida → alerta de duplicado → registar mesmo assim;
   - pedido de cliente recebido → abre a encomenda criada;
   - lista CSV com `;` → mapeamento sugerido → pré-visualização com uma linha errada → importar a válida;
+  - contentor com dígito ISO 6346 errado e depois certo → BL Master → leitura do QR (e leitura repetida) → selar
+    bloqueado por volume sem BL → associar → selar → viagem a 48 h com alerta → manifesto → envio → partida;
   - recolha no terreno com OCR simulado (o Cypress injeta um resultado fixo de OCR).
 
 Os testes E2E criam pedidos reais na base de dados de desenvolvimento do backend.
@@ -159,7 +169,8 @@ src/
   modules/customer/       assistente de pedido, consulta e cartões de pedido
   modules/shipments/      formulário de encomenda, volumes, estados e QR
   modules/field-agent/    recolha no terreno e OCR
-  services/api/           chamadas à API (auth, agências, pedidos)
+  modules/consolidation/  contentores, viagens e manifestos (estados, capacidade, exportação, formulário de viagem)
+  services/api/           chamadas à API (auth, agências, pedidos, encomendas, importação, contentores, viagens)
   services/mock/          registo de empresas ainda simulado
   mocks/                  dados de exemplo das áreas ainda não ligadas à API
   store/                  estado de autenticação (Zustand)
