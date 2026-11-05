@@ -31,6 +31,7 @@ export interface User {
 }
 
 export type NavIcon =
+  | "bug"
   | "dashboard"
   | "globe"
   | "building"

@@ -48,6 +48,7 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Levantamentos", href: "/portaria", icon: "door" },
     { label: "Tarifas", href: "/admin/tarifas", icon: "receipt" },
     { label: "Auditoria", href: "/admin/auditoria", icon: "shield" },
+    { label: "Problemas reportados", href: "/admin/problemas", icon: "bug" },
   ],
 };
 

@@ -7,6 +7,7 @@ import { isAllowedRoute, roleLabels, roleNavigation } from "@/lib/permissions";
 import { useAuthStore } from "@/store/auth-store";
 import { logout } from "@/services/api/auth";
 import { Sidebar, findActiveNavItem } from "@/components/layout/sidebar";
+import { ReportProblem } from "@/components/layout/report-problem";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -70,6 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </p>
 
           <div className="flex items-center gap-3">
+            {user.role !== "cliente" ? <ReportProblem /> : null}
             <span
               className="hidden h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-800 sm:flex"
               title={user.name}

@@ -1,5 +1,6 @@
 import {
   Boxes,
+  Bug,
   Building2,
   Check,
   ClipboardList,
@@ -26,6 +27,7 @@ import {
 import type { NavIcon as NavIconName } from "@/types/user";
 
 const icons: Record<NavIconName, LucideIcon> = {
+  bug: Bug,
   dashboard: LayoutDashboard,
   globe: Globe2,
   building: Building2,
