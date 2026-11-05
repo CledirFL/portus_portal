@@ -8,6 +8,23 @@ function field(label: string) {
   return cy.contains("label", label).find("input, select, textarea").first();
 }
 
+/** Amanhã às 10:30, no formato do campo datetime-local. */
+function tomorrowAtHalfPastTen() {
+  const date = new Date(Date.now() + 86_400_000);
+  date.setHours(10, 30, 0, 0);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
+/** Espera pelo email no Mailpit (o backend envia em segundo plano, a cada 10 s). */
+function waitForEmail(to: string, subject: RegExp, attempts = 20): Cypress.Chainable<{ ID: string; Subject: string }> {
+  return cy.request(`http://localhost:8025/api/v1/search?query=${encodeURIComponent(`to:"${to}"`)}`).then((response) => {
+    const message = (response.body.messages as Array<{ ID: string; Subject: string }>).find((item) => subject.test(item.Subject));
+    if (message) return cy.wrap(message);
+    if (attempts <= 1) throw new Error(`Email "${subject}" para ${to} não chegou ao Mailpit.`);
+    return cy.wait(2000).then(() => waitForEmail(to, subject, attempts - 1));
+  });
+}
+
 describe("pedido de envio pelo cliente", () => {
   beforeEach(() => {
     cy.clearCookies();
@@ -93,7 +110,7 @@ describe("pedido de envio pelo cliente", () => {
         cy.contains("button", /^Em curso/).click();
         cy.contains("button", "Agendar").click();
         cy.contains("Escolha a data e hora.").should("be.visible");
-        field("Data e hora da recolha").type("2026-11-10T10:30");
+        field("Data e hora da recolha").type(tomorrowAtHalfPastTen());
         cy.contains("button", "Agendar").click();
         cy.contains("Marcado para").should("be.visible");
 
@@ -138,5 +155,55 @@ describe("pedido de envio pelo cliente", () => {
     cy.location("pathname").should("eq", "/cliente");
     cy.contains("Carro, mota ou carrinha · para Ana Semedo, Santiago").should("be.visible");
     cy.screenshot("07-cliente-pedidos", { capture: "fullPage" });
+
+    cy.contains("button", "Cancelar pedido").click();
+    cy.get('[data-cy="cancel-request"]').within(() => {
+      field("Motivo (opcional)").type("Vou enviar mais tarde");
+      cy.contains("button", "Confirmar cancelamento").click();
+    });
+    cy.contains("Cancelado").should("be.visible");
+    cy.contains("button", "Cancelar pedido").should("not.exist");
+  });
+
+  it("emails the guest a personal link to view and cancel the request", () => {
+    const email = `rosa.${Date.now()}@example.pt`;
+    cy.contains("label", "Caixa ou encomenda").click();
+    field("Quantas caixas").type("1");
+    field("Descrição curta").type("Livros e roupa");
+    cy.contains("button", "Continuar").click();
+    field("País de onde envia").select("Portugal");
+    field("Ilha de destino").select("São Vicente");
+    cy.contains("label", "Morabeza Envios").click();
+    cy.contains("button", "Continuar").click();
+    cy.contains("Quem envia").parents("div.rounded-2xl").first().within(() => {
+      field("Nome").type("Rosa Tavares");
+      field("Telefone").clear().type("+351 912 345 678");
+      field("Email").type(email);
+    });
+    cy.contains("Quem recebe").parents("div.rounded-2xl").first().within(() => {
+      field("Nome").type("Maria Lopes");
+      field("Telefone").clear().type("+238 991 22 33");
+    });
+    cy.contains("button", "Continuar").click();
+    cy.contains("button", "Enviar pedido à agência").click();
+
+    cy.contains(`Enviámos um email para ${email}`).should("be.visible");
+    cy.get('[data-cy="request-reference"]').invoke("text").then((reference) => {
+      waitForEmail(email, new RegExp(`Pedido ${reference} recebido`)).then((message) => {
+        cy.request(`http://localhost:8025/api/v1/message/${message.ID}`).its("body.Text").should("contain", "/pedido/");
+      });
+
+      cy.contains("a", "Ver o meu pedido").click();
+      cy.location("pathname").should("match", new RegExp(`^/pedido/${reference}\.`));
+      cy.contains(String(reference)).should("be.visible");
+      cy.contains("button", "Cancelar pedido").click();
+      cy.contains("button", "Confirmar cancelamento").click();
+      cy.contains("Cancelado").should("be.visible");
+      cy.screenshot("08-pedido-cancelado-pelo-link", { capture: "fullPage" });
+      waitForEmail(email, new RegExp(`Pedido ${reference} cancelado`));
+    });
+
+    cy.visit("/pedido/PED-AAAAAA.falsificado");
+    cy.contains("Este link não é válido").should("be.visible");
   });
 });
