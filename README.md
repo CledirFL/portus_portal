@@ -17,8 +17,7 @@ Frontend da plataforma **PORTUS**, que acompanha cargas enviadas para **Cabo Ver
 
 A API está no repositório [`portus_service`](../portus_service). O plano de melhorias está em
 [docs/PLANO-DE-MELHORIAS.md](docs/PLANO-DE-MELHORIAS.md) e o estado do backend em
-[../portus_service/docs/ROADMAP.md](../portus_service/docs/ROADMAP.md). Para usar e testar a plataforma
-passo a passo, perfil a perfil, veja o [manual de utilização e testes](docs/GUIA-DE-UTILIZACAO.md).
+[../portus_service/docs/ROADMAP.md](../portus_service/docs/ROADMAP.md).
 
 ---
 
@@ -192,7 +191,7 @@ src/
   mocks/                  dados de exemplo das áreas ainda não ligadas à API
   store/                  estado de autenticação (Zustand)
 cypress/e2e/              testes E2E
-docs/                     plano de melhorias e manual de utilização
+docs/                     plano de melhorias
 ```
 
 ## Dependências principais
