@@ -47,6 +47,7 @@ export function toUser(user: ApiUser): User {
     company: "",
     status: user.status,
     agencyId: user.agencyId ?? undefined,
+    portId: user.portId ?? undefined,
     phone: user.phone ?? undefined,
   };
 }

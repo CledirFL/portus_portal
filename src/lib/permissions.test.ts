@@ -3,7 +3,7 @@ import { defaultRouteByRole, isAllowedRoute } from "@/lib/permissions";
 
 describe("isAllowedRoute", () => {
   it("allows nested detail routes for the same module", () => {
-    expect(isAllowedRoute("cv_operator", "/cv/navios/V-010")).toBe(true);
+    expect(isAllowedRoute("cv_operator", "/cv/chegadas/V-010")).toBe(true);
     expect(isAllowedRoute("exporter", "/exporter/shipments/SHP-2041")).toBe(true);
   });
 

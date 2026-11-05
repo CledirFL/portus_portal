@@ -4,6 +4,8 @@ export type Role =
   | "agente_maritimo"
   | "agente_recolha"
   | "cv_operator"
+  | "alfandega"
+  | "portaria"
   | "cliente"
   | "admin";
 
@@ -23,6 +25,8 @@ export interface User {
   region?: string;
   /** Agência a que o utilizador pertence (âmbito de dados, BR 28). */
   agencyId?: string;
+  /** Porto de chegada do utilizador (terminal, Alfândega, portaria). */
+  portId?: string;
   phone?: string;
 }
 

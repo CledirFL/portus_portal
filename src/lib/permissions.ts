@@ -5,7 +5,9 @@ export const roleLabels: Record<Role, string> = {
   transitario: "Transitário",
   agente_maritimo: "Agente marítimo",
   agente_recolha: "Agente de recolha",
-  cv_operator: "Operador CV",
+  cv_operator: "Operador do terminal",
+  alfandega: "Alfândega",
+  portaria: "Portaria",
   cliente: "Cliente",
   admin: "Administrador",
 };
@@ -29,12 +31,7 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Encomendas", href: "/agencia/encomendas", icon: "boxes" },
     { label: "Importar lista", href: "/agencia/importar", icon: "upload" },
   ],
-  agente_maritimo: [
-    { label: "Painel geral", href: "/dashboard", icon: "dashboard" },
-    { label: "Navios", href: "/cv/navios", icon: "ship" },
-    { label: "Gate Pass", href: "/cv/gate-pass", icon: "door" },
-    { label: "Conferência", href: "/cv/conferencia", icon: "check" },
-  ],
+  agente_maritimo: [{ label: "Chegadas", href: "/cv/chegadas", icon: "anchor" }],
   agente_recolha: [
     { label: "Recolhas", href: "/agent/collections", icon: "package" },
     { label: "Nova recolha", href: "/agent/collections/new", icon: "plus" },
@@ -42,13 +39,9 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Encomendas", href: "/agencia/encomendas", icon: "boxes" },
     { label: "Importar lista", href: "/agencia/importar", icon: "upload" },
   ],
-  cv_operator: [
-    { label: "Painel geral", href: "/dashboard", icon: "dashboard" },
-    { label: "Navios", href: "/cv/navios", icon: "ship" },
-    { label: "Contra-Marca", href: "/cv/contra-marca", icon: "tag" },
-    { label: "Gate Pass", href: "/cv/gate-pass", icon: "door" },
-    { label: "Auditoria", href: "/cv/auditoria", icon: "shield" },
-  ],
+  cv_operator: [{ label: "Chegadas e conferência", href: "/cv/chegadas", icon: "scan" }],
+  alfandega: [{ label: "Despacho aduaneiro", href: "/alfandega", icon: "stamp" }],
+  portaria: [{ label: "Levantamentos", href: "/portaria", icon: "door" }],
   cliente: [
     { label: "Os meus pedidos", href: "/cliente", icon: "inbox" },
   ],
@@ -61,7 +54,10 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Contentores", href: "/agencia/contentores", icon: "container" },
     { label: "Viagens e manifestos", href: "/agencia/viagens", icon: "anchor" },
     { label: "Exportação", href: "/exporter/dashboard", icon: "globe" },
-    { label: "Operações CV", href: "/cv/navios", icon: "ship" },
+    { label: "Chegadas e conferência", href: "/cv/chegadas", icon: "scan" },
+    { label: "Despacho aduaneiro", href: "/alfandega", icon: "stamp" },
+    { label: "Levantamentos", href: "/portaria", icon: "door" },
+    { label: "Tarifas", href: "/admin/tarifas", icon: "receipt" },
     { label: "Auditoria", href: "/cv/auditoria", icon: "shield" },
   ],
 };
@@ -69,9 +65,11 @@ export const roleNavigation: Record<Role, NavItem[]> = {
 export const defaultRouteByRole: Record<Role, string> = {
   exporter: "/exporter/dashboard",
   transitario: "/agencia/viagens",
-  agente_maritimo: "/cv/navios",
+  agente_maritimo: "/cv/chegadas",
   agente_recolha: "/agent/collections",
-  cv_operator: "/cv/navios",
+  cv_operator: "/cv/chegadas",
+  alfandega: "/alfandega",
+  portaria: "/portaria",
   cliente: "/cliente",
   admin: "/admin/users",
 };
