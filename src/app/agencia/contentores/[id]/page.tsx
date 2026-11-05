@@ -367,22 +367,19 @@ export default function ContainerDetailPage() {
                 data-cy="new-bl"
                 onSubmit={async (event) => {
                   event.preventDefault();
-                  const ok = await run(
-                    () =>
-                      addBlMaster(container.id, {
-                        number: blNumber,
-                        loadType: blLoadType,
-                        maxWeightKg: blMaxWeight ? Number(blMaxWeight.replace(",", ".")) : null,
-                      }),
-                    "Não foi possível acrescentar o BL Master.",
-                  );
+                  const ok = await run(async () => {
+                    const updated = await addBlMaster(container.id, {
+                      number: blNumber,
+                      loadType: blLoadType,
+                      maxWeightKg: blMaxWeight ? Number(blMaxWeight.replace(",", ".")) : null,
+                    });
+                    // Os volumes lidos a seguir vão para o BL novo (já, para uma leitura imediata não ficar sem BL).
+                    setScanBl(updated.blMasters.at(-1)?.id ?? noBl);
+                    return updated;
+                  }, "Não foi possível acrescentar o BL Master.");
                   if (ok) {
                     setBlNumber("");
                     setBlMaxWeight("");
-                    // Os volumes lidos a seguir vão para o BL novo.
-                    getContainer(container.id)
-                      .then((loaded) => setScanBl(loaded.blMasters.at(-1)?.id ?? noBl))
-                      .catch(() => undefined);
                   }
                 }}
               >
