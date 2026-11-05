@@ -1,9 +1,37 @@
 import type { RequestStatus, ShipmentRequest, ShipmentRequestInput } from "@/domain/shipment-request";
 import { ApiError, apiRequest } from "@/lib/api-client";
 
-/** Pedido público; se houver sessão de cliente, a API associa-o à conta. */
+/** Pedido público; se houver sessão de cliente, a API associa-o à conta. Devolve o token do link pessoal. */
 export function submitShipmentRequest(input: ShipmentRequestInput) {
-  return apiRequest<ShipmentRequest>("/shipment-requests", { method: "POST", body: input, auth: "optional" });
+  return apiRequest<ShipmentRequest & { accessToken: string }>("/shipment-requests", { method: "POST", body: input, auth: "optional" });
+}
+
+/** Pedido aberto pelo link pessoal enviado por email. Devolve null se o link não for válido. */
+export async function openShipmentRequestByLink(token: string) {
+  try {
+    return await apiRequest<ShipmentRequest>("/shipment-requests/access", { method: "POST", body: { token }, auth: "none" });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export function cancelShipmentRequestByLink(token: string, reason?: string) {
+  return apiRequest<ShipmentRequest>("/shipment-requests/access/cancel", { method: "POST", body: { token, reason }, auth: "none" });
+}
+
+export function cancelShipmentRequestByLookup(reference: string, phone: string, reason?: string) {
+  return apiRequest<ShipmentRequest>("/shipment-requests/lookup/cancel", {
+    method: "POST",
+    body: { reference, phone, reason },
+    auth: "none",
+  });
+}
+
+export function cancelMyShipmentRequest(id: string, reason?: string) {
+  return apiRequest<ShipmentRequest>(`/me/shipment-requests/${id}/cancel`, { method: "POST", body: { reason } });
 }
 
 /** Consulta sem conta (código + telefone). Devolve null se não corresponder a nenhum pedido. */

@@ -145,6 +145,11 @@ export const shipmentRequestSchema = z
 
 export type ShipmentRequestInput = z.input<typeof shipmentRequestSchema>;
 
+/** O cliente pode cancelar enquanto a agência não receber a carga (o servidor volta a validar). */
+export function customerCanCancel(status: RequestStatus) {
+  return status === "submitted" || status === "accepted" || status === "pickup_scheduled";
+}
+
 /** Ações que a interface pode oferecer no estado atual (o servidor volta a validar). */
 export function nextRequestStatuses(status: RequestStatus) {
   return requestTransitions[status];

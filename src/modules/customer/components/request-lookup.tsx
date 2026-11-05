@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { lookupShipmentRequest } from "@/services/api/shipment-requests";
+import { cancelShipmentRequestByLookup, lookupShipmentRequest } from "@/services/api/shipment-requests";
 import { useHydrated } from "@/lib/use-hydrated";
 import type { ShipmentRequest } from "@/domain/shipment-request";
 import { RequestCard } from "@/modules/customer/components/request-card";
@@ -15,6 +15,8 @@ export function RequestLookup({ initialReference = "" }: { initialReference?: st
   const [reference, setReference] = useState(initialReference);
   const [phone, setPhone] = useState("");
   const [result, setResult] = useState<ShipmentRequest | null>(null);
+  // Telefone com que o pedido foi encontrado (o campo pode mudar depois).
+  const [foundWithPhone, setFoundWithPhone] = useState("");
   const [notFound, setNotFound] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState("");
@@ -34,6 +36,7 @@ export function RequestLookup({ initialReference = "" }: { initialReference?: st
             try {
               const found = await lookupShipmentRequest(reference, phone);
               setResult(found);
+              setFoundWithPhone(phone);
               setNotFound(!found);
             } catch (cause) {
               setResult(null);
@@ -83,7 +86,12 @@ export function RequestLookup({ initialReference = "" }: { initialReference?: st
           Não encontrámos nenhum pedido com esse código e telefone. Confirme os dados.
         </div>
       ) : null}
-      {result ? <RequestCard request={result} /> : null}
+      {result ? (
+        <RequestCard
+          request={result}
+          onCancel={async (reason) => setResult(await cancelShipmentRequestByLookup(result.reference, foundWithPhone, reason))}
+        />
+      ) : null}
     </div>
   );
 }

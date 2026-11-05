@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
-import { listMyShipmentRequests } from "@/services/api/shipment-requests";
+import { cancelMyShipmentRequest, listMyShipmentRequests } from "@/services/api/shipment-requests";
 import type { ShipmentRequest } from "@/domain/shipment-request";
 import { RequestCard } from "@/modules/customer/components/request-card";
 import { useAuthStore } from "@/store/auth-store";
@@ -40,7 +40,14 @@ export default function CustomerHomePage() {
       {requests === null ? null : requests.length ? (
         <div className="space-y-4">
           {requests.map((request) => (
-            <RequestCard key={request.id} request={request} />
+            <RequestCard
+              key={request.id}
+              request={request}
+              onCancel={async (reason) => {
+                const cancelled = await cancelMyShipmentRequest(request.id, reason);
+                setRequests((current) => current?.map((item) => (item.id === cancelled.id ? cancelled : item)) ?? null);
+              }}
+            />
           ))}
         </div>
       ) : (

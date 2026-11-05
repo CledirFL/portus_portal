@@ -2,10 +2,17 @@ import { MapPin, Phone } from "lucide-react";
 import { CargoTypeIcon } from "@/components/cargo-type-icon";
 import { Card } from "@/components/ui/card";
 import { getCargoType } from "@/domain/cargo-types";
-import type { ShipmentRequest } from "@/domain/shipment-request";
+import { customerCanCancel, type ShipmentRequest } from "@/domain/shipment-request";
+import { CancelRequest } from "@/modules/customer/components/cancel-request";
 import { RequestStatusBadge, RequestTimeline } from "@/modules/customer/components/request-status";
 
-export function RequestCard({ request }: { request: ShipmentRequest }) {
+interface RequestCardProps {
+  request: ShipmentRequest;
+  /** Quando existe, o cliente pode cancelar o pedido enquanto o estado o permitir. */
+  onCancel?: (reason: string | undefined) => Promise<void>;
+}
+
+export function RequestCard({ request, onCancel }: RequestCardProps) {
   const cargoType = getCargoType(request.category);
   const { agency } = request;
 
@@ -52,6 +59,7 @@ export function RequestCard({ request }: { request: ShipmentRequest }) {
               </p>
             </div>
           ) : null}
+          {onCancel && customerCanCancel(request.status) ? <CancelRequest onCancel={onCancel} /> : null}
         </div>
       </div>
     </Card>
