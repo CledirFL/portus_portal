@@ -3,8 +3,9 @@
 Frontend da plataforma **PORTUS**, que acompanha cargas enviadas para **Cabo Verde** a partir de qualquer país
 (Portugal, França, Estados Unidos, Países Baixos, China…): caixas, carros, mudanças, material de construção.
 
-- **Portal público:** o cliente escolhe a agência no país de onde envia e faz o pedido **sem conta**; acompanha
-  com código + telefone, ou cria conta se quiser ver todos os envios.
+- **Portal público:** o cliente escolhe a agência no país de onde envia e faz o pedido **sem conta**; recebe por
+  email um **link pessoal** para ver e cancelar o pedido e acompanha a carga **até à entrega** (navio, chegada,
+  código de levantamento). Também acompanha com código + telefone, ou cria conta para ver todos os envios.
 - **Área das agências:** fila de pedidos de clientes para aceitar, agendar recolha, receber ou recusar.
   Registo de **encomendas** e volumes, validação por tipo de carga, alerta de duplicados e **etiquetas QR
   assinadas** para imprimir.
@@ -13,7 +14,9 @@ Frontend da plataforma **PORTUS**, que acompanha cargas enviadas para **Cabo Ver
 - **Cabo Verde:** **chegadas** e conferência por QR com localização e ocorrências com fotografia; **Alfândega**
   (validar manifesto, canal, reter, libertar); **portaria** (taxas, pagamento, isenção, terceiros autorizados,
   entrega com Gate Pass); **tarifas** para o administrador.
-- **Plataforma de gestão** (exportação, administração) e **recolha no terreno** com OCR.
+- **Administração:** utilizadores e pedidos de acesso, **auditoria**, **painel** com dados reais, tarifas e prazo de
+  abandono, **problemas reportados** (botão "Reportar problema" em todas as páginas da equipa).
+- **Recolha no terreno** com OCR (protótipo; guarda no navegador até à fase B7).
 
 A API está no repositório [`portus_service`](../portus_service). O plano de melhorias está em
 [docs/PLANO-DE-MELHORIAS.md](docs/PLANO-DE-MELHORIAS.md) e o estado do backend em
@@ -55,10 +58,11 @@ apenas conveniência.
 | `/agencia/importar` (importar listas .xlsx/.csv) | **API** |
 | `/agencia/contentores`, `/agencia/viagens` (consolidação, viagens, manifestos) | **API** |
 | `/cv/chegadas`, `/alfandega`, `/portaria`, `/admin/tarifas` | **API** |
+| `/pedido/[token]` (link do email), `/register` (pedir acesso) | **API** |
+| `/dashboard`, `/admin/users`, `/admin/auditoria`, `/admin/problemas` | **API** |
 | Lista de agências no assistente | **API** |
 | `/agent/collections` (recolha no terreno, OCR) | IndexedDB do navegador (passa para a API na fase B7) |
-| `/exporter/*`, `/dashboard`, `/admin/users`, outras páginas `/cv/*` | Dados de exemplo (`src/mocks`), já fora do menu dos perfis com páginas reais |
-| `/register` (pedido de acesso de empresas) | Simulado; as contas de equipa vão ser criadas pelo admin na API |
+| Outras páginas `/cv/*` (navios, contra-marca, gate-pass, conferência antigos) | Dados de exemplo (`src/mocks`), fora de todos os menus |
 
 ---
 
@@ -116,9 +120,11 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | --- | --- | --- |
 | `/` | público | Página inicial |
 | `/enviar` | público | Assistente de pedido: o que envia → país de onde envia, ilha e agência → contactos → confirmar (conta opcional) |
-| `/acompanhar` | público | Consulta com código + telefone do remetente |
+| `/acompanhar` | público | Consulta com código + telefone do remetente; cancelar; linha do tempo até à entrega |
+| `/pedido/[token]` | público (link do email) | O pedido e a linha do tempo da carga; cancelar enquanto a agência não receber a carga |
+| `/register` | público | Pedir acesso para a equipa (fica em revisão até o administrador aprovar) |
 | `/login` | público | Entrada |
-| `/cliente` | cliente | Os meus pedidos |
+| `/cliente` | cliente | Os meus pedidos, com cancelamento e linha do tempo |
 | `/agencia/pedidos` | agente, admin | Fila de pedidos da agência e ações |
 | `/agencia/encomendas` | agente, admin | Encomendas: lista, pesquisa (código, guia, VIN, nome, telefone) |
 | `/agencia/encomendas/nova` | agente, admin | Registar encomenda no balcão com volumes |
@@ -135,9 +141,13 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/alfandega` · `/alfandega/viagens/[id]` | Alfândega, admin | Validar/rejeitar manifestos; por encomenda: sugestão de canal, canal, reter, libertar com direitos |
 | `/portaria` | portaria, admin | Procurar por código/QR, taxas, pagamento, isenção, terceiros autorizados, entrega com documento, QR e código ou assinatura |
 | `/portaria/gate-pass/[id]` | portaria, admin | Gate Pass para imprimir |
-| `/admin/tarifas` | admin | Tarifas e dias grátis de armazenagem |
+| `/admin/tarifas` | admin | Tarifas, dias grátis de armazenagem e prazo de abandono (BR 25), com "Verificar agora" |
+| `/admin/users` · `/admin/users/nova` · `/admin/users/[id]` | admin | Utilizadores e pedidos de acesso: aprovar com agência ou porto, criar conta da equipa, bloquear, repor palavra-passe |
+| `/admin/auditoria` | admin | Auditoria com filtros e o antes e depois de cada alteração |
+| `/admin/problemas` | admin | Problemas reportados pela equipa: captura, estado e resposta |
+| `/dashboard` | admin | Painel: volumes por estado, retidos, a chegar, manifestos em atraso, por levantar, pagamentos |
+| `/exportador` | exportador | Área ainda por fazer (os ecrãs de demonstração foram retirados) |
 | `/agent/collections` | agente | Recolhas no terreno com fotografia e OCR |
-| `/exporter/*`, `/cv/*`, `/admin/*`, `/dashboard` | perfis respetivos | Plataforma de gestão (dados de exemplo) |
 
 ## Scripts
 
@@ -169,7 +179,14 @@ No terminal do VS Code, o Cypress precisa de `ELECTRON_RUN_AS_NODE` removido:
     bloqueado por volume sem BL → associar → selar → viagem a 48 h com alerta → manifesto → envio → partida;
   - chegada → conferência por QR com localização → excesso registado → fecho → Alfândega valida o manifesto, canal
     verde, liberta com direitos → portaria paga, lê os QR, código de levantamento → Gate Pass;
-  - recolha no terreno com OCR simulado (o Cypress injeta um resultado fixo de OCR).
+  - recolha no terreno com OCR simulado (o Cypress injeta um resultado fixo de OCR);
+  - pedido com email → o email chega ao **Mailpit** → link pessoal → cancelar; cancelar com conta;
+  - pedido seguido pela API até "Em viagem" e "Pronta para levantar" na página do link (código `LEV-…`);
+  - pedir acesso → administrador aprova com o porto → email → entrar; conta da equipa com palavra-passe temporária;
+    auditoria filtrada pela aprovação; painel;
+  - reportar problema com captura de ecrã → o administrador vê a captura e resolve.
+
+Os testes de email precisam do Mailpit do backend (`docker compose up -d`, caixa em <http://localhost:8025>).
 
 Os testes E2E criam pedidos reais na base de dados de desenvolvimento do backend.
 
@@ -216,6 +233,8 @@ docs/                     plano de melhorias
 | Login dá "Email ou palavra-passe incorretos" com as contas de demo | Repor no backend: `npm run db:seed -- --reset-passwords` |
 | Cypress: `bad option: --smoke-test` | Corra com `env -u ELECTRON_RUN_AS_NODE` |
 | Mudou `NEXT_PUBLIC_API_URL` e nada mudou | A variável entra no build: reinicie o `npm run dev` |
+| Os emails não chegam | Veja a caixa do Mailpit em <http://localhost:8025>; no backend, `EMAIL_TRANSPORT=smtp` |
+| Uma página nova dá "Internal server error" logo a seguir a atualizar o backend | Ver "Problemas comuns" no README do backend (`npm run build` depois de uma migração) |
 
 ### Imprimir etiquetas
 
