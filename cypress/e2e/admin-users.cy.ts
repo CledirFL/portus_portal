@@ -75,5 +75,15 @@ describe("gestão de utilizadores", () => {
         logIn(requester, "segredo123", "/alfandega");
         logIn(staff, String(temporaryPassword), "/agent/collections");
       });
+
+    // Auditoria: a aprovação fica registada com o antes e o depois.
+    logIn("joao@portus.cv", demoPassword, "/admin/users");
+    cy.visit("/admin/auditoria");
+    field("Ação").type("user.approve");
+    cy.contains("button", "Filtrar").click();
+    cy.get('[data-cy="audit-table"]', { timeout: 60_000 }).should("not.contain.text", "user.create").and("not.contain.text", "shipment.");
+    cy.get('[data-cy="audit-table"] tbody tr').first().click();
+    cy.get('[data-cy="audit-table"]').should("contain.text", "user.approve").and("contain.text", "review").and("contain.text", "active");
+    cy.screenshot("13-auditoria", { capture: "fullPage" });
   });
 });

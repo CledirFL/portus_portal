@@ -47,7 +47,7 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Despacho aduaneiro", href: "/alfandega", icon: "stamp" },
     { label: "Levantamentos", href: "/portaria", icon: "door" },
     { label: "Tarifas", href: "/admin/tarifas", icon: "receipt" },
-    { label: "Auditoria", href: "/cv/auditoria", icon: "shield" },
+    { label: "Auditoria", href: "/admin/auditoria", icon: "shield" },
   ],
 };
 
