@@ -1,274 +1,438 @@
-# Guia de utilização do Portus
+# Manual de utilização e testes do Portus
 
-Passo a passo de uma encomenda, desde o pedido do cliente até ao levantamento em Cabo Verde, e o que cada
-perfil faz em cada passo.
+Este manual explica como usar o Portus do princípio ao fim: desde o pedido do cliente num país de envio até ao
+levantamento da carga em Cabo Verde. Segue a ordem real do processo e, em cada etapa, diz **quem** faz, **onde**,
+**que passos** seguir e **o que verificar**.
+
+Serve também de roteiro de testes. Marque cada ☐ à medida que testa e anote no
+[registo de problemas](#8-registo-de-problemas) o que falhar, o que faltar ou o que puder melhorar.
 
 Legenda:
 
-- ✅ **Funciona**: os dados são guardados no servidor e pode testar de ponta a ponta.
+- ✅ **Funciona**: guarda no servidor e pode testar de ponta a ponta.
 - 🧪 **Demonstração**: o ecrã existe, mas mostra dados fictícios e não guarda nada.
-- ⏳ **Por construir**: ainda não existe na plataforma.
-
-## Antes de começar
-
-1. Arranque o backend (`npm run dev` em `portus_service`) e o portal (`npm run dev` em `portus`).
-2. Abra o portal em `http://localhost:3000`.
-3. Contas de demonstração (palavra-passe `PortusDemo!2026-CV`):
-
-| Conta | Perfil | Notas |
-|---|---|---|
-| `agente@portus.cv` | Agente de recolha | Agência Morabeza Envios, Lisboa |
-| `joao@portus.cv` | Administrador | Vê todas as agências |
-| `ana@portus.cv` | Exportador | Ecrãs de demonstração |
-| `carla@portus.cv` | Agente marítimo | Porto da Praia: chegadas |
-| `terminal@portus.cv` | Operador do terminal | Porto da Praia: chegadas, conferência e ocorrências |
-| `alfandega@portus.cv` | Alfândega | Porto da Praia: manifestos e despacho |
-| `portaria@portus.cv` | Portaria | Porto da Praia: taxas, pagamentos e Gate Pass |
-| `transitario@portus.cv` | Transitário | Agência Morabeza Envios, Lisboa: contentores, viagens e manifestos |
-| `bruno@portus.cv` | Transitário | Conta em revisão: não consegue entrar |
-| `duarte@portus.cv` | Operador CV | Conta bloqueada: não consegue entrar |
-
-O cliente não precisa de conta. Se quiser uma, cria-a no último passo do pedido (**Quer criar conta?**). As
-empresas (exportador, transitário, agente marítimo, operador CV) pedem acesso em **Pedir acesso**
-(`/register`) e a conta fica em revisão até ser aprovada.
-
-> **Agência e agente de recolha.** Na plataforma, a agência não tem uma conta própria. Quem trabalha na agência
-> entra como **agente de recolha** e trata os pedidos e as encomendas dessa agência. O administrador pode fazer o
-> mesmo em todas as agências.
-
-## Visão geral
-
-```
-1. Cliente faz o pedido                    ✅
-2. Agência aceita e agenda a recolha        ✅
-3. Agente recolhe a carga → encomenda       ✅
-4. Agente valida e cola as etiquetas QR     ✅
-5. Consolidação no contentor (BL Master)    ✅
-6. Viagem e manifesto                       ✅
-7. Chegada e desconsolidação em Cabo Verde  ✅
-8. Alfândega, taxas e pagamento             ✅
-9. Levantamento com Gate Pass               ✅
-   ─────────── por construir: modo offline (B7), SMS, Contra-Marca, ligações à Alfândega e Enapor ───────────
-```
-
-Os estados de cada volume ao longo do percurso são: **Rascunho → Recolhido → Consolidado → Embarcado → Chegado →
-Desconsolidado → Liberado (ou Retido) → Entregue**.
+- ⏳ **Por construir**: ainda não existe.
 
 ---
 
-## 1. Cliente: fazer o pedido ✅
+## 1. Preparação
 
-**Quem:** o cliente (remetente), com ou sem conta.
-**Onde:** botão **Enviar encomenda** na página inicial (`/enviar`).
+### 1.1 Arrancar a plataforma
 
-O assistente tem quatro passos:
+1. Base de dados: o contentor Docker do PostgreSQL (`portus-service-postgres-1`, porta 5435) tem de estar a correr.
+2. Backend: em `portus_service`, `npm run dev`. A API fica em `http://localhost:4000/api`.
+3. Portal: em `portus`, `npm run dev`. O portal fica em `http://localhost:3000`.
+4. Se faltarem contas ou agências: em `portus_service`, `npm run db:seed`.
 
-1. **O que vai enviar:** tipo de carga (encomendas pequenas, veículos, paletes…), descrição e os dados que esse
-   tipo pede.
+### 1.2 Contas de demonstração
+
+Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão no **porto da Praia**.
+
+| Conta | Perfil | Onde trabalha | Página inicial |
+|---|---|---|---|
+| *(sem conta)* | Cliente | — | `/enviar`, `/acompanhar` |
+| `agente@portus.cv` | Agente de recolha | Agência Morabeza Envios, Lisboa | Recolhas |
+| `transitario@portus.cv` | Transitário | Agência Morabeza Envios, Lisboa | Viagens e manifestos |
+| `carla@portus.cv` | Agente marítimo | Porto da Praia | Chegadas |
+| `terminal@portus.cv` | Operador do terminal | Porto da Praia | Chegadas e conferência |
+| `alfandega@portus.cv` | Alfândega | Porto da Praia | Despacho aduaneiro |
+| `portaria@portus.cv` | Portaria | Porto da Praia | Levantamentos |
+| `joao@portus.cv` | Administrador | Todas as agências e portos | Utilizadores |
+| `ana@portus.cv` | Exportador | — | Ecrãs de demonstração 🧪 |
+| `bruno@portus.cv` | Transitário | — | Conta em revisão: **não entra** |
+| `duarte@portus.cv` | Operador do terminal | — | Conta bloqueada: **não entra** |
+
+### 1.3 Dicas antes de testar
+
+- **Use janelas separadas para cada perfil.** A sessão fica guardada no navegador, por isso para ter o cliente e
+  o agente abertos ao mesmo tempo use uma janela normal e uma janela anónima (ou dois navegadores). Sem isso, tem
+  de fazer **Sair** e entrar com a outra conta.
+- **Não precisa de leitor de QR.** Onde a plataforma pede o QR, pode escrever o **código do volume** (ex.:
+  `ENC-88CYMC-01`) e carregar Enter. Os códigos aparecem na tabela de volumes de cada encomenda. Um leitor USB, ou
+  a câmara do telemóvel, lê o QR das etiquetas impressas.
+- **Preencha o NIF ou o documento do destinatário.** Sem um deles, a Alfândega sugere canal vermelho e a portaria
+  não consegue entregar a carga (ver a etapa 9).
+- **A viagem tem de chegar à Praia** (`CVRAI`), porque as contas de Cabo Verde só veem esse porto.
+
+---
+
+## 2. Visão geral do processo
+
+```
+ PAÍS DE ENVIO                                                     CABO VERDE
+ ─────────────────────────────────────────────────                 ───────────────────────────────────────
+ 1 Cliente      2 Agência        3-4 Agente/Agência   5-6 Transitário    7 Terminal     8 Alfândega   9 Portaria
+ faz pedido  →  aceita/agenda →  recebe, valida,   →  contentor,     →  chegada,    →  manifesto, →  taxas,
+                                 etiqueta             viagem,           conferência    canal,        entrega,
+                                                      manifesto,        por QR         libertação    Gate Pass
+                                                      partida
+```
+
+| # | Etapa | Quem | Estado do volume depois | Estado |
+|---|---|---|---|---|
+| 1 | Pedido de envio | Cliente | — | ✅ |
+| 2 | Tratar o pedido | Agência (agente de recolha) | — | ✅ |
+| 3 | Receber a carga e criar a encomenda | Agente de recolha | Rascunho | ✅ |
+| 3b | Importar uma lista de encomendas | Agente ou transitário | Rascunho | ✅ |
+| 4 | Validar e etiquetar | Agente de recolha | **Recolhido** | ✅ |
+| 5 | Consolidar no contentor | Transitário | **Consolidado** | ✅ |
+| 6 | Viagem, manifesto e partida | Transitário | **Embarcado** | ✅ |
+| 7 | Chegada e conferência | Terminal / agente marítimo | **Chegado → Desconsolidado** | ✅ |
+| 8 | Despacho aduaneiro | Alfândega | **Liberado** (ou **Retido**) | ✅ |
+| 9 | Taxas e levantamento | Portaria | **Entregue** | ✅ |
+| — | Acompanhamento | Cliente | — | ✅ até "Carga recebida" |
+
+> **Agência e agente de recolha.** A agência não tem uma conta própria. Quem trabalha nela entra como **agente
+> de recolha** e trata os pedidos e as encomendas da agência. O **transitário** é da mesma agência e trata do
+> contentor e da viagem. O **administrador** pode fazer tudo, em todas as agências.
+
+---
+
+## 3. Etapas no país de envio
+
+### Etapa 1 — Cliente: fazer o pedido ✅
+
+**Quem:** cliente (remetente), sem conta.
+**Onde:** página inicial → **Enviar encomenda** (`/enviar`).
+
+1. **O que vai enviar:** escolha o tipo de carga (encomendas pequenas, veículos, paletes…), escreva a descrição e
+   preencha os dados que o tipo pede (por exemplo, a quantidade ou, num veículo, a marca e o modelo).
 2. **Destino e agência:**
-   - país de onde envia (vem preenchido conforme a localização);
+   - país de onde envia (vem preenchido conforme a sua localização e pode ser mudado);
    - ilha de destino;
-   - agência;
-   - entrega da carga: **recolha** na morada do cliente ou **entrega na agência**.
-3. **Contactos:** remetente e destinatário.
-4. **Confirmar:** revê tudo, escolhe se quer criar conta (opcional) e envia.
+   - agência (só aparecem as que servem esse país, essa carga e essa ilha);
+   - como entrega a carga: **recolha** na sua morada (só nas agências que fazem recolha) ou **entrega na
+     agência**.
+3. **Contactos:** remetente (o indicativo do telefone é preenchido conforme o país) e destinatário. Preencha o
+   **NIF do destinatário**.
+4. **Confirmar:** reveja tudo. Se quiser, crie uma conta (opcional) e envie.
 
-No fim recebe um **código do pedido** (ex.: `PED-7KQ2M9`). Deve guardá-lo.
+No fim aparece o **código do pedido** (ex.: `PED-7KQ2M9`), com um botão para o copiar.
 
-**Resultado:** o pedido fica **Submetido** e aparece na fila da agência.
+**O que verificar**
+- ☐ O país vem preenchido com o país onde está e pode ser mudado.
+- ☐ A lista de agências muda conforme o país, a carga e a ilha.
+- ☐ A opção de recolha só aparece nas agências que a fazem.
+- ☐ Os campos obrigatórios mostram erro se ficarem vazios.
+- ☐ Recebe o código `PED-…` no fim.
+- ☐ Com conta criada, o pedido aparece em **Os meus pedidos** (`/cliente`).
 
-## 2. Agência: tratar o pedido ✅
+### Etapa 2 — Agência: tratar o pedido ✅
 
-**Quem:** agente de recolha (ou administrador).
-**Onde:** menu **Pedidos de clientes** (`/agencia/pedidos`).
+**Quem:** `agente@portus.cv` (ou administrador).
+**Onde:** **Pedidos de clientes** (`/agencia/pedidos`).
 
-A fila tem três separadores: **Por tratar**, **Em curso** e **Fechados**. Para cada pedido:
+A fila tem três separadores: **Por tratar**, **Em curso** e **Fechados**. Abra um pedido para ver os dados e as
+ações:
 
 | Ação | Quando | Estado seguinte |
 |---|---|---|
-| **Aceitar** (com nota opcional para o cliente) | Pedido submetido | Aceite |
-| **Recusar** (motivo obrigatório) | Pedido submetido | Recusado |
-| **Agendar**: data e hora da recolha, ou da entrega na agência | Pedido aceite | Recolha agendada |
+| **Aceitar** (nota opcional para o cliente) | Submetido | Aceite |
+| **Recusar** (motivo obrigatório) | Submetido | Recusado |
+| **Agendar** (data e hora da recolha, ou da entrega na agência) | Aceite | Recolha agendada |
+| **Carga recebida (criar encomenda)** | Aceite ou agendado | Carga recebida |
 | **Cancelar** (motivo obrigatório) | Aceite ou agendado | Cancelado |
 
-O cliente vê o estado, a data marcada e as notas da agência (ver o passo 5 do cliente, mais abaixo).
+**O que verificar**
+- ☐ O pedido feito na etapa 1 aparece em **Por tratar**, com os contadores certos nos separadores.
+- ☐ Recusar e cancelar não avançam sem motivo.
+- ☐ Agendar não aceita datas passadas.
+- ☐ O agente só vê os pedidos da sua agência.
 
-## 3. Agente de recolha: receber a carga ✅
+### Etapa 3 — Agente de recolha: receber a carga ✅
 
-**Quem:** agente de recolha.
+**Quem:** `agente@portus.cv`.
 
-Há dois caminhos, conforme a origem da carga.
+**Caminho A: a carga vem de um pedido**
+1. Vá buscar a carga à morada (ou receba-a no balcão).
+2. Em **Pedidos de clientes**, no pedido, clique em **Carga recebida (criar encomenda)**.
+3. É criada uma **encomenda em rascunho** (ex.: `ENC-88CYMC`) com os dados do pedido, e há uma ligação do pedido
+   para a encomenda.
 
-**A. A carga vem de um pedido de cliente**
-1. Em **Pedidos de clientes**, abra o pedido aceite ou agendado.
-2. Depois de ir buscar a carga (ou de o cliente a entregar no balcão), clique em
-   **Carga recebida (criar encomenda)**.
-3. O pedido passa a **Carga recebida** e é criada uma **encomenda em rascunho** (ex.: `ENC-88CYMC`), já com os
-   dados do cliente.
+**Caminho B: o cliente aparece no balcão sem pedido**
+1. **Encomendas** → **Nova encomenda** (`/agencia/encomendas/nova`).
+2. Preencha a carga, o remetente, o destinatário (com NIF ou documento) e os volumes.
 
-**B. O cliente aparece no balcão sem pedido**
-1. Menu **Encomendas** → **Nova encomenda** (`/agencia/encomendas/nova`).
-2. Preencha o tipo de carga, o remetente, o destinatário e os volumes.
+**O que verificar**
+- ☐ A encomenda criada a partir do pedido traz o remetente, o destinatário, a carga e a ilha.
+- ☐ O pedido passa para **Fechados** com o estado **Carga recebida**.
+- ☐ Na lista **Encomendas** a nova encomenda aparece primeiro; a pesquisa e os separadores funcionam.
+- ☐ A paginação funciona (10, 25, 50 ou 100 por página).
 
-> O menu **Recolhas / Nova recolha** (`/agent/collections`) é um protótipo para trabalhar sem internet. Guarda
-> só no navegador e não envia nada ao servidor. Para o fluxo real, use **Pedidos de clientes** e
-> **Encomendas**.
+> O menu **Recolhas / Nova recolha** (`/agent/collections`) é um **protótipo para trabalhar sem internet**: tem
+> fotografia e leitura de documento, mas guarda só no navegador e não envia nada ao servidor 🧪. O fluxo real usa
+> **Pedidos de clientes** e **Encomendas**.
 
-## 4. Agente de recolha: fechar a encomenda ✅
+### Etapa 3b — Importar uma lista de encomendas ✅ (alternativa à etapa 3)
 
-**Onde:** **Encomendas** (`/agencia/encomendas`) → abrir a encomenda.
+**Quem:** agente de recolha ou transitário.
+**Onde:** **Importar lista** (`/agencia/importar`).
 
-1. **Confira e complete os dados** com **Editar dados**. Os campos obrigatórios dependem do tipo de carga: um
-   veículo, por exemplo, precisa do VIN, da marca, do modelo e do ano.
-2. **Registe os volumes:** uma linha por caixa, veículo ou palete, com o peso e as medidas (ou o volume em m³).
-3. Clique em **Validar**.
-   - Se faltar algum dado, a plataforma diz o quê.
-   - Se encontrar uma **possível encomenda duplicada** (mesmo nº de guia, ou mesmo remetente, destinatário e peso
-     no mesmo dia), mostra-a. O agente decide se continua.
-4. Ao validar, a encomenda fica **Validada** e cada volume fica **Recolhido**.
-5. Clique em **Imprimir etiquetas** e cole uma etiqueta em cada volume. O QR de cada etiqueta é assinado e
-   identifica o volume até ao levantamento.
-6. Leve os volumes etiquetados para o armazém da agência, onde ficam à espera de contentor.
+Serve para agências que já têm as encomendas numa folha de cálculo.
 
-Uma encomenda, em rascunho ou já validada, pode ser **cancelada**, com motivo.
+1. Se precisar, descarregue o **modelo** `.csv`.
+2. Envie o ficheiro `.xlsx` ou `.csv`.
+3. Confirme qual coluna corresponde a cada campo. A plataforma tenta adivinhar.
+4. Veja a pré-visualização: as linhas com erro aparecem com a linha, a coluna e o motivo, e os duplicados são
+   assinalados.
+5. Importe. Só entram as linhas válidas, como encomendas em rascunho.
 
-> **É aqui que termina hoje a parte que funciona.** Os passos seguintes ainda não existem no servidor (o
-> próximo a construir é a consolidação, a fase B5 do roadmap).
+**O que verificar**
+- ☐ Um ficheiro com erros mostra cada erro com a linha e a coluna.
+- ☐ Só as linhas válidas são importadas.
+- ☐ Ao importar o mesmo ficheiro duas vezes, os duplicados são detetados.
 
-## 5. Cliente: acompanhar o pedido ✅
+### Etapa 4 — Agente de recolha: validar e etiquetar ✅
 
-O cliente pode acompanhar o pedido de duas formas:
+**Quem:** `agente@portus.cv`.
+**Onde:** **Encomendas** → abrir a encomenda.
+
+1. **Editar dados:** complete o que faltar. Os campos obrigatórios dependem do tipo de carga; um veículo, por
+   exemplo, precisa do VIN, da marca, do modelo, do ano, da cilindrada, do combustível, do estado e do valor.
+2. **Acrescentar volume:** um por caixa, veículo ou palete, com o peso e as medidas (ou o volume em m³). Os volumes
+   podem ser editados e removidos, e os números ajustam-se.
+3. **Validar.**
+   - Se faltar algum dado, a plataforma lista o que falta.
+   - Se houver uma **possível encomenda duplicada** (mesmo nº de guia; mesmo remetente, destinatário e peso no
+     mesmo dia; ou um veículo com o mesmo VIN noutra encomenda ativa), mostra-a. O agente decide se continua.
+4. A encomenda fica **Validada** e cada volume fica **Recolhido**.
+5. **Imprimir etiquetas:** uma por volume, com um QR assinado. Cole cada uma no volume certo.
+6. Leve os volumes para o armazém da agência. Ficam à espera de contentor.
+
+Uma encomenda, em rascunho ou já validada, pode ser **cancelada** com motivo.
+
+**O que verificar**
+- ☐ Validar sem volumes ou sem um campo obrigatório mostra exatamente o que falta.
+- ☐ O aviso de duplicado aparece (também para um VIN repetido) e deixa continuar.
+- ☐ As etiquetas imprimem uma por volume, com o código `ENC-…-01`, `-02`…
+- ☐ Depois de validada, a encomenda já não se edita.
+
+### Acompanhamento pelo cliente ✅ (em qualquer momento)
 
 - **Sem conta:** **Acompanhar pedido** (`/acompanhar`), com o código do pedido e o telefone do remetente.
 - **Com conta:** **Os meus pedidos** (`/cliente`).
 
-Vê o estado (**Submetido → Aceite → Recolha agendada → Carga recebida**), a data marcada e as notas da agência.
+O cliente vê o estado (**Submetido → Aceite → Recolha agendada → Carga recebida**), a data marcada e as notas da
+agência.
 
-⏳ Depois de **Carga recebida**, o cliente ainda não vê a encomenda nem os volumes a avançar.
+**O que verificar**
+- ☐ Com o telefone errado, o pedido não aparece.
+- ☐ O estado, a data e a nota mudam depois de cada ação da agência.
+- ☐ ⏳ Depois de **Carga recebida**, o cliente não vê mais nada (ver a secção 6).
 
----
+### Etapa 5 — Transitário: consolidar no contentor ✅
 
-## 6. Transitário: consolidar no contentor ✅
-
-**Quem:** transitário (`transitario@portus.cv`) ou administrador.
+**Quem:** `transitario@portus.cv`.
 **Onde:** **Contentores** (`/agencia/contentores`).
 
-1. Clique em **Novo contentor** e escreva o número. A plataforma valida-o pela norma **ISO 6346** enquanto escreve
-   e diz qual devia ser o último algarismo se estiver errado (exemplo válido: `CSQU3054383`). Escolha o tipo
-   (20', 40', high cube…): a carga máxima e o volume são preenchidos e podem ser ajustados.
-2. No contentor, acrescente um **BL Master** (LCL para grupagem, FCL para contentor completo; o limite de peso é
-   opcional). As encomendas pequenas de várias pessoas ficam sob o mesmo BL Master.
-3. Em **Ler volumes**, escolha o BL Master e leia o **QR** de cada etiqueta com o leitor (ou escreva o código
-   `ENC-…-01` e carregue Enter). O volume passa a **Consolidado**. Se ler duas vezes, aparece "Já estava neste
-   contentor". Uma etiqueta falsificada ou desatualizada é recusada.
-4. A plataforma **bloqueia** a leitura se o peso ou o volume ultrapassar a capacidade do contentor ou o limite do
-   BL Master e pede uma recontagem física. Para corrigir, use **Retirar** num volume (o motivo fica registado).
-5. Escreva o **nº do selo** e clique em **Selar e fechar**. Não fecha se houver volumes sem BL Master: a mensagem
-   lista quais. Escolha o BL de cada um na tabela e volte a selar.
-6. Se for preciso abrir de novo antes da partida, use **Reabrir contentor** com o motivo (o selo fica quebrado).
-7. Em qualquer momento pode descarregar a **lista de carga** do contentor em `.xlsx`, `.pdf` ou `.csv`.
+1. **Novo contentor:**
+   - escreva o número; a plataforma valida-o pela norma **ISO 6346** enquanto escreve e, se o último algarismo
+     estiver errado, diz qual devia ser (exemplo válido: `CSQU3054383`);
+   - escolha o tipo (20', 40', high cube…); a carga máxima e o volume são preenchidos e podem ser ajustados;
+   - indique o armador e clique em **Registar contentor**.
+2. **Acrescentar BL Master:** LCL para grupagem, FCL para contentor completo, com limite de peso opcional. As
+   encomendas pequenas de várias pessoas ficam sob o mesmo BL Master.
+3. **Ler volumes:** escolha o BL Master e leia o QR (ou escreva o código) de cada volume. O volume passa a
+   **Consolidado**.
+4. **Retirar:** tira um volume do contentor aberto, com motivo.
+5. **Selar e fechar:** escreva o nº do selo. Não fecha enquanto houver volumes sem BL Master: a mensagem diz quais.
+   Escolha o BL de cada um na tabela e sele de novo.
+6. **Reabrir contentor:** antes da partida, com motivo. O selo fica quebrado.
+7. Lista de carga do contentor em `.xlsx`, `.pdf` ou `.csv`.
 
-## 7. Transitário: viagem e manifesto ✅
+**O que verificar**
+- ☐ Um número de contentor errado é recusado, com o algarismo certo indicado.
+- ☐ Ao ler o mesmo volume duas vezes aparece "Já estava neste contentor".
+- ☐ Uma etiqueta falsificada, ou de um volume não validado, é recusada.
+- ☐ Ao ultrapassar o peso ou o volume do contentor ou do BL Master, a leitura é **bloqueada** e é pedida uma
+  recontagem.
+- ☐ Não sela com volumes sem BL Master.
+- ☐ Os ficheiros exportados abrem e têm os volumes.
 
+### Etapa 6 — Transitário: viagem, manifesto e partida ✅
+
+**Quem:** `transitario@portus.cv`.
 **Onde:** **Viagens e manifestos** (`/agencia/viagens`).
 
-1. Clique em **Nova viagem**: navio, nº da viagem, porto de embarque (código UN/LOCODE, ex.: `PTLIS` Lisboa,
-   `FRLEH` Le Havre, `USBOS` Boston), porto de chegada (Praia ou Mindelo), partida (ETD) e chegada (ETA).
-2. Na viagem, **associe** os contentores.
-3. Clique em **Gerar nova versão** do manifesto. Se algum contentor ainda estiver aberto ou houver volumes sem BL
-   Master, a versão fica **incompleta** e a plataforma diz o que falta.
-4. Descarregue o manifesto em `.xlsx`, `.pdf` ou `.csv`: tem a lista de volumes por contentor e BL Master, os
-   totais de volumes e pesos e a lista de proprietários. Envie-o à Alfândega e à Enapor pelos canais habituais
-   (a ligação eletrónica fica para uma fase seguinte) e clique em **Registar envio**.
+1. **Nova viagem:** navio, nº da viagem, porto de embarque (ex.: `PTLIS` Lisboa, `FRLEH` Le Havre, `USBOS`
+   Boston), porto de chegada (**Praia** para testar com as contas de Cabo Verde), partida (ETD) e chegada (ETA).
+2. **Associar** os contentores selados.
+3. **Gerar nova versão** do manifesto. Se houver um contentor aberto ou volumes sem BL Master, a versão fica
+   **incompleta** e a plataforma diz o que falta.
+4. Descarregue o manifesto (`.xlsx`, `.pdf`, `.csv`), envie-o à Alfândega e à Enapor pelos canais habituais e
+   clique em **Registar envio**.
 5. **Alerta das 72 horas:** quando faltam menos de 72 horas para o ETA sem manifesto enviado, a viagem mostra um
-   aviso vermelho e a lista de viagens indica quantas estão nessa situação. Se a carga mudar depois do envio (por
-   exemplo, reabrir um contentor), o manifesto fica **desatualizado** e o aviso volta: gere e envie nova versão.
-6. Quando o navio sai, clique em **Registar partida**. Todos os contentores têm de estar selados. Contentores e
-   volumes passam a **Embarcado** e a viagem a **Em viagem**.
+   aviso vermelho. Se a carga mudar depois do envio, o manifesto fica **desatualizado** e o aviso volta.
+6. **Registar partida:** exige todos os contentores selados. Contentores e volumes passam a **Embarcado**, e a
+   viagem a **Em viagem**.
 
-## 8. Cabo Verde: chegada e desconsolidação ✅
-
-**Quem:** operador do terminal (`terminal@portus.cv`) ou agente marítimo. Cada um só vê o seu porto.
-**Onde:** **Chegadas e conferência** (`/cv/chegadas`).
-
-1. Em **A caminho**, abra o navio e clique em **Registar chegada**. Contentores e volumes passam a **Chegado** e
-   cada encomenda fica à espera de despacho na Alfândega.
-2. Abra o contentor. Escreva a **localização** no armazém (ex.: `B-04-2`) e leia o **QR** de cada volume: o volume
-   passa a **Desconsolidado** com essa localização. A localização fica para os volumes seguintes até a mudar, e pode
-   ser corrigida na tabela.
-3. Se ler um volume que não é deste contentor, a plataforma avisa e oferece **Registar excesso**.
-4. Para um volume com problema, use **Ocorrência**: dano, selo violado ou falta. Junte **fotografias** (no telemóvel
-   abre a câmara).
-5. Clique em **Fechar desconsolidação**. Só fecha quando todos os volumes estiverem conferidos ou com ocorrência; se
-   faltar algum, a mensagem diz quais.
-
-⏳ A Contra-Marca (cruzamento com a Enapor) fica para a fase das ligações eletrónicas.
-
-## 9. Alfândega, pagamento e levantamento ✅
-
-### Alfândega (`alfandega@portus.cv`, **Despacho aduaneiro**, `/alfandega`)
-
-1. Em cada navio aparece o manifesto enviado pelo transitário. **Valide-o** com a referência da Alfândega ou
-   **rejeite-o** com o motivo (o transitário envia nova versão). **Sem manifesto validado nenhuma encomenda é
-   libertada.**
-2. Em **Despachar encomendas**, cada encomenda mostra o destinatário, os volumes, as ocorrências e a **sugestão de
-   canal**: vermelho com selo violado, divergência, dano ou destinatário sem identificação; verde nos outros casos.
-3. Atribua o **canal**. Pode **reter** (os volumes ficam **Retido**, com o motivo) ou **libertar**, indicando os
-   direitos em CVE; no canal vermelho escreva o resultado da inspeção. Os volumes ficam **Liberado** e aparece o
-   **código de levantamento** (`LEV-…`), que deve ser comunicado ao destinatário com a localização (o envio por SMS
-   chega numa fase seguinte).
-
-### Portaria (`portaria@portus.cv`, **Levantamentos**, `/portaria`)
-
-1. Procure pelo **código de levantamento**, pelo **QR** de um volume ou pelo código da encomenda.
-2. **Taxas:** manuseamento por volume, armazenagem por volume e por dia depois dos dias grátis, e os direitos.
-   Registe o **pagamento** (numerário, cartão ou transferência) ou a **isenção** com o fundamento. Sem isso não há
-   entrega.
-3. Se levanta **outra pessoa**, registe primeiro a **autorização** com o nome, o NIF e o documento dela e a validade.
-4. Em **Entregar**, escolha quem levanta, escreva o nº do documento apresentado (tem de coincidir com o registado),
-   leia o **QR de cada volume** e peça o **código de levantamento** ou a **assinatura** no ecrã.
-5. É emitido o **Gate Pass** (`GP-…`) para imprimir. Os volumes ficam **Entregue**.
-
-### Administrador
-
-Em **Tarifas** (`/admin/tarifas`) altera os valores e os dias grátis de armazenagem.
-
-⏳ O estado **Abandonado** por prazo de armazenagem ultrapassado chega com os prazos da Enapor e da Alfândega (fase 2).
+**O que verificar**
+- ☐ Uma viagem com ETA a menos de 72 horas e sem manifesto mostra o alerta, também na lista de viagens.
+- ☐ O alerta desaparece depois de **Registar envio**.
+- ☐ Ao reabrir um contentor depois do envio, o manifesto fica desatualizado e o alerta volta.
+- ☐ O manifesto tem os volumes por contentor e BL Master, os totais e os proprietários.
+- ☐ Não regista a partida com contentores por selar.
 
 ---
 
-## Resumo por perfil
+## 4. Etapas em Cabo Verde
 
-| Perfil | O que faz | Estado |
+### Etapa 7 — Terminal: chegada e conferência ✅
+
+**Quem:** `terminal@portus.cv` (ou `carla@portus.cv`). Cada conta vê só o seu porto.
+**Onde:** **Chegadas e conferência** (`/cv/chegadas`).
+
+1. Em **A caminho**, abra o navio e clique em **Registar chegada**. Contentores e volumes passam a **Chegado**.
+2. Abra o contentor. Escreva a **localização no armazém** (ex.: `B-04-2`) e leia cada volume. O volume passa a
+   **Desconsolidado** nessa localização. A localização mantém-se para as leituras seguintes até a mudar.
+3. Um volume que não pertence a este contentor gera um aviso, com a opção **Registar excesso**.
+4. **Ocorrência** num volume: dano, selo violado ou falta, com descrição e **fotografias** (no telemóvel abre a
+   câmara).
+5. **Fechar desconsolidação:** só fecha quando todos os volumes estão conferidos ou têm ocorrência. Se faltar
+   algum, a mensagem diz quais.
+
+**O que verificar**
+- ☐ A viagem que partiu na etapa 6 aparece em **A caminho**.
+- ☐ Cada volume lido aparece com a localização.
+- ☐ O excesso e as ocorrências ficam registados, com as fotografias.
+- ☐ Não fecha com volumes por conferir.
+- ☐ ⏳ Contra-Marca: ainda não existe.
+
+### Etapa 8 — Alfândega: despacho ✅
+
+**Quem:** `alfandega@portus.cv`.
+**Onde:** **Despacho aduaneiro** (`/alfandega`).
+
+1. Em cada navio aparece o manifesto enviado. **Valide-o** com a referência da Alfândega, ou **rejeite-o** com
+   motivo (o transitário tem de enviar nova versão). **Sem manifesto validado não se liberta nenhuma encomenda.**
+2. **Despachar encomendas:** cada encomenda mostra o destinatário, os volumes, as ocorrências e a **sugestão de
+   canal**. A sugestão é vermelho quando há divergência, selo violado, dano ou destinatário sem NIF nem documento;
+   verde nos outros casos.
+3. Atribua o canal (**Canal verde** ou **Canal vermelho**; no vermelho, escreva o resultado da inspeção).
+4. **Reter**, com motivo: os volumes ficam **Retido**. Ou **Libertar**, com os direitos em CVE: os volumes ficam
+   **Liberado** e aparece o **código de levantamento** (`LEV-…`).
+5. Comunique o código ao destinatário (por agora à mão; ⏳ o SMS ainda não existe).
+
+**O que verificar**
+- ☐ Não liberta nada antes de validar o manifesto.
+- ☐ A sugestão de canal muda com as ocorrências registadas na etapa 7.
+- ☐ Uma encomenda retida pode ser libertada depois.
+- ☐ O código `LEV-…` aparece depois de libertar.
+
+### Etapa 9 — Portaria: taxas e levantamento ✅
+
+**Quem:** `portaria@portus.cv`.
+**Onde:** **Levantamentos** (`/portaria`).
+
+1. Procure pelo **código de levantamento**, pelo **QR** de um volume ou pelo código da encomenda.
+2. **Taxas:** manuseamento por volume, armazenagem por dia depois dos dias grátis, e os direitos. Registe o
+   **pagamento** (numerário, cartão ou transferência, com o recibo) ou a **isenção** com o fundamento. Sem uma das
+   duas não há entrega.
+3. **Terceiro autorizado:** se for outra pessoa a levantar, registe primeiro a autorização, com o nome, o NIF, o
+   documento e a validade.
+4. **Entregar:**
+   - escolha quem levanta e escreva o nº do documento apresentado; tem de coincidir com o registado na encomenda
+     ou, se não houver documento registado, o NIF tem de coincidir;
+   - leia o QR de cada volume;
+   - peça o **código de levantamento** ou a **assinatura** no ecrã.
+5. É emitido o **Gate Pass** (`GP-…`) para imprimir. Os volumes ficam **Entregue**.
+
+**O que verificar**
+- ☐ As taxas batem certo com as tarifas (admin → **Tarifas**).
+- ☐ Não entrega sem pagamento ou isenção.
+- ☐ Um documento ou NIF errado é recusado.
+- ☐ Um terceiro sem autorização, ou com a autorização caducada, é recusado.
+- ☐ O Gate Pass mostra os volumes, quem levantou e o pagamento.
+- ☐ Um destinatário **sem NIF e sem documento** registados não consegue levantar. Confirme se é isto que se
+  pretende.
+
+### Administrador ✅ / 🧪
+
+**Quem:** `joao@portus.cv`. Tem todos os menus acima, em todas as agências e portos.
+
+- **Tarifas** (`/admin/tarifas`) ✅: valores de manuseamento e armazenagem e dias grátis.
+- **Utilizadores** (`/admin/users`) 🧪: lista fictícia. Ainda não aprova nem bloqueia contas.
+- **Painel geral** (`/dashboard`) e **Auditoria** (`/cv/auditoria`) 🧪: números fictícios. A auditoria é gravada
+  no servidor, mas ainda não há ecrã que a mostre.
+
+---
+
+## 5. Casos especiais a testar
+
+| Regra | Como provocar | Resultado esperado |
 |---|---|---|
-| **Cliente** | Faz o pedido, guarda o código e acompanha | ✅ |
-| **Agente de recolha (agência)** | Aceita, recusa e agenda pedidos; recebe a carga; cria, completa e valida encomendas; imprime etiquetas | ✅ |
-| **Administrador** | O mesmo que a agência, em todas as agências; gere utilizadores | ✅ agência · 🧪 utilizadores |
-| **Transitário** | Contentor, BL Master, consolidação, selo, viagem, manifesto, partida; também regista encomendas e importa listas | ✅ |
-| **Exportador** | Ecrãs de exportação | 🧪 |
-| **Agente marítimo / operador do terminal** | Chegada, conferência por QR, localização, ocorrências com fotografias | ✅ |
-| **Alfândega** | Valida manifestos, canal, retenção e libertação com direitos | ✅ |
-| **Portaria** | Taxas, pagamento, isenção, terceiros autorizados, entrega com Gate Pass | ✅ |
-| **Destinatário** | Levanta a carga com documento e código; portal de rastreio próprio por construir | ✅ levantamento · ⏳ portal |
+| Duplicado (BR 9) | Duas encomendas com o mesmo nº de guia, ou o mesmo remetente, destinatário e peso no mesmo dia | Aviso "Possível encomenda duplicada"; o agente decide |
+| VIN único (BR 33) | Dois veículos com o mesmo VIN, com a primeira encomenda ativa | Aviso de duplicado com a outra encomenda; o agente decide |
+| Campos por tipo (BR 32) | Validar um veículo sem VIN | Lista dos campos em falta |
+| ISO 6346 | Número de contentor com o último algarismo errado | Mostra o algarismo certo |
+| Capacidade (BR 11) | BL Master com limite baixo e volumes pesados | Leitura bloqueada, com pedido de recontagem |
+| BL obrigatório (BR 10) | Selar com um volume "sem BL Master" | Não sela e lista os volumes |
+| Manifesto 72 h (BR 13) | Viagem com ETA a 2 dias, sem envio | Alerta vermelho |
+| Manifesto desatualizado | Reabrir um contentor depois do envio | Alerta de nova versão |
+| Fecho da conferência (BR 23) | Fechar com volumes por ler | Não fecha e lista os volumes |
+| Canal vermelho (BR 15) | Registar dano ou selo violado | Sugestão "Canal vermelho" |
+| Sem manifesto validado (BR 14) | Tentar despachar antes de validar | Bloqueado |
+| Taxas por pagar (BR 21) | Entregar sem pagamento | Bloqueado |
+| Identidade (BR 18–19) | Documento errado ou terceiro sem autorização | Recusado |
+| Etiqueta falsa (BR 5) | Alterar um carácter do QR | "Etiqueta inválida" |
+| Âmbito (BR 28) | Abrir pelo endereço uma encomenda de outra agência | Não encontrada |
 
-## Teste rápido de ponta a ponta (o que funciona hoje)
+---
 
-1. **Cliente:** em `/enviar`, faça um pedido com **recolha** e anote o código `PED-…`.
-2. **Cliente:** em `/acompanhar`, confirme que o pedido aparece como **Submetido**.
-3. **Agência:** entre com `agente@portus.cv`, abra **Pedidos de clientes** e clique em **Aceitar** e depois em
-   **Agendar**.
-4. **Cliente:** volte a `/acompanhar`. O pedido aparece como **Recolha agendada**, com a data.
-5. **Agente:** no pedido, clique em **Carga recebida (criar encomenda)**.
-6. **Agente:** em **Encomendas**, abra a nova encomenda, complete os dados e os volumes e clique em **Validar**.
-7. **Agente:** clique em **Imprimir etiquetas**.
-8. **Transitário:** entre com `transitario@portus.cv`, abra **Contentores**, crie um contentor (`CSQU3054383`), um
-   BL Master, leia os códigos dos volumes da encomenda e sele o contentor.
-9. **Transitário:** em **Viagens e manifestos**, crie uma viagem com ETA daqui a 2 dias (aparece o alerta das
-   72 h), associe o contentor, gere o manifesto, descarregue-o e registe o envio. O alerta desaparece.
-10. **Transitário:** registe a partida. Os volumes ficam **Embarcado**.
-11. **Terminal:** entre com `terminal@portus.cv` (a viagem tem de ter chegada à **Praia**), registe a chegada, abra o
-    contentor, leia os QR com uma localização e feche a desconsolidação.
-12. **Alfândega:** entre com `alfandega@portus.cv`, valide o manifesto, atribua o canal e liberte. Anote o código
-    `LEV-…`.
-13. **Portaria:** entre com `portaria@portus.cv`, procure o código, registe o pagamento, escreva o documento do
-    destinatário (o registado na encomenda), leia os QR e o código. Imprima o Gate Pass.
+## 6. O que ainda não existe (não registar como erro)
+
+Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas for prioritária, anote-a como
+**melhoria**.
+
+| Área | Situação |
+|---|---|
+| Cliente: acompanhar depois de "Carga recebida" | ⏳ O cliente não vê a encomenda nem o estado dos volumes (embarcado, chegado, liberado, entregue) |
+| Cliente: cancelar ou alterar o pedido no portal | ⏳ O servidor já permite cancelar a quem tem conta, mas o portal não tem botão |
+| Recolha: período (manhã/tarde) e data preferida | ⏳ Proposto e adiado |
+| Portal do destinatário em Cabo Verde | ⏳ |
+| SMS e email ao cliente e ao destinatário | ⏳ O código `LEV-…` é comunicado à mão |
+| Recolha sem internet (B7) | ⏳ O protótipo `/agent/collections` guarda só no navegador 🧪 |
+| Contra-Marca e ligações eletrónicas à Alfândega e à Enapor | ⏳ |
+| Estado "Abandonado" por prazo de armazenagem | ⏳ |
+| Gestão de utilizadores (aprovar ou bloquear contas) | 🧪 |
+| Painel e relatórios com dados reais | 🧪 |
+| Ecrã de auditoria | 🧪 (a auditoria já é gravada no servidor) |
+| Ecrãs do exportador (`/exporter/...`) | 🧪 |
+| Pagamentos eletrónicos | ⏳ Regista-se o pagamento feito ao balcão |
+| Outros idiomas | ⏳ Só português |
+
+---
+
+## 7. Teste de ponta a ponta (cerca de 30 minutos)
+
+Uma única encomenda do pedido até ao Gate Pass. Anote os códigos à medida que aparecem.
+
+| # | Conta | Ação | Anotar |
+|---|---|---|---|
+| 1 | Cliente (janela anónima) | `/enviar`: caixa, Portugal → Santiago, agência Morabeza (Lisboa), **recolha**; destinatário **com NIF** | `PED-…` |
+| 2 | Cliente | `/acompanhar` com o código e o telefone: **Submetido** | |
+| 3 | `agente` | **Pedidos de clientes**: **Aceitar**, depois **Agendar** para amanhã | |
+| 4 | Cliente | `/acompanhar`: **Recolha agendada**, com a data | |
+| 5 | `agente` | **Carga recebida (criar encomenda)** | `ENC-…` |
+| 6 | `agente` | Encomenda: acrescentar 2 volumes, **Validar**, **Imprimir etiquetas** | `ENC-…-01`, `-02` |
+| 7 | `transitario` | **Contentores**: novo contentor `CSQU3054383` (ou outro válido), BL Master, ler os 2 códigos, **Selar e fechar** | |
+| 8 | `transitario` | **Viagens**: nova viagem para a **Praia**, ETA daqui a 2 dias; associar o contentor; gerar e registar o envio do manifesto; **Registar partida** | |
+| 9 | `terminal` | **Chegadas**: **Registar chegada**; abrir o contentor; localização `A-01-1`; ler os 2 códigos; **Fechar desconsolidação** | |
+| 10 | `alfandega` | Validar o manifesto; **Despachar encomendas**; **Canal verde**; **Libertar** com direitos | `LEV-…` |
+| 11 | `portaria` | Procurar o `LEV-…`; **Registar pagamento**; NIF do destinatário; ler os 2 códigos; código `LEV-…`; **Entregar** | `GP-…` |
+| 12 | Cliente | `/acompanhar`: confirme o que o cliente vê agora | |
+
+---
+
+## 8. Registo de problemas
+
+Copie esta tabela para registar o que encontrar. Em **Tipo**, use:
+- **Erro**: não funciona como descrito.
+- **Falta**: devia existir e não existe.
+- **Melhoria**: funciona, mas pode ficar mais fácil ou mais claro.
+
+| # | Etapa | Perfil | Tipo | O que fiz | O que aconteceu | O que esperava | Prioridade |
+|---|---|---|---|---|---|---|---|
+| 1 | | | | | | | |
+| 2 | | | | | | | |
+| 3 | | | | | | | |
