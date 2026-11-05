@@ -71,7 +71,7 @@ export function Sidebar() {
         <div className="mb-8 px-2">
           <Logo tone="light" />
         </div>
-        <div className="flex-1 overflow-y-auto">{nav}</div>
+        <div className="mb-3 min-h-0 flex-1 overflow-y-auto">{nav}</div>
         {footer}
       </aside>
 
@@ -104,7 +104,7 @@ export function Sidebar() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto">{nav}</div>
+            <div className="mb-3 min-h-0 flex-1 overflow-y-auto">{nav}</div>
             {footer}
           </aside>
         </div>
