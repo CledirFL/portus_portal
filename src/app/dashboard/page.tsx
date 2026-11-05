@@ -1,285 +1,173 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { AlertTriangle, Anchor, Coins, Inbox, PackageCheck, ShieldAlert } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Table } from "@/components/ui/table";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
+import { formatCve } from "@/domain/clearance";
+import { getDispatchCountry } from "@/domain/countries";
+import type { VolumeStatus } from "@/domain/state-machine";
+import { volumeStatusLabels } from "@/domain/status-labels";
+import { type DashboardSummary, getDashboard } from "@/services/api/dashboard";
+import { useAuthStore } from "@/store/auth-store";
 
-const dashboardViews = {
-  "7d": {
-    label: "Últimos 7 dias",
-    metrics: [
-      { label: "Embarques", value: "41", change: "+8%" },
-      { label: "Volume total", value: "6.4k", change: "+5%" },
-      { label: "BLs pendentes", value: "11", change: "-3%" },
-      { label: "Gate Pass", value: "34", change: "+11%" },
-    ],
-    ports: [
-      { name: "Mindelo", share: 42, value: "12 ops" },
-      { name: "Praia", share: 28, value: "8 ops" },
-      { name: "Tarrafal", share: 18, value: "5 ops" },
-      { name: "Rotterdam", share: 12, value: "3 ops" },
-    ],
-  },
-  "30d": {
-    label: "Últimos 30 dias",
-    metrics: [
-      { label: "Embarques", value: "124", change: "+12%" },
-      { label: "Volume total", value: "18.4k", change: "+8%" },
-      { label: "BLs pendentes", value: "31", change: "-4%" },
-      { label: "Gate Pass", value: "89", change: "+9%" },
-    ],
-    ports: [
-      { name: "Mindelo", share: 36, value: "28 ops" },
-      { name: "Praia", share: 24, value: "19 ops" },
-      { name: "Tarrafal", share: 20, value: "16 ops" },
-      { name: "Rotterdam", share: 20, value: "16 ops" },
-    ],
-  },
-  "90d": {
-    label: "Últimos 90 dias",
-    metrics: [
-      { label: "Embarques", value: "381", change: "+17%" },
-      { label: "Volume total", value: "52.2k", change: "+14%" },
-      { label: "BLs pendentes", value: "76", change: "-7%" },
-      { label: "Gate Pass", value: "241", change: "+16%" },
-    ],
-    ports: [
-      { name: "Mindelo", share: 40, value: "84 ops" },
-      { name: "Praia", share: 26, value: "55 ops" },
-      { name: "Tarrafal", share: 18, value: "39 ops" },
-      { name: "Rotterdam", share: 16, value: "34 ops" },
-    ],
-  },
-} as const;
+/** Ordem do percurso de um volume, do balcão à entrega. */
+const volumeFlow: VolumeStatus[] = ["draft", "collected", "consolidated", "shipped", "arrived", "deconsolidated", "held", "released", "delivered", "abandoned"];
+const formatDay = (iso: string) => new Date(iso).toLocaleString("pt-PT", { dateStyle: "medium", timeStyle: "short" });
 
-type RangeKey = keyof typeof dashboardViews;
-
-const operationalRows = [
-  { id: "OP-412", route: "Mindelo → Rotterdam", status: "Em trânsito", progress: 72 },
-  { id: "OP-389", route: "Praia → Antwerp", status: "Validado", progress: 91 },
-  { id: "OP-371", route: "Tarrafal → Lisbon", status: "Pendente", progress: 46 },
-  { id: "OP-366", route: "Mindelo → Hamburg", status: "Atrasado", progress: 35 },
-];
-
-const activityFeed = [
-  { time: "08:40", text: "BL-2024-001 validado por auditoria documental." },
-  { time: "09:15", text: "Gate pass CNT-1042 foi autorizado em Mindelo." },
-  { time: "10:30", text: "Viagem MV Ocean Wave entrou em fase de descarga." },
-  { time: "11:05", text: "Volume de Praia → Antwerp excedeu a capacidade prevista em 6%." },
-];
-
-const priorityTasks = [
-  { title: "Revisão de manifesto", owner: "Ana Silva", due: "Hoje, 14:00", tone: "warning" },
-  { title: "Validação de contra-marca", owner: "Duarte Nunes", due: "Hoje, 16:30", tone: "success" },
-  { title: "Trafego em atraso", owner: "Bruno Costa", due: "Hoje, 18:00", tone: "danger" },
-];
-
-const alerts = [
-  { level: "Alta", text: "3 BLs com atraso de revisão documental." },
-  { level: "Média", text: "2 gate passes aguardam conferência terminal." },
-  { level: "Baixa", text: "5 documentos validaram hoje sem incidentes." },
-];
+function RankedList({ rows }: { rows: Array<{ label: string; count: number }> }) {
+  if (!rows.length) return <p className="text-sm text-slate-500">Sem encomendas neste período.</p>;
+  return (
+    <table className="w-full text-sm">
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.label} className="border-t border-slate-100 first:border-0">
+            <td className="py-2 text-slate-600">{row.label}</td>
+            <td className="py-2 text-right font-semibold tabular-nums text-slate-900">{row.count}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
 export default function DashboardPage() {
-  const [range, setRange] = useState<RangeKey>("30d");
+  const user = useAuthStore((state) => state.user);
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [error, setError] = useState("");
 
-  const view = useMemo(() => dashboardViews[range], [range]);
+  useEffect(() => {
+    if (!user) return;
+    getDashboard()
+      .then(setSummary)
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Não foi possível carregar o painel."));
+  }, [user]);
+
+  const volumes = (status: VolumeStatus) => summary?.volumesByStatus[status] ?? 0;
 
   return (
     <AppShell>
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Dashboard geral</h2>
-          <p className="text-sm text-slate-500">Visão consolidada das operações PORTUS.</p>
+      <PageHeader
+        title="Painel geral"
+        description={summary ? `Situação em ${formatDay(summary.generatedAt)}.` : "Situação da operação, do pedido à entrega."}
+      />
+
+      {error ? (
+        <div role="alert" className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {error}
         </div>
+      ) : null}
 
-        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-1">
-          {Object.entries(dashboardViews).map(([key, item]) => (
-            <Button
-              key={key}
-              type="button"
-              variant={range === key ? "primary" : "ghost"}
-              onClick={() => setRange(key as RangeKey)}
-              className="px-3 py-1.5"
-            >
-              {item.label}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {view.metrics.map((metric) => (
-          <Card key={metric.label}>
-            <p className="text-sm text-slate-500">{metric.label}</p>
-            <div className="mt-4 flex items-end justify-between gap-3">
-              <span className="text-3xl font-semibold text-slate-900">{metric.value}</span>
-              <span className="text-sm font-medium text-emerald-600">{metric.change}</span>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <Card title="Status das operações">
-          <div className="space-y-4">
-            {[
-              { label: "Navios em trânsito", value: 12, total: 18 },
-              { label: "Contêineres conferidos", value: 642, total: 800 },
-              { label: "Manifestos validados", value: 49, total: 60 },
-            ].map((item) => (
-              <div key={item.label}>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="text-slate-600">{item.label}</span>
-                  <strong className="text-slate-900">{item.value}</strong>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                  <div
-                    className="h-full rounded-full bg-brand-600"
-                    style={{ width: `${(item.value / item.total) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card title="Alertas recentes">
-          <ul className="space-y-3 text-sm text-slate-600">
-            <li className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-              3 BLs com revisão pendente.
-            </li>
-            <li className="rounded-lg border border-brand-200 bg-brand-50 px-3 py-2">
-              2 gate passes aguardando conferência.
-            </li>
-            <li className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-              5 documentos validados hoje.
-            </li>
-          </ul>
-        </Card>
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_1.2fr]">
-        <Card title="Volume por porto">
-          <div className="space-y-4">
-            {view.ports.map((port) => (
-              <div key={port.name}>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="text-slate-600">{port.name}</span>
-                  <span className="font-medium text-slate-900">{port.value}</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                  <div
-                    className="h-full rounded-full bg-emerald-500"
-                    style={{ width: `${port.share}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card title="Operações em curso">
-          <div className="mt-4">
-            <Table
-              columns={[
-                { key: "id", label: "ID" },
-                { key: "route", label: "Rota" },
-                {
-                  key: "status",
-                  label: "Status",
-                  render: (value) => (
-                    <Badge
-                      tone={
-                        value === "Validado"
-                          ? "success"
-                          : value === "Atrasado"
-                            ? "danger"
-                            : value === "Pendente"
-                              ? "warning"
-                              : "neutral"
-                      }
-                    >
-                      {String(value)}
-                    </Badge>
-                  ),
-                },
-                {
-                  key: "progress",
-                  label: "Progresso",
-                  render: (value) => <span className="font-medium text-slate-700">{String(value)}%</span>,
-                },
-              ]}
-              rows={operationalRows}
-              emptyMessage="Sem operações em curso."
+      {!summary ? (
+        error ? null : <p className="py-10 text-center text-sm text-slate-500">A carregar…</p>
+      ) : (
+        <div className="space-y-6" data-cy="dashboard">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard
+              label="Pedidos por tratar"
+              value={summary.requests.submitted}
+              hint={`${summary.requests.inProgress} em curso nas agências`}
+              tone={summary.requests.submitted ? "warning" : "neutral"}
+              icon={<Inbox className="h-4 w-4" />}
+            />
+            <StatCard
+              label="Por levantar"
+              value={summary.pickup.volumes}
+              hint={`${summary.pickup.shipments} encomendas · ${summary.pickup.storage.paying} já pagam armazenagem · ${summary.pickup.storage.nearAbandon} perto do abandono (${summary.pickup.abandonAfterDays} dias)`}
+              tone={summary.pickup.storage.nearAbandon ? "warning" : "info"}
+              icon={<PackageCheck className="h-4 w-4" />}
+            />
+            <StatCard
+              label="Retidos na Alfândega"
+              value={volumes("held")}
+              hint={`${summary.clearances.pending ?? 0} encomendas à espera de despacho`}
+              tone={volumes("held") ? "danger" : "neutral"}
+              icon={<ShieldAlert className="h-4 w-4" />}
+            />
+            <StatCard
+              label="Cobrado este mês"
+              value={formatCve(summary.payments.monthCve)}
+              hint={`${summary.payments.monthCount} pagamentos na portaria`}
+              tone="success"
+              icon={<Coins className="h-4 w-4" />}
             />
           </div>
-        </Card>
-      </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card title="Atividade recente">
-          <div className="mt-4 space-y-4">
-            {activityFeed.map((item) => (
-              <div key={item.time} className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
-                  {item.time.split(":")[0]}
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">{item.time}</p>
-                  <p className="mt-1 text-sm text-slate-700">{item.text}</p>
-                </div>
-              </div>
-            ))}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card title="Volumes por estado" subtitle="Do balcão da agência à entrega em Cabo Verde.">
+              <table className="w-full text-sm">
+                <tbody>
+                  {volumeFlow.map((status) => (
+                    <tr key={status} className="border-t border-slate-100 first:border-0">
+                      <td className="py-2 text-slate-600">{volumeStatusLabels[status]}</td>
+                      <td className="py-2 text-right font-semibold tabular-nums text-slate-900">{volumes(status)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
+
+            <div className="space-y-6">
+              <Card title="Manifestos em atraso" subtitle="Menos de 72 h para a chegada sem manifesto enviado (BR 13).">
+                {summary.manifestAlerts.total ? (
+                  <ul className="space-y-2 text-sm">
+                    {summary.manifestAlerts.voyages.map((voyage) => (
+                      <li key={voyage.id} className="flex items-center justify-between gap-3 rounded-lg bg-rose-50 px-3 py-2 text-rose-800">
+                        <Link href={`/agencia/viagens/${voyage.id}`} className="flex items-center gap-2 font-medium hover:underline">
+                          <AlertTriangle className="h-4 w-4" aria-hidden /> {voyage.vesselName}
+                        </Link>
+                        <span className="whitespace-nowrap text-xs">ETA {formatDay(voyage.eta)}</span>
+                      </li>
+                    ))}
+                    {summary.manifestAlerts.total > summary.manifestAlerts.voyages.length ? (
+                      <li className="text-xs text-slate-500">e mais {summary.manifestAlerts.total - summary.manifestAlerts.voyages.length}.</li>
+                    ) : null}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-500">Nenhuma viagem em atraso.</p>
+                )}
+              </Card>
+
+              <Card title="A caminho de Cabo Verde">
+                {summary.arriving.length ? (
+                  <ul className="divide-y divide-slate-100 text-sm">
+                    {summary.arriving.map((voyage) => (
+                      <li key={voyage.id} className="flex items-center justify-between gap-3 py-2">
+                        <span className="flex items-center gap-2">
+                          <Anchor className="h-4 w-4 text-slate-400" aria-hidden />
+                          <span>
+                            <span className="font-medium text-slate-900">{voyage.vesselName}</span>
+                            <span className="block text-xs text-slate-500">
+                              {voyage.arrivalPort} · {voyage.volumes} volumes
+                            </span>
+                          </span>
+                        </span>
+                        <span className="whitespace-nowrap text-xs text-slate-500">ETA {formatDay(voyage.eta)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-500">Nenhum navio em viagem.</p>
+                )}
+              </Card>
+            </div>
           </div>
-        </Card>
 
-        <div className="space-y-6">
-          <Card title="Tarefas prioritárias">
-            <div className="mt-4 space-y-3">
-              {priorityTasks.map((task) => (
-                <div key={task.title} className="rounded-xl border border-slate-200 bg-white p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{task.title}</p>
-                      <p className="mt-1 text-xs text-slate-500">{task.owner}</p>
-                    </div>
-                    <Badge
-                      tone={
-                        task.tone === "success"
-                          ? "success"
-                          : task.tone === "danger"
-                            ? "danger"
-                            : "warning"
-                      }
-                    >
-                      {task.tone === "success" ? "OK" : task.tone === "danger" ? "Urgente" : "Pendente"}
-                    </Badge>
-                  </div>
-                  <p className="mt-2 text-xs font-medium text-slate-600">Entrega: {task.due}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <Card title="Alertas globais">
-            <div className="mt-4 space-y-3">
-              {alerts.map((alert) => (
-                <div key={alert.text} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">{alert.level}</span>
-                    <span className="h-2 w-2 rounded-full bg-amber-500" />
-                  </div>
-                  <p className="mt-2 text-sm text-slate-700">{alert.text}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card title="Encomendas por agência" subtitle={`Últimos 30 dias · ${summary.last30Days.shipments} encomendas.`}>
+              <RankedList rows={summary.last30Days.byAgency.map((row) => ({ label: row.name, count: row.count }))} />
+            </Card>
+            <Card title="Encomendas por país de onde envia" subtitle="Últimos 30 dias.">
+              <RankedList
+                rows={summary.last30Days.byCountry.map((row) => ({ label: getDispatchCountry(row.code)?.name ?? row.code, count: row.count }))}
+              />
+            </Card>
+          </div>
         </div>
-      </div>
+      )}
     </AppShell>
   );
 }
