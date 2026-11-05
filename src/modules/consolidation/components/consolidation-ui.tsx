@@ -43,7 +43,20 @@ export const formatDateTime = (iso: string) =>
   new Date(iso).toLocaleString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 /** Ocupação do contentor (BR 11): fica âmbar a partir de 90% e vermelha se chegar ao limite. */
-export function CapacityBar({ label, used, limit, format }: { label: string; used: number; limit: number | null; format: (value: number) => string }) {
+export function CapacityBar({
+  label,
+  used,
+  limit,
+  format,
+  progress = false,
+}: {
+  label: string;
+  used: number;
+  limit: number | null;
+  format: (value: number) => string;
+  /** Barra de progresso (chegar a 100% é bom), em vez de ocupação. */
+  progress?: boolean;
+}) {
   if (limit === null) {
     return (
       <div className="text-sm">
@@ -56,7 +69,15 @@ export function CapacityBar({ label, used, limit, format }: { label: string; use
   }
   const ratio = limit > 0 ? used / limit : 0;
   const percent = Math.min(100, Math.round(ratio * 100));
-  const color = ratio >= 1 ? "bg-rose-500" : ratio >= 0.9 ? "bg-amber-500" : "bg-brand-600";
+  const color = progress
+    ? ratio >= 1
+      ? "bg-emerald-500"
+      : "bg-brand-600"
+    : ratio >= 1
+      ? "bg-rose-500"
+      : ratio >= 0.9
+        ? "bg-amber-500"
+        : "bg-brand-600";
   return (
     <div className="text-sm">
       <div className="mb-1 flex justify-between text-slate-600">
