@@ -28,7 +28,7 @@ function TariffForm({ tariff, onSaved }: { tariff: TariffRule; onSaved: (tariffs
   return (
     <Card title={tariff.label} subtitle={daily ? "Por volume e por dia, depois dos dias grátis (BR 25)." : "Por volume."}>
       <form
-        className="grid gap-3 sm:grid-cols-3 sm:items-end"
+        className="grid gap-3 sm:grid-cols-3 sm:items-start"
         onSubmit={async (event) => {
           event.preventDefault();
           setBusy(true);
@@ -45,7 +45,8 @@ function TariffForm({ tariff, onSaved }: { tariff: TariffRule; onSaved: (tariffs
       >
         <Input label="Valor (CVE)" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} hint={`Atual: ${formatCve(tariff.amountCve)}`} />
         {daily ? <Input label="Dias grátis" inputMode="numeric" value={freeDays} onChange={(event) => setFreeDays(event.target.value)} /> : <div />}
-        <div className="flex items-center gap-3">
+        {/* Ao nível dos campos: a etiqueta acima deles ocupa 1,625rem. */}
+        <div className="flex items-center gap-3 sm:pt-[1.625rem]">
           <Button type="submit" disabled={busy}>
             Guardar
           </Button>
