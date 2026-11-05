@@ -85,5 +85,10 @@ describe("gestão de utilizadores", () => {
     cy.get('[data-cy="audit-table"] tbody tr').first().click();
     cy.get('[data-cy="audit-table"]').should("contain.text", "user.approve").and("contain.text", "review").and("contain.text", "active");
     cy.screenshot("13-auditoria", { capture: "fullPage" });
+
+    // Painel com dados reais.
+    cy.visit("/dashboard");
+    cy.get('[data-cy="dashboard"]', { timeout: 60_000 }).should("contain.text", "Volumes por estado").and("contain.text", "Por levantar").and("contain.text", "Embarcado").and("contain.text", "Chegado");
+    cy.screenshot("14-painel", { capture: "fullPage" });
   });
 });
