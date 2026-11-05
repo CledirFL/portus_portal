@@ -21,7 +21,8 @@ export type VolumeStatus = (typeof volumeStatuses)[number];
 const volumeTransitions: Record<VolumeStatus, readonly VolumeStatus[]> = {
   draft: ["collected"],
   collected: ["consolidated"],
-  consolidated: ["shipped"],
+  // Retirar do contentor antes do fecho (recontagem, BR 11) devolve o volume ao armazém.
+  consolidated: ["shipped", "collected"],
   shipped: ["arrived"],
   arrived: ["deconsolidated"],
   deconsolidated: ["held", "released", "abandoned"],

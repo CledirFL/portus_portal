@@ -51,6 +51,11 @@ describe("volume state machine (BR 22)", () => {
     expect(canTransitionVolume("held", "delivered")).toBe(false);
   });
 
+  it("lets a consolidated volume go back to the warehouse before shipping", () => {
+    expect(canTransitionVolume("consolidated", "collected")).toBe(true);
+    expect(canTransitionVolume("shipped", "collected")).toBe(false);
+  });
+
   it("does not mutate the original entity", () => {
     transitionVolume(volume, "collected", { userId: "u-1" });
     expect(volume.status).toBe("draft");
