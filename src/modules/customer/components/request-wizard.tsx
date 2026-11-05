@@ -66,7 +66,7 @@ export function RequestWizard() {
   const isHydrated = useHydrated();
 
   const [step, setStep] = useState(0);
-  const [submitted, setSubmitted] = useState<ShipmentRequest | null>(null);
+  const [submitted, setSubmitted] = useState<(ShipmentRequest & { accessToken: string }) | null>(null);
   const [submitError, setSubmitError] = useState("");
   const [createAccount, setCreateAccount] = useState(false);
   const [account, setAccount] = useState({ email: "", password: "" });
@@ -229,14 +229,29 @@ export function RequestWizard() {
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </button>
         </div>
+        <div className="mt-6 space-y-1 rounded-xl bg-slate-50 px-4 py-3 text-left text-sm text-slate-600">
+          {submitted.sender.email ? (
+            <p>
+              Enviámos um email para <strong className="text-slate-900">{submitted.sender.email}</strong> com o código e o link do
+              pedido.
+            </p>
+          ) : null}
+          <p>
+            No{" "}
+            <Link href={`/pedido/${submitted.accessToken}`} className="font-medium text-brand-700 hover:text-brand-800">
+              link do seu pedido
+            </Link>{" "}
+            pode acompanhá-lo e cancelá-lo enquanto a agência não receber a carga. Guarde-o.
+          </p>
+        </div>
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           {linkedToAccount ? (
             <Link href="/cliente">
               <Button className="w-full sm:w-auto">Ver os meus pedidos</Button>
             </Link>
           ) : (
-            <Link href={`/acompanhar?codigo=${submitted.reference}`}>
-              <Button className="w-full sm:w-auto">Acompanhar pedido</Button>
+            <Link href={`/pedido/${submitted.accessToken}`}>
+              <Button className="w-full sm:w-auto">Ver o meu pedido</Button>
             </Link>
           )}
           <Button
