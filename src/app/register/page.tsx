@@ -12,7 +12,6 @@ import { mockRegister } from "@/services/mock/auth";
 import { useAuthStore } from "@/store/auth-store";
 
 const roleOptions = [
-  { value: "exporter", label: "Exportador" },
   { value: "transitario", label: "Transitário" },
   { value: "agente_maritimo", label: "Agente Marítimo" },
   { value: "cv_operator", label: "Operador CV" },

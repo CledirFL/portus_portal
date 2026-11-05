@@ -13,18 +13,8 @@ export const roleLabels: Record<Role, string> = {
 };
 
 export const roleNavigation: Record<Role, NavItem[]> = {
-  exporter: [
-    { label: "Painel geral", href: "/dashboard", icon: "dashboard" },
-    { label: "Painel de exportação", href: "/exporter/dashboard", icon: "globe" },
-    { label: "Exportadores", href: "/exporter/companies", icon: "building" },
-    { label: "Destinatários", href: "/exporter/consignees", icon: "map-pin" },
-    { label: "Carga", href: "/exporter/cargo", icon: "package" },
-    { label: "Embarques", href: "/exporter/shipments", icon: "ship" },
-    { label: "Volumes", href: "/exporter/volumes", icon: "boxes" },
-    { label: "Contentores", href: "/exporter/containers", icon: "container" },
-    { label: "BL", href: "/exporter/bl", icon: "file-text" },
-    { label: "Manifestos", href: "/exporter/manifestos", icon: "clipboard-list" },
-  ],
+  // Os ecrãs de demonstração do exportador foram retirados: o transitário faz esse trabalho com dados reais.
+  exporter: [{ label: "Início", href: "/exportador", icon: "globe" }],
   transitario: [
     { label: "Viagens e manifestos", href: "/agencia/viagens", icon: "ship" },
     { label: "Contentores", href: "/agencia/contentores", icon: "container" },
@@ -53,7 +43,6 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Importar lista", href: "/agencia/importar", icon: "upload" },
     { label: "Contentores", href: "/agencia/contentores", icon: "container" },
     { label: "Viagens e manifestos", href: "/agencia/viagens", icon: "anchor" },
-    { label: "Exportação", href: "/exporter/dashboard", icon: "globe" },
     { label: "Chegadas e conferência", href: "/cv/chegadas", icon: "scan" },
     { label: "Despacho aduaneiro", href: "/alfandega", icon: "stamp" },
     { label: "Levantamentos", href: "/portaria", icon: "door" },
@@ -63,7 +52,7 @@ export const roleNavigation: Record<Role, NavItem[]> = {
 };
 
 export const defaultRouteByRole: Record<Role, string> = {
-  exporter: "/exporter/dashboard",
+  exporter: "/exportador",
   transitario: "/agencia/viagens",
   agente_maritimo: "/cv/chegadas",
   agente_recolha: "/agent/collections",

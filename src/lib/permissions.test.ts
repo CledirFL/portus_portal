@@ -4,7 +4,7 @@ import { defaultRouteByRole, isAllowedRoute } from "@/lib/permissions";
 describe("isAllowedRoute", () => {
   it("allows nested detail routes for the same module", () => {
     expect(isAllowedRoute("cv_operator", "/cv/chegadas/V-010")).toBe(true);
-    expect(isAllowedRoute("exporter", "/exporter/shipments/SHP-2041")).toBe(true);
+    expect(isAllowedRoute("transitario", "/agencia/contentores/c-1")).toBe(true);
   });
 
   it("allows the admin user registry route", () => {
@@ -26,6 +26,6 @@ describe("defaultRouteByRole", () => {
   it("sends each role to its workspace after login", () => {
     expect(defaultRouteByRole.agente_recolha).toBe("/agent/collections");
     expect(defaultRouteByRole.cliente).toBe("/cliente");
-    expect(defaultRouteByRole.exporter).toBe("/exporter/dashboard");
+    expect(defaultRouteByRole.exporter).toBe("/exportador");
   });
 });

@@ -50,7 +50,7 @@ describe("recolhas do agente no terreno", () => {
     cy.get("#email").type("ana@portus.cv");
     cy.get("#password").type(demoPassword);
     cy.contains("button", "Entrar").click();
-    cy.location("pathname").should("eq", "/exporter/dashboard");
+    cy.location("pathname").should("eq", "/exportador");
 
     cy.visit("/agent/collections");
     cy.location("pathname").should("eq", "/unauthorized");
