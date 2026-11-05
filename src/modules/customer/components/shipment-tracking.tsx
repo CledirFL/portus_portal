@@ -19,6 +19,7 @@ const stageTones: Record<TrackingStage, "neutral" | "success" | "warning" | "dan
   cleared: "success",
   delivered: "success",
   held: "danger",
+  abandoned: "danger",
   cancelled: "neutral",
 };
 
@@ -38,7 +39,7 @@ export function ShipmentTimeline({ tracking }: { tracking: ShipmentTracking }) {
     <ol data-cy="shipment-timeline">
       {tracking.steps.map((step, index) => {
         const isCurrent = index === lastDone;
-        const isProblem = isCurrent && (tracking.stage === "held" || tracking.stage === "cancelled");
+        const isProblem = isCurrent && (tracking.stage === "held" || tracking.stage === "abandoned" || tracking.stage === "cancelled");
         return (
           <li key={step.key} className="relative flex gap-3 pb-5 last:pb-0">
             {index < tracking.steps.length - 1 ? (

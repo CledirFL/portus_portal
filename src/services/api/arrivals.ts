@@ -228,3 +228,15 @@ export const getGatePass = (id: string) => apiRequest<GatePass>(`/pickups/${id}/
 export const listTariffs = () => apiRequest<TariffRule[]>("/tariffs");
 export const updateTariff = (code: string, input: { label?: string; amountCve: number; freeDays: number }) =>
   apiRequest<TariffRule[]>(`/tariffs/${code}`, { method: "PUT", body: input });
+
+/** Prazo até a carga não levantada ser declarada abandonada e dias de aviso antes (BR 25). */
+export interface AbandonmentSettings {
+  afterDays: number;
+  warningDays: number;
+}
+
+export const getAbandonmentSettings = () => apiRequest<AbandonmentSettings>("/settings/abandonment");
+export const updateAbandonmentSettings = (input: AbandonmentSettings) =>
+  apiRequest<AbandonmentSettings>("/settings/abandonment", { method: "PUT", body: input });
+/** Corre já a verificação que o servidor faz de hora a hora. */
+export const runAbandonmentCheck = () => apiRequest<{ warned: number; abandoned: number }>("/settings/abandonment/run", { method: "POST" });

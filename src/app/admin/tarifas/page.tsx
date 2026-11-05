@@ -8,7 +8,14 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatCve, type TariffRule } from "@/domain/clearance";
 import { ErrorBanner } from "@/modules/consolidation/components/consolidation-ui";
-import { listTariffs, updateTariff } from "@/services/api/arrivals";
+import {
+  type AbandonmentSettings,
+  getAbandonmentSettings,
+  listTariffs,
+  runAbandonmentCheck,
+  updateAbandonmentSettings,
+  updateTariff,
+} from "@/services/api/arrivals";
 import { useAuthStore } from "@/store/auth-store";
 
 function TariffForm({ tariff, onSaved }: { tariff: TariffRule; onSaved: (tariffs: TariffRule[]) => void }) {
@@ -49,6 +56,76 @@ function TariffForm({ tariff, onSaved }: { tariff: TariffRule; onSaved: (tariffs
   );
 }
 
+function AbandonmentForm() {
+  const [settings, setSettings] = useState<AbandonmentSettings | null>(null);
+  const [afterDays, setAfterDays] = useState("");
+  const [warningDays, setWarningDays] = useState("");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    getAbandonmentSettings()
+      .then((current) => {
+        setSettings(current);
+        setAfterDays(String(current.afterDays));
+        setWarningDays(String(current.warningDays));
+      })
+      .catch((cause: unknown) => setMessage(cause instanceof Error ? cause.message : "Não foi possível carregar o prazo."));
+  }, []);
+
+  return (
+    <Card
+      title="Prazo de abandono"
+      subtitle="Carga liberada e não levantada passa a Abandonada depois destes dias, contados da chegada do navio (BR 25). O remetente é avisado por email antes."
+    >
+      <form
+        data-cy="abandonment-form"
+        className="grid gap-3 sm:grid-cols-3 sm:items-end"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          setBusy(true);
+          setMessage("");
+          try {
+            setSettings(await updateAbandonmentSettings({ afterDays: Number(afterDays), warningDays: Number(warningDays) }));
+            setMessage("Guardado.");
+          } catch (cause) {
+            setMessage(cause instanceof Error ? cause.message : "Não foi possível guardar.");
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <Input label="Dias até ao abandono" inputMode="numeric" value={afterDays} onChange={(event) => setAfterDays(event.target.value)} />
+        <Input label="Avisar quantos dias antes" inputMode="numeric" value={warningDays} onChange={(event) => setWarningDays(event.target.value)} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="submit" disabled={busy || !settings}>
+            Guardar
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                const result = await runAbandonmentCheck();
+                setMessage(`Verificado: ${result.warned} aviso(s) enviados, ${result.abandoned} encomenda(s) abandonada(s).`);
+              } catch (cause) {
+                setMessage(cause instanceof Error ? cause.message : "Não foi possível verificar.");
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Verificar agora
+          </Button>
+        </div>
+      </form>
+      {message ? <p className="mt-3 text-sm text-slate-600">{message}</p> : null}
+    </Card>
+  );
+}
+
 export default function TariffsPage() {
   const user = useAuthStore((state) => state.user);
   const [tariffs, setTariffs] = useState<TariffRule[] | null>(null);
@@ -73,6 +150,7 @@ export default function TariffsPage() {
           {tariffs.map((tariff) => (
             <TariffForm key={`${tariff.code}-${tariff.amountCve}-${tariff.freeDays}`} tariff={tariff} onSaved={setTariffs} />
           ))}
+          <AbandonmentForm />
         </div>
       ) : !error ? (
         <p className="py-10 text-center text-sm text-slate-500">A carregar…</p>

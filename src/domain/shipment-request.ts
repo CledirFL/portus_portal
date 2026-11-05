@@ -62,7 +62,7 @@ export const requestStatusDescriptions: Record<RequestStatus, string> = {
 export type HandoverMethod = "recolha" | "entrega_na_agencia";
 
 export type TrackingStepKey = "received" | "labelled" | "consolidated" | "in_transit" | "arrived" | "cleared" | "delivered";
-export type TrackingStage = TrackingStepKey | "held" | "cancelled";
+export type TrackingStage = TrackingStepKey | "held" | "abandoned" | "cancelled";
 
 /** Linha do tempo da encomenda depois de a agência receber a carga (a API calcula os marcos). */
 export interface ShipmentTracking {
@@ -84,6 +84,7 @@ export const trackingStageLabels: Record<TrackingStage, string> = {
   cleared: "Pronta para levantar",
   delivered: "Entregue",
   held: "Retida na Alfândega",
+  abandoned: "Abandonada",
   cancelled: "Encomenda cancelada",
 };
 
@@ -96,6 +97,7 @@ export const trackingStageDescriptions: Record<TrackingStage, string> = {
   cleared: "A Alfândega libertou a carga. O destinatário já a pode levantar.",
   delivered: "A carga foi levantada.",
   held: "A Alfândega reteve a carga. Contacte a agência para saber o que falta.",
+  abandoned: "O prazo de armazenagem terminou sem a carga ser levantada. Contacte a agência.",
   cancelled: "A encomenda foi cancelada. Contacte a agência.",
 };
 
