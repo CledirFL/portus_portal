@@ -44,3 +44,32 @@ export const manifestStatusLabels: Record<ManifestStatus, string> = {
   generated: "Gerado",
   sent: "Enviado",
 };
+
+export type ClearanceStatus = "pending" | "held" | "released";
+
+export const clearanceStatusLabels: Record<ClearanceStatus, string> = {
+  pending: "Por despachar",
+  held: "Retida",
+  released: "Liberada",
+};
+
+export const channelLabels: Record<"green" | "red", string> = {
+  green: "Canal verde",
+  red: "Canal vermelho",
+};
+
+export type ManifestCustomsStatus = "pending" | "validated" | "rejected";
+
+export const manifestCustomsLabels: Record<ManifestCustomsStatus, string> = {
+  pending: "Por validar",
+  validated: "Validado",
+  rejected: "Rejeitado",
+};
+
+export type PaymentMethod = "cash" | "card" | "transfer";
+
+export const paymentMethodLabels: Record<PaymentMethod, string> = {
+  cash: "Numerário",
+  card: "Cartão",
+  transfer: "Transferência",
+};
