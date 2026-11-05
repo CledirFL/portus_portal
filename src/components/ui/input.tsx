@@ -1,6 +1,7 @@
 import * as React from "react";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  ref?: React.Ref<HTMLInputElement>;
   label?: string;
   error?: string;
   hint?: string;
