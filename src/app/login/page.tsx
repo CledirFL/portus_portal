@@ -82,6 +82,13 @@ export default function LoginPage() {
             </Link>
             .
           </p>
+          <p className="mt-1 text-sm text-slate-500">
+            Ainda não tem conta?{" "}
+            <Link href="/criar-conta" className="font-medium text-brand-700 hover:text-brand-800">
+              Criar conta de cliente
+            </Link>{" "}
+            para ver e gerir todos os seus envios.
+          </p>
 
           <form
             onSubmit={handleSubmit(onSubmit)}
@@ -138,6 +145,9 @@ export default function LoginPage() {
             <summary className="cursor-pointer font-medium text-slate-700">Contas de demonstração</summary>
             <div className="mt-2 space-y-1">
               <p>
+                Cliente: <span className="font-semibold">cliente@portus.cv</span>
+              </p>
+              <p>
                 Exportador: <span className="font-semibold">ana@portus.cv</span>
               </p>
               <p>
@@ -153,7 +163,7 @@ export default function LoginPage() {
           </details>
 
           <p className="mt-6 text-center text-sm text-slate-500">
-            Empresa sem conta?{" "}
+            Trabalha numa agência ou no porto?{" "}
             <Link href="/register" className="font-medium text-brand-700 hover:text-brand-800">
               Pedir acesso
             </Link>
