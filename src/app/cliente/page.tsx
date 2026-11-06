@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { cancelMyShipmentRequest, listMyShipmentRequests } from "@/services/api/shipment-requests";
 import type { ShipmentRequest } from "@/domain/shipment-request";
+import { ClaimRequests } from "@/modules/customer/components/claim-requests";
 import { RequestCard } from "@/modules/customer/components/request-card";
 import { useAuthStore } from "@/store/auth-store";
 
 export default function CustomerHomePage() {
   const user = useAuthStore((state) => state.user);
   const [requests, setRequests] = useState<ShipmentRequest[] | null>(null);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -22,6 +24,12 @@ export default function CustomerHomePage() {
         .catch(() => setRequests([]));
     }
   }, [user]);
+
+  const reload = () => {
+    void listMyShipmentRequests()
+      .then(setRequests)
+      .catch(() => undefined);
+  };
 
   return (
     <AppShell>
@@ -36,6 +44,20 @@ export default function CustomerHomePage() {
           </Link>
         }
       />
+
+      {user ? (
+        <ClaimRequests
+          onClaimed={(linked) => {
+            setNotice(`${linked} ${linked === 1 ? "pedido juntado" : "pedidos juntados"} à sua conta.`);
+            reload();
+          }}
+        />
+      ) : null}
+      {notice ? (
+        <p role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          {notice}
+        </p>
+      ) : null}
 
       {requests === null ? null : requests.length ? (
         <div className="space-y-4">

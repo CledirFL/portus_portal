@@ -78,3 +78,17 @@ export function agencyShipmentRequestAction(
     body: input,
   });
 }
+
+/** Pedidos feitos sem conta com o email desta conta, que podem ser juntados. */
+export function countClaimableRequests() {
+  return apiRequest<{ count: number; email: string }>("/me/shipment-requests/claimable");
+}
+
+/** Envia para o email da conta um código de 6 algarismos (15 minutos). */
+export function requestClaimCode() {
+  return apiRequest<{ count: number; email: string; expiresAt: string }>("/me/shipment-requests/claim", { method: "POST" });
+}
+
+export function confirmClaimCode(code: string) {
+  return apiRequest<{ linked: number }>("/me/shipment-requests/claim/confirm", { method: "POST", body: { code } });
+}
