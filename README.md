@@ -123,8 +123,9 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/acompanhar` | público | Consulta com código + telefone do remetente; cancelar; linha do tempo até à entrega |
 | `/pedido/[token]` | público (link do email) | O pedido e a linha do tempo da carga; cancelar enquanto a agência não receber a carga |
 | `/register` | público | Pedir acesso para a equipa (fica em revisão até o administrador aprovar) |
+| `/criar-conta` | público | Criar conta de cliente; entra logo em Os meus pedidos |
 | `/login` | público | Entrada |
-| `/cliente` | cliente | Os meus pedidos, com cancelamento e linha do tempo |
+| `/cliente` | cliente | Os meus pedidos, com cancelamento, linha do tempo e "Juntar pedidos feitos sem conta" (código por email) |
 | `/agencia/pedidos` | agente, admin | Fila de pedidos da agência e ações |
 | `/agencia/encomendas` | agente, admin | Encomendas: lista, pesquisa (código, guia, VIN, nome, telefone) |
 | `/agencia/encomendas/nova` | agente, admin | Registar encomenda no balcão com volumes |
@@ -184,7 +185,9 @@ No terminal do VS Code, o Cypress precisa de `ELECTRON_RUN_AS_NODE` removido:
   - pedido seguido pela API até "Em viagem" e "Pronta para levantar" na página do link (código `LEV-…`);
   - pedir acesso → administrador aprova com o porto → email → entrar; conta da equipa com palavra-passe temporária;
     auditoria filtrada pela aprovação; painel;
-  - reportar problema com captura de ecrã → o administrador vê a captura e resolve.
+  - reportar problema com captura de ecrã → o administrador vê a captura e resolve;
+  - criar conta de cliente no ecrã de entrada → juntar um pedido feito antes sem conta com o código do email;
+  - remetente preenchido com os dados da conta (exportador) e editável.
 
 Os testes de email precisam do Mailpit do backend (`docker compose up -d`, caixa em <http://localhost:8025>).
 

@@ -47,6 +47,7 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
 | Conta | Perfil | Onde trabalha | Página inicial |
 |---|---|---|---|
 | *(sem conta)* | Cliente | — | `/enviar`, `/acompanhar` |
+| `cliente@portus.cv` | Cliente com conta (Rosa Tavares) | — | Os meus pedidos |
 | `agente@portus.cv` | Agente de recolha | Agência Morabeza Envios, Lisboa | Recolhas |
 | `transitario@portus.cv` | Transitário | Agência Morabeza Envios, Lisboa | Viagens e manifestos |
 | `carla@portus.cv` | Agente marítimo | Porto da Praia | Chegadas |
@@ -66,8 +67,8 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
 - **Não precisa de leitor de QR.** Onde a plataforma pede o QR, pode escrever o **código do volume** (ex.:
   `ENC-88CYMC-01`) e carregar Enter. Os códigos aparecem na tabela de volumes de cada encomenda. Um leitor USB, ou
   a câmara do telemóvel, lê o QR das etiquetas impressas.
-- **Preencha o NIF ou o documento do destinatário.** Sem um deles, a Alfândega sugere canal vermelho e a portaria
-  não consegue entregar a carga (ver a etapa 9).
+- **O NIF do destinatário é obrigatório** (9 algarismos, ex.: `123456789`) no pedido, no registo da agência e na
+  importação. Só as encomendas antigas, de antes desta regra, podem não ter NIF.
 - **A viagem tem de chegar à Praia** (`CVRAI`), porque as contas de Cabo Verde só veem esse porto.
 - **Use emails inventados** nos pedidos (ex.: `rosa@teste.pt`). Os emails vão todos para o Mailpit
   (<http://localhost:8025>); ninguém os recebe de verdade.
@@ -140,8 +141,9 @@ Cada conta vê só o que lhe diz respeito. Toda a equipa tem também o botão **
    - como entrega a carga: **recolha** na sua morada (só nas agências que fazem recolha) ou **entrega na
      agência**.
 3. **Contactos:** remetente (o indicativo do telefone é preenchido conforme o país), com **email**, e destinatário.
-   Preencha o **NIF do destinatário**.
-4. **Confirmar:** reveja tudo. Se quiser, crie uma conta (opcional) e envie.
+   O **NIF do destinatário** é obrigatório.
+4. **Confirmar:** reveja tudo. Se quiser, crie uma conta (opcional) e envie. Quem já tem sessão iniciada vê "Quem envia"
+   preenchido com os dados da conta (pode alterar).
 
 No fim aparece o **código do pedido** (ex.: `PED-7KQ2M9`), com um botão para o copiar, e o **link do seu pedido**.
 Com email indicado, chega também um email com o código e o botão **Ver ou cancelar o pedido**.
@@ -153,6 +155,7 @@ Com email indicado, chega também um email com o código e o botão **Ver ou can
 - ☐ Os campos obrigatórios mostram erro se ficarem vazios.
 - ☐ Recebe o código `PED-…` no fim.
 - ☐ O email "Pedido PED-… recebido" chega ao Mailpit e o botão abre o pedido (`/pedido/…`).
+- ☐ Sem NIF do destinatário, ou com um NIF que não tem 9 algarismos, não avança.
 - ☐ Com conta criada, o pedido aparece em **Os meus pedidos** (`/cliente`).
 
 ### Etapa 2 — Agência: tratar o pedido ✅
@@ -191,7 +194,7 @@ ações:
 
 **Caminho B: o cliente aparece no balcão sem pedido**
 1. **Encomendas** → **Nova encomenda** (`/agencia/encomendas/nova`).
-2. Preencha a carga, o remetente, o destinatário (com NIF ou documento) e os volumes.
+2. Preencha a carga, o remetente, o destinatário (o **NIF é obrigatório**; o documento ajuda no levantamento) e os volumes.
 
 **O que verificar**
 - ☐ A encomenda criada a partir do pedido traz o remetente, o destinatário, a carga e a ilha.
@@ -219,6 +222,7 @@ Serve para agências que já têm as encomendas numa folha de cálculo.
 
 **O que verificar**
 - ☐ Um ficheiro com erros mostra cada erro com a linha e a coluna.
+- ☐ A coluna do NIF do destinatário é obrigatória; uma linha sem NIF aparece como erro.
 - ☐ Só as linhas válidas são importadas.
 - ☐ Ao importar o mesmo ficheiro duas vezes, os duplicados são detetados.
 
@@ -252,7 +256,14 @@ Uma encomenda, em rascunho ou já validada, pode ser **cancelada** com motivo.
 O cliente acompanha o pedido de três formas:
 - **Link do email** (`/pedido/…`): sem conta e sem escrever nada.
 - **Acompanhar pedido** (`/acompanhar`): com o código do pedido e o telefone do remetente.
-- **Os meus pedidos** (`/cliente`): com conta.
+- **Os meus pedidos** (`/cliente`): com conta de cliente.
+
+**Criar conta de cliente:** no ecrã de entrada, **Criar conta de cliente** (`/criar-conta`): nome, email, telefone e
+palavra-passe. A pessoa entra logo em **Os meus pedidos**. Também se pode criar no último passo do pedido.
+
+**Juntar pedidos feitos sem conta:** se já fez pedidos sem conta com o **mesmo email** da conta, aparece em Os meus
+pedidos a caixa "Tem N pedidos feitos sem conta…". Clique em **Juntar à minha conta**, escreva o código de 6
+algarismos que chega por email (vale 15 minutos, 5 tentativas) e **Confirmar**: os pedidos passam para a conta.
 
 **Antes de a agência receber a carga**, vê o estado (**Submetido → Aceite → Recolha agendada**), a data marcada e as
 notas da agência, e pode **cancelar o pedido** (com motivo opcional). Recebe um email a confirmar.
@@ -264,6 +275,7 @@ a pagar nesse dia. Também recebe um email em cada marco: em viagem, chegou, pro
 
 **O que verificar**
 - ☐ Com o telefone errado, o pedido não aparece. Um link alterado mostra "Este link não é válido".
+- ☐ Uma conta nova com o email de pedidos antigos junta-os com o código; com o código errado diz quantas tentativas restam.
 - ☐ O estado, a data e a nota mudam depois de cada ação da agência.
 - ☐ Cancelar funciona até a agência receber a carga; depois o botão desaparece.
 - ☐ A linha do tempo avança com a carga (etapas 4 a 9) e não mostra a localização no armazém nem a inspeção.
@@ -395,8 +407,8 @@ a pagar nesse dia. Também recebe um email em cada marco: em viagem, chegou, pro
 - ☐ Um documento ou NIF errado é recusado.
 - ☐ Um terceiro sem autorização, ou com a autorização caducada, é recusado.
 - ☐ O Gate Pass mostra os volumes, quem levantou e o pagamento.
-- ☐ Um destinatário **sem NIF e sem documento** registados não consegue levantar. Confirme se é isto que se
-  pretende.
+- ☐ Uma encomenda **antiga** sem NIF nem documento do destinatário não consegue ser entregue (as novas já têm NIF
+  obrigatório).
 - ☐ Na entrega, o remetente recebe o email "Carga entregue" e a linha do tempo fica completa.
 
 ---
@@ -464,6 +476,8 @@ de ecrã. Mude o estado (Novo, Em análise, Resolvido, Não é erro) e escreva u
 | Identidade (BR 18–19) | Documento errado ou terceiro sem autorização | Recusado |
 | Etiqueta falsa (BR 5) | Alterar um carácter do QR | "Etiqueta inválida" |
 | Âmbito (BR 28) | Abrir pelo endereço uma encomenda de outra agência | Não encontrada |
+| NIF obrigatório | Pedido, encomenda ou linha importada sem NIF do destinatário | "Indique o NIF do destinatário." |
+| Juntar pedidos | Código errado em Os meus pedidos | "Código errado. Ainda pode tentar 4 vezes."; à quinta, pede um código novo |
 | Cancelar tarde | Cancelar pelo link depois de "Carga recebida" | "Este pedido já não pode ser cancelado" |
 | Link falsificado | Mudar uma letra do link `/pedido/…` | "Este link não é válido" |
 | Aprovação sem âmbito (BR 28) | Aprovar um pedido de acesso da Alfândega sem escolher o porto | "Escolha o porto deste utilizador." |
@@ -479,6 +493,9 @@ Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas
 | Área | Situação |
 |---|---|
 | Cliente: alterar a data da recolha | ⏳ Só cancelar; alterar fica para a próxima versão |
+| Destinatário sem NIF cabo-verdiano (ex.: turista) | ⏳ Por decidir; hoje o NIF é obrigatório |
+| Juntar pedidos feitos sem email | ⏳ Só se juntam os que têm o mesmo email da conta |
+| Papel do exportador | ⏳ Por definir; a área do exportador está em preparação |
 | Recolha: período (manhã/tarde) e data preferida | ⏳ Próxima versão, depois do feedback das partes interessadas |
 | Portal do destinatário em Cabo Verde | ⏳ O destinatário recebe o código pelo remetente |
 | SMS ao destinatário | ⏳ Só há emails ao remetente |
@@ -486,7 +503,6 @@ Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas
 | Recolha sem internet (B7) | ⏳ O protótipo `/agent/collections` guarda só no navegador 🧪 |
 | Contra-Marca e ligações eletrónicas à Alfândega e à Enapor | ⏳ |
 | Relatórios exportáveis (RF-A37) | ⏳ O painel mostra os números, mas ainda não exporta |
-| Área do exportador | ⏳ Os ecrãs de demonstração foram retirados |
 | Obrigar a mudar a palavra-passe temporária no primeiro acesso | ⏳ |
 | Pagamentos eletrónicos | ⏳ Regista-se o pagamento feito ao balcão |
 | Outros idiomas | ⏳ Só português |
