@@ -15,7 +15,7 @@ const validInput: ShipmentRequestInput = {
   details: { quantity: "3", approxWeightKg: "" },
   handover: "entrega_na_agencia",
   sender: { name: "Rosa Tavares", phone: "+351 912 345 678", email: "" },
-  recipient: { name: "Maria Lopes", phone: "+238 991 22 33", island: "São Vicente", nif: "" },
+  recipient: { name: "Maria Lopes", phone: "+238 991 22 33", island: "São Vicente", nif: "123456789" },
 };
 
 describe("shipment request schema", () => {
@@ -32,6 +32,13 @@ describe("shipment request schema", () => {
   it("requires a pickup address when pickup is chosen", () => {
     const result = shipmentRequestSchema.safeParse({ ...validInput, handover: "recolha", pickupAddress: "" });
     expect(result.error?.issues[0].path).toEqual(["pickupAddress"]);
+  });
+
+  it("requires the recipient NIF with 9 digits", () => {
+    const missing = shipmentRequestSchema.safeParse({ ...validInput, recipient: { ...validInput.recipient, nif: "" } });
+    expect(missing.error?.issues.map((issue) => [issue.path.join("."), issue.message])).toContainEqual(["recipient.nif", "Indique o NIF do destinatário."]);
+    const short = shipmentRequestSchema.safeParse({ ...validInput, recipient: { ...validInput.recipient, nif: "12345" } });
+    expect(short.error?.issues[0]?.message).toBe("O NIF tem 9 algarismos.");
   });
 
   it("validates phones with country code", () => {

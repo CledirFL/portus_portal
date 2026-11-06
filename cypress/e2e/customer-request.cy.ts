@@ -64,6 +64,7 @@ describe("pedido de envio pelo cliente", () => {
     cy.contains("Quem recebe").parents("div.rounded-2xl").first().within(() => {
       field("Nome").type("Maria Lopes");
       field("Telefone").clear().type("991 22 33");
+      field("NIF").type("123456789");
     });
     cy.contains("button", "Continuar").click();
     cy.contains("Inclua o indicativo do país").should("be.visible");
@@ -142,6 +143,7 @@ describe("pedido de envio pelo cliente", () => {
     cy.contains("Quem recebe").parents("div.rounded-2xl").first().within(() => {
       field("Nome").type("Ana Semedo");
       field("Telefone").clear().type("+238 952 11 22");
+      field("NIF").type("123456789");
     });
     cy.contains("button", "Continuar").click();
 
@@ -196,6 +198,7 @@ describe("pedido de envio pelo cliente", () => {
     cy.contains("Quem recebe").parents("div.rounded-2xl").first().within(() => {
       field("Nome").type("Maria Lopes");
       field("Telefone").clear().type("+238 991 22 33");
+      field("NIF").type("123456789");
     });
     cy.contains("button", "Continuar").click();
     cy.contains("Remetente").parent().should("contain.text", "Ana Silva Lda");
@@ -222,6 +225,7 @@ describe("pedido de envio pelo cliente", () => {
     cy.contains("Quem recebe").parents("div.rounded-2xl").first().within(() => {
       field("Nome").type("Maria Lopes");
       field("Telefone").clear().type("+238 991 22 33");
+      field("NIF").type("123456789");
     });
     cy.contains("button", "Continuar").click();
     cy.contains("button", "Enviar pedido à agência").click();

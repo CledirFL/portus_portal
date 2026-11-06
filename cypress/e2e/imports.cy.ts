@@ -25,10 +25,10 @@ describe("importar lista da agência", () => {
     // Telefones únicos para não colidirem com importações de execuções anteriores (duplicados do mesmo dia).
     const suffix = String(Date.now()).slice(-6);
     const csv = [
-      "Nº Guia;Remetente;Telefone remetente;Destinatário;Telefone destinatário;Ilha;Conteúdo;Peso (kg);Volume (m3)",
-      `E2E-${suffix};Rosa Tavares;+351 912 ${suffix.slice(0, 3)} ${suffix.slice(3)};Maria Lopes;+238 991 22 33;São Vicente;Roupa;12,5;0,1`,
-      `E2E-${suffix};Rosa Tavares;+351 912 ${suffix.slice(0, 3)} ${suffix.slice(3)};Maria Lopes;+238 991 22 33;São Vicente;Roupa;7;0,05`,
-      `;Zé Pires;+351 915 ${suffix.slice(0, 3)} ${suffix.slice(3)};Nha Djon;991 22 33;Santiago;Livros;4;0,03`,
+      "Nº Guia;Remetente;Telefone remetente;Destinatário;Telefone destinatário;Ilha;Conteúdo;Peso (kg);Volume (m3);NIF",
+      `E2E-${suffix};Rosa Tavares;+351 912 ${suffix.slice(0, 3)} ${suffix.slice(3)};Maria Lopes;+238 991 22 33;São Vicente;Roupa;12,5;0,1;123456789`,
+      `E2E-${suffix};Rosa Tavares;+351 912 ${suffix.slice(0, 3)} ${suffix.slice(3)};Maria Lopes;+238 991 22 33;São Vicente;Roupa;7;0,05;123456789`,
+      `;Zé Pires;+351 915 ${suffix.slice(0, 3)} ${suffix.slice(3)};Nha Djon;991 22 33;Santiago;Livros;4;0,03;234567890`,
     ].join("\r\n");
 
     logInAsAgent();

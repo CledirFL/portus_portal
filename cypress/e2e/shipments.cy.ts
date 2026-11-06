@@ -39,7 +39,7 @@ function fillParties(senderPhone: string) {
     field("Nome").type("Maria Lopes");
     field("Telefone").clear().type("+238 991 22 33");
     field("Ilha").select("São Vicente");
-    field("NIF (opcional)").type("123456789");
+    field("NIF").type("123456789");
   });
 }
 
@@ -168,7 +168,7 @@ describe("encomendas da agência", () => {
         details: { quantity: "2" },
         handover: "entrega_na_agencia",
         sender: { name: "Cliente E2E", phone: uniquePhone() },
-        recipient: { name: "Nha Djon", phone: "+238 991 22 33", island: "Santiago" },
+        recipient: { name: "Nha Djon", phone: "+238 991 22 33", island: "Santiago", nif: "123456789" },
       }).then((created) => {
         const reference = created.body.reference as string;
 

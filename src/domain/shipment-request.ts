@@ -158,11 +158,15 @@ export const shipmentRequestSchema = z
       name: z.string().trim().min(2, "Indique o nome do destinatário."),
       phone: phoneField,
       island: z.enum(caboVerdeIslands, { message: "Escolha a ilha de destino." }),
+      // Obrigatório: sem NIF a Alfândega sugere canal vermelho e a portaria não consegue entregar.
       nif: z
-        .string()
+        .string({ message: "Indique o NIF do destinatário." })
         .trim()
-        .optional()
-        .refine((value) => !value || /^\d{9}$/.test(value), "O NIF tem 9 algarismos."),
+        .superRefine((value, context) => {
+          // Uma mensagem de cada vez: vazio ou formato errado.
+          if (!value) context.addIssue({ code: "custom", message: "Indique o NIF do destinatário." });
+          else if (!/^\d{9}$/.test(value)) context.addIssue({ code: "custom", message: "O NIF tem 9 algarismos." });
+        }),
     }),
   })
   .superRefine((values, context) => {

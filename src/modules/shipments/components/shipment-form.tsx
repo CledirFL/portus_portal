@@ -311,7 +311,7 @@ export function ShipmentForm({ initialValues = emptyShipmentForm, withVolumes, s
               error={err("recipient.island")}
             />
             <Input
-              label="NIF (opcional)"
+              label="NIF"
               inputMode="numeric"
               value={values.recipient.nif}
               onChange={(event) => update({ recipient: { ...values.recipient, nif: event.target.value } })}

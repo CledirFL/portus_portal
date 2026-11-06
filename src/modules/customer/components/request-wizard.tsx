@@ -528,7 +528,7 @@ export function RequestWizard() {
             <div className="space-y-4">
               <Input label="Nome" {...register("recipient.name")} error={errors.recipient?.name?.message} />
               <Input label="Telefone" type="tel" {...register("recipient.phone")} error={errors.recipient?.phone?.message} hint="Com indicativo, ex.: +238 991 22 33" />
-              <Input label="NIF (opcional)" inputMode="numeric" {...register("recipient.nif")} error={errors.recipient?.nif?.message} hint="Ajuda a levantar a carga mais depressa." />
+              <Input label="NIF" inputMode="numeric" {...register("recipient.nif")} error={errors.recipient?.nif?.message} hint="Obrigatório para levantar a carga em Cabo Verde." />
             </div>
           </Card>
         </div>
