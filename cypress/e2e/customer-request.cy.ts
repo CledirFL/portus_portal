@@ -207,8 +207,23 @@ describe("pedido de envio pelo cliente", () => {
     cy.screenshot("17-remetente-da-conta", { capture: "fullPage" });
   });
 
-  it("creates a customer account from the sign-in screen and opens the customer area", () => {
+  it("creates a customer account from the sign-in screen and joins the requests made before without an account", () => {
     const email = `conta.${Date.now()}@example.pt`;
+    // Pedido feito antes, sem conta, com o mesmo email.
+    cy.request("http://localhost:4000/api/agencies?country=PT").then((agencies) => {
+      const agency = (agencies.body as Array<{ id: string; code: string }>).find((item) => item.code === "LIS01")!;
+      cy.request("POST", "http://localhost:4000/api/shipment-requests", {
+        dispatchCountry: "PT",
+        agencyId: agency.id,
+        category: "encomenda_pequena",
+        description: "Roupa de inverno",
+        details: { quantity: "1" },
+        handover: "entrega_na_agencia",
+        sender: { name: "Lúcia Fortes", phone: "+33 6 12 34 56 78", email },
+        recipient: { name: "Maria Lopes", phone: "+238 991 22 33", island: "Santiago", nif: "123456789" },
+      }).its("body.reference").as("guestReference");
+    });
+
     cy.visit("/login");
     cy.contains("a", "Criar conta de cliente").click();
     cy.location("pathname", { timeout: 60_000 }).should("eq", "/criar-conta");
@@ -226,6 +241,22 @@ describe("pedido de envio pelo cliente", () => {
     cy.location("pathname", { timeout: 60_000 }).should("eq", "/cliente");
     cy.contains("Ainda não tem pedidos").should("be.visible");
     cy.screenshot("18-conta-de-cliente-criada", { capture: "fullPage" });
+
+    // Juntar o pedido feito sem conta: código por email (Mailpit).
+    cy.get('[data-cy="claim-requests"]').should("contain.text", `Tem 1 pedido feito sem conta com o email ${email}`);
+    cy.contains("button", "Juntar à minha conta").click();
+    cy.contains(`Enviámos um código de 6 algarismos para ${email}`).should("be.visible");
+    waitForEmail(email, /Código para juntar os seus pedidos/).then((message) => {
+      const code = /\d{6}/.exec(message.Subject)![0];
+      cy.get('[data-cy="claim-requests"]').within(() => {
+        field("Código do email").type(code);
+        cy.contains("button", "Confirmar").click();
+      });
+    });
+    cy.contains("1 pedido juntado à sua conta.").should("be.visible");
+    cy.get("@guestReference").then((reference) => cy.contains(String(reference)).should("be.visible"));
+    cy.get('[data-cy="claim-requests"]').should("not.exist");
+    cy.screenshot("19-pedidos-juntados", { capture: "fullPage" });
 
     // A conta de demonstração entra direto na área do cliente.
     cy.clearLocalStorage();
