@@ -207,6 +207,37 @@ describe("pedido de envio pelo cliente", () => {
     cy.screenshot("17-remetente-da-conta", { capture: "fullPage" });
   });
 
+  it("creates a customer account from the sign-in screen and opens the customer area", () => {
+    const email = `conta.${Date.now()}@example.pt`;
+    cy.visit("/login");
+    cy.contains("a", "Criar conta de cliente").click();
+    cy.location("pathname", { timeout: 60_000 }).should("eq", "/criar-conta");
+    cy.get('[data-cy="sign-up-form"]').within(() => {
+      field("Nome").type("Lúcia Fortes");
+      field("Email").type(email);
+      field("Telefone").clear().type("+33 6 12 34 56 78");
+      field("Palavra-passe").type("segredo123");
+      field("Confirmar palavra-passe").type("segredo124");
+      cy.contains("button", "Criar conta").click();
+      cy.contains("As palavras-passe não coincidem.").should("be.visible");
+      field("Confirmar palavra-passe").clear().type("segredo123");
+      cy.contains("button", "Criar conta").click();
+    });
+    cy.location("pathname", { timeout: 60_000 }).should("eq", "/cliente");
+    cy.contains("Ainda não tem pedidos").should("be.visible");
+    cy.screenshot("18-conta-de-cliente-criada", { capture: "fullPage" });
+
+    // A conta de demonstração entra direto na área do cliente.
+    cy.clearLocalStorage();
+    cy.clearCookies();
+    cy.visit("/login");
+    cy.get('[data-cy="login-form"]').should("have.attr", "data-hydrated", "true");
+    cy.get("#email").type("cliente@portus.cv");
+    cy.get("#password").type(demoPassword);
+    cy.contains("button", "Entrar").click();
+    cy.location("pathname", { timeout: 60_000 }).should("eq", "/cliente");
+  });
+
   it("emails the guest a personal link to view and cancel the request", () => {
     const email = `rosa.${Date.now()}@example.pt`;
     cy.contains("label", "Caixa ou encomenda").click();
