@@ -1,4 +1,4 @@
-import { apiDownload, apiRequest } from "@/lib/api-client";
+import { apiDownload, apiRequest, saveFile } from "@/lib/api-client";
 
 export type AuditCategory = "change" | "session" | "access" | "refusal";
 export type AuditOutcome = "success" | "denied" | "failed";
@@ -55,8 +55,9 @@ export function listAudit(filters: AuditFilters & { page: number; pageSize: numb
 }
 
 /** CSV com os mesmos filtros (abre no Excel); a exportação também fica registada. */
-export function exportAudit(filters: AuditFilters) {
-  return apiDownload(`/audit/export?${filterParams(filters)}`, `registo-de-atividade-${new Date().toISOString().slice(0, 10)}.csv`);
+export async function exportAudit(filters: AuditFilters) {
+  const { blob, fileName } = await apiDownload(`/audit/export?${filterParams(filters)}`, `registo-de-atividade-${new Date().toISOString().slice(0, 10)}.csv`);
+  saveFile(blob, fileName);
 }
 
 export const auditCategoryLabels: Record<AuditCategory, string> = {
