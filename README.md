@@ -58,6 +58,7 @@ apenas conveniência.
 | `/agencia/importar` (importar listas .xlsx/.csv) | **API** |
 | `/agencia/contentores`, `/agencia/viagens` (consolidação, viagens, manifestos) | **API** |
 | `/cv/chegadas`, `/alfandega`, `/portaria`, `/admin/tarifas` | **API** |
+| `/agencia-cv` (agência em Cabo Verde), `/admin/agencias` | **API** |
 | `/pedido/[token]` (link do email), `/register` (pedir acesso) | **API** |
 | `/dashboard`, `/admin/users`, `/admin/auditoria`, `/admin/problemas` | **API** |
 | Lista de agências no assistente | **API** |
@@ -106,6 +107,9 @@ Criadas pelo `npm run db:seed` do backend. Palavra-passe: a de `SEED_DEMO_PASSWO
 | `terminal@portus.cv` | operador do terminal (Praia) | `/cv/chegadas` |
 | `alfandega@portus.cv` | Alfândega (Praia) | `/alfandega` |
 | `portaria@portus.cv` | portaria (Praia) | `/portaria` |
+| `agencia.praia@portus.cv` | agência em Cabo Verde (Morabeza Praia: Santiago, Maio, Fogo, Brava) | `/agencia-cv` |
+| `agencia.mindelo@portus.cv` | agência em Cabo Verde (Morabeza Mindelo: Barlavento e Sal, Boa Vista) | `/agencia-cv` |
+| `cliente@portus.cv` | cliente (Rosa Tavares) | `/cliente` |
 | `joao@portus.cv` | administrador (vê todas as agências) | `/admin/users`, `/agencia/pedidos` |
 | `ana@portus.cv` | exportador | `/exporter/dashboard` |
 | `carla@portus.cv` | agente marítimo | `/cv/navios` |
@@ -132,6 +136,7 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/agencia/encomendas/[id]` | agente, admin | Detalhe, volumes, validar, cancelar |
 | `/agencia/encomendas/[id]/editar` | agente, admin | Editar dados de um rascunho |
 | `/agencia/encomendas/[id]/etiquetas` | agente, admin | Etiquetas QR para imprimir (uma por volume) |
+| `/agencia/encomendas/[id]/comprovativo` | agente, admin | Comprovativo de envio para o remetente, com a agência em Cabo Verde e o código de levantamento (também vai por email) |
 | `/agencia/importar` | agente, transitário, admin | Importar lista .xlsx/.csv: escolher colunas, pré-visualizar erros e duplicados, importar (há um modelo CSV para descarregar) |
 | `/agencia/contentores` | transitário, admin | Contentores: lista, pesquisa (nº, BL, selo), registo com validação ISO 6346 |
 | `/agencia/contentores/[id]` | transitário, admin | Ler QR (leitor tipo teclado ou código), BL Master, capacidade, retirar volumes, selar, reabrir, lista de carga |
@@ -142,6 +147,10 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/alfandega` · `/alfandega/viagens/[id]` | Alfândega, admin | Validar/rejeitar manifestos; por encomenda: sugestão de canal, canal, reter, libertar com direitos |
 | `/portaria` | portaria, admin | Procurar por código/QR, taxas, pagamento, isenção, terceiros autorizados, entrega com documento, QR e código ou assinatura |
 | `/portaria/gate-pass/[id]` | portaria, admin | Gate Pass para imprimir |
+| `/agencia-cv` | agência em Cabo Verde, admin | Encomendas pequenas por etapa (liberadas, a caminho, na agência, entregues, no porto): levantar no porto em lote, receber na agência pelo QR |
+| `/agencia-cv/entregar` | agência em Cabo Verde, admin | Procurar pelo QR do comprovativo ou código, cobrar as taxas, entregar ao destinatário (documento ou NIF) ou a outra pessoa com o código e o documento do destinatário |
+| `/agencia-cv/entregas/[id]` | agência em Cabo Verde, admin | Comprovativo de entrega `ENT-…` para imprimir e assinar |
+| `/admin/agencias` · `/admin/agencias/nova` · `/admin/agencias/[id]` | admin | Agências de origem e em Cabo Verde, ilhas, tipos de carga e ligações entre elas |
 | `/admin/tarifas` | admin | Tarifas, dias grátis de armazenagem e prazo de abandono (BR 25), com "Verificar agora" |
 | `/admin/users` · `/admin/users/nova` · `/admin/users/[id]` | admin | Utilizadores e pedidos de acesso: aprovar com agência ou porto, criar conta da equipa, bloquear, repor palavra-passe |
 | `/admin/auditoria` | admin | Auditoria com filtros e o antes e depois de cada alteração |
@@ -178,11 +187,15 @@ No terminal do VS Code, o Cypress precisa de `ELECTRON_RUN_AS_NODE` removido:
   - lista CSV com `;` → mapeamento sugerido → pré-visualização com uma linha errada → importar a válida;
   - contentor com dígito ISO 6346 errado e depois certo → BL Master → leitura do QR (e leitura repetida) → selar
     bloqueado por volume sem BL → associar → selar → viagem a 48 h com alerta → manifesto → envio → partida;
-  - chegada → conferência por QR com localização → excesso registado → fecho → Alfândega valida o manifesto, canal
-    verde, liberta com direitos → portaria paga, lê os QR, código de levantamento → Gate Pass;
+  - chegada de uma mudança → conferência por QR com localização → excesso registado → fecho → Alfândega valida o
+    manifesto, canal verde, liberta com direitos → portaria paga, lê os QR, código de levantamento → Gate Pass;
+  - encomenda pequena para Santiago → comprovativo com o código e email ao remetente → agência em Cabo Verde levanta
+    no porto, recebe pelo QR → cobra as taxas → código errado recusado → entrega a outra pessoa com o comprovativo →
+    comprovativo de entrega `ENT-…`;
   - recolha no terreno com OCR simulado (o Cypress injeta um resultado fixo de OCR);
   - pedido com email → o email chega ao **Mailpit** → link pessoal → cancelar; cancelar com conta;
-  - pedido seguido pela API até "Em viagem" e "Pronta para levantar" na página do link (código `LEV-…`);
+  - pedido seguido pela API até "Em viagem", "Liberada pela Alfândega" e "Pronta para levantar na agência" na
+    página do link (código `LEV-…` e morada da agência);
   - pedir acesso → administrador aprova com o porto → email → entrar; conta da equipa com palavra-passe temporária;
     auditoria filtrada pela aprovação; painel;
   - reportar problema com captura de ecrã → o administrador vê a captura e resolve;
