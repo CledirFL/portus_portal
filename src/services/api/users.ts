@@ -15,6 +15,8 @@ export interface ManagedUser {
   accessNote: string | null;
   agency: { id: string; code: string; name: string; city: string } | null;
   port: { id: string; code: string; name: string; island: string } | null;
+  /** Perfil de administração (só no admin da plataforma). */
+  adminProfile: { id: string; name: string } | null;
   lastLoginAt: string | null;
   createdAt: string;
 }
@@ -31,6 +33,7 @@ export interface StaffUserInput {
   role: Role;
   agencyId?: string | null;
   portId?: string | null;
+  adminProfileId?: string | null;
 }
 
 export const userStatusLabels: Record<UserStatus, string> = {
@@ -42,7 +45,9 @@ export const userStatusLabels: Record<UserStatus, string> = {
 /** Perfis da equipa e o âmbito que cada um exige (o servidor volta a validar). */
 export const agencyRoles: Role[] = ["agente_recolha", "transitario", "agente_destino"];
 export const portRoles: Role[] = ["agente_maritimo", "cv_operator", "alfandega", "portaria"];
-export const staffRoles: Role[] = [...agencyRoles, ...portRoles, "exporter", "admin"];
+export const staffRoles: Role[] = [...agencyRoles, ...portRoles, "exporter", "admin", "super_admin"];
+/** Contas de administração: só o super admin as cria, altera ou bloqueia. */
+export const administrationRoles: Role[] = ["admin", "super_admin"];
 
 export function scopeForRole(role: Role): "agency" | "port" | "none" {
   if (agencyRoles.includes(role)) return "agency";

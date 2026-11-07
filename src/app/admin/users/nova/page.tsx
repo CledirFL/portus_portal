@@ -10,7 +10,7 @@ import { TemporaryPassword } from "@/modules/admin/temporary-password";
 import { fieldErrors, toStaffInput, UserFields, type UserFormValues } from "@/modules/admin/user-form";
 import { createUser, type ManagedUser } from "@/services/api/users";
 
-const empty: UserFormValues = { name: "", email: "", phone: "", role: "agente_recolha", agencyId: "", portId: "" };
+const empty: UserFormValues = { name: "", email: "", phone: "", role: "agente_recolha", agencyId: "", portId: "", adminProfileId: "" };
 
 export default function NewUserPage() {
   const [values, setValues] = useState(empty);

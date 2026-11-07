@@ -17,6 +17,8 @@ export function roleLabel(role: Role | string) {
 export function userScopeLabel(user: ManagedUser) {
   if (user.agency) return `${user.agency.name} (${user.agency.city})`;
   if (user.port) return `${user.port.name}, ${user.port.island}`;
+  if (user.role === "super_admin") return "Toda a plataforma";
+  if (user.role === "admin") return user.adminProfile ? `Perfil: ${user.adminProfile.name}` : "sem perfil de administração";
   const scope = scopeForRole(user.role);
   if (scope === "agency") return "sem agência";
   if (scope === "port") return "sem porto";

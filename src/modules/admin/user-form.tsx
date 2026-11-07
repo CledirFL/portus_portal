@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { ApiError } from "@/lib/api-client";
 import { roleLabels } from "@/lib/permissions";
-import { getUserScopes, scopeForRole, staffRoles, type StaffUserInput, type UserScopes } from "@/services/api/users";
+import { type AdminProfile, listAdminProfiles } from "@/services/api/admin-profiles";
+import { administrationRoles, getUserScopes, scopeForRole, staffRoles, type StaffUserInput, type UserScopes } from "@/services/api/users";
+import { useAuthStore } from "@/store/auth-store";
 import type { Role } from "@/types/user";
 
 export interface UserFormValues {
@@ -15,6 +17,7 @@ export interface UserFormValues {
   role: Role;
   agencyId: string;
   portId: string;
+  adminProfileId: string;
 }
 
 /** Valores do formulário prontos para a API: só a agência ou o porto que o perfil exige. */
@@ -27,6 +30,7 @@ export function toStaffInput(values: UserFormValues): StaffUserInput {
     role: values.role,
     agencyId: scope === "agency" ? values.agencyId || null : null,
     portId: scope === "port" ? values.portId || null : null,
+    adminProfileId: values.role === "admin" ? values.adminProfileId || null : null,
   };
 }
 
@@ -47,12 +51,20 @@ interface UserFieldsProps {
 
 export function UserFields({ values, onChange, errors, emailLocked = false, roles = staffRoles }: UserFieldsProps) {
   const [scopes, setScopes] = useState<UserScopes | null>(null);
+  const [profiles, setProfiles] = useState<AdminProfile[] | null>(null);
+  // Só o super admin cria ou muda contas de administração (e escolhe o perfil de administração).
+  const isOwner = useAuthStore((state) => state.user?.role === "super_admin");
+  const allowedRoles = isOwner ? roles : roles.filter((role) => !administrationRoles.includes(role));
   const scope = scopeForRole(values.role);
   const set = (patch: Partial<UserFormValues>) => onChange({ ...values, ...patch });
 
   useEffect(() => {
     void getUserScopes().then(setScopes).catch(() => setScopes({ agencies: [], ports: [] }));
   }, []);
+
+  useEffect(() => {
+    if (isOwner) void listAdminProfiles().then(setProfiles).catch(() => setProfiles([]));
+  }, [isOwner]);
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -71,7 +83,7 @@ export function UserFields({ values, onChange, errors, emailLocked = false, role
         value={values.role}
         onChange={(event) => set({ role: event.target.value as Role })}
         // O perfil atual aparece sempre, mesmo fora da lista, para o campo nunca ficar em branco.
-        options={(roles.includes(values.role) ? roles : [values.role, ...roles]).map((role) => ({ value: role, label: roleLabels[role] ?? role }))}
+        options={(allowedRoles.includes(values.role) ? allowedRoles : [values.role, ...allowedRoles]).map((role) => ({ value: role, label: roleLabels[role] ?? role }))}
         error={errors.role}
       />
       {scope === "agency" ? (
@@ -87,6 +99,18 @@ export function UserFields({ values, onChange, errors, emailLocked = false, role
             })),
           ]}
           error={errors.agencyId}
+        />
+      ) : null}
+      {values.role === "admin" && isOwner ? (
+        <Select
+          label="Perfil de administração"
+          value={values.adminProfileId}
+          onChange={(event) => set({ adminProfileId: event.target.value })}
+          options={[
+            { value: "", label: profiles ? "Escolha o perfil de administração" : "A carregar…" },
+            ...(profiles ?? []).map((profile) => ({ value: profile.id, label: profile.name })),
+          ]}
+          error={errors.adminProfileId}
         />
       ) : null}
       {scope === "port" ? (

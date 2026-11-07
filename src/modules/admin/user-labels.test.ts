@@ -13,6 +13,7 @@ const user = (patch: Partial<ManagedUser>): ManagedUser => ({
   accessNote: null,
   agency: null,
   port: null,
+  adminProfile: null,
   lastLoginAt: null,
   createdAt: "2026-11-05T00:00:00.000Z",
   ...patch,
@@ -22,7 +23,10 @@ describe("user labels", () => {
   it("says what is missing before approval and where the person works after", () => {
     expect(userScopeLabel(user({ role: "alfandega" }))).toBe("sem porto");
     expect(userScopeLabel(user({ role: "transitario" }))).toBe("sem agência");
-    expect(userScopeLabel(user({ role: "admin" }))).toBe("—");
+    expect(userScopeLabel(user({ role: "exporter" }))).toBe("—");
+    expect(userScopeLabel(user({ role: "admin" }))).toBe("sem perfil de administração");
+    expect(userScopeLabel(user({ role: "admin", adminProfile: { id: "p", name: "Governo — supervisão" } }))).toBe("Perfil: Governo — supervisão");
+    expect(userScopeLabel(user({ role: "super_admin" }))).toBe("Toda a plataforma");
     expect(userScopeLabel(user({ role: "agente_maritimo", port: { id: "p", code: "CVRAI", name: "Porto da Praia", island: "Santiago" } }))).toBe(
       "Porto da Praia, Santiago",
     );
