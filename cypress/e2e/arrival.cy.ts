@@ -33,16 +33,16 @@ function logIn(email: string, landing: string) {
   cy.location("pathname", { timeout: 60_000 }).should("eq", landing);
 }
 
-/** Pela API (B3–B5): encomenda validada, contentor selado, viagem para a Praia com manifesto enviado e partida. */
+/** Pela API (B3–B5): mudança validada (carga que se levanta no porto; as encomendas pequenas vão para a agência), contentor selado, contentor selado, viagem para a Praia com manifesto enviado e partida. */
 function departedVoyage(suffix: string, vessel: string) {
   return cy.request("POST", `${apiUrl}/auth/login`, { email: "transitario@portus.cv", password: demoPassword }).then((login) => {
     const headers = { authorization: `Bearer ${login.body.accessToken as string}` };
     const call = (method: string, url: string, body?: object) => cy.request({ method, url: `${apiUrl}${url}`, headers, body });
     return call("POST", "/shipments", {
-      category: "encomenda_pequena",
+      category: "mudanca",
       dispatchCountry: "PT",
-      description: "Roupa e alimentos",
-      details: {},
+      description: "Mudança: roupa e alimentos",
+      details: { inventory: "Roupa (12,5 kg) e alimentos (7 kg)", declaredValue: "300" },
       sender: { name: "Rosa Tavares", phone: `+351 914 ${suffix.slice(0, 3)} ${suffix.slice(3)}` },
       recipient: { name: "Maria Lopes", phone: "+238 991 22 33", island: "Santiago", nif: "123456789", documentType: "CNI", documentNumber: `A${suffix}` },
       volumes: [
