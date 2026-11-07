@@ -47,6 +47,17 @@ A API está no repositório [`portus_service`](../portus_service). O plano de me
 As permissões são aplicadas **no servidor** (perfil e agência). O menu e os redirecionamentos do frontend são
 apenas conveniência.
 
+### Administração
+
+- **Super admin** (`super_admin`): vê todos os menus da administração, incluindo **Perfis de administração** e
+  **Bloqueios**, e opera em todas as etapas.
+- **Administrador da plataforma** (`admin`, ex.: Governo): vê só os menus das permissões do seu perfil de
+  administração (`permissions` na sessão, `navigationFor` em `src/lib/permissions.ts`). Nas operações está em
+  **modo de consulta**: as ações ficam escondidas (`OperateOnly`, `useReadOnly`) e aparece um aviso no topo; a API
+  recusa qualquer escrita.
+- Quando o super admin para um processo ou põe a plataforma em manutenção, o portal mostra o aviso no topo
+  (`GET /api/platform/status`).
+
 ### O que já usa a API e o que ainda é simulado
 
 | Área | Fonte de dados |
@@ -60,7 +71,7 @@ apenas conveniência.
 | `/cv/chegadas`, `/alfandega`, `/portaria`, `/admin/tarifas` | **API** |
 | `/agencia-cv` (agência em Cabo Verde), `/admin/agencias` | **API** |
 | `/pedido/[token]` (link do email), `/register` (pedir acesso) | **API** |
-| `/dashboard`, `/admin/users`, `/admin/auditoria`, `/admin/problemas` | **API** |
+| `/dashboard`, `/admin/users`, `/admin/auditoria`, `/admin/problemas`, `/admin/perfis`, `/admin/bloqueios` | **API** |
 | Lista de agências no assistente | **API** |
 | `/agent/collections` (recolha no terreno, OCR) | IndexedDB do navegador (passa para a API na fase B7) |
 | Outras páginas `/cv/*` (navios, contra-marca, gate-pass, conferência antigos) | Dados de exemplo (`src/mocks`), fora de todos os menus |
@@ -110,7 +121,8 @@ Criadas pelo `npm run db:seed` do backend. Palavra-passe: a de `SEED_DEMO_PASSWO
 | `agencia.praia@portus.cv` | agência em Cabo Verde (Morabeza Praia: Santiago, Maio, Fogo, Brava) | `/agencia-cv` |
 | `agencia.mindelo@portus.cv` | agência em Cabo Verde (Morabeza Mindelo: Barlavento e Sal, Boa Vista) | `/agencia-cv` |
 | `cliente@portus.cv` | cliente (Rosa Tavares) | `/cliente` |
-| `joao@portus.cv` | administrador (vê todas as agências) | `/admin/users`, `/agencia/pedidos` |
+| `joao@portus.cv` | super admin (tudo, incluindo perfis de administração e bloqueios) | `/dashboard` |
+| `governo@portus.cv` | administrador da plataforma, perfil "Governo — supervisão" (painel, registo de atividade, operações em consulta) | `/dashboard` |
 | `ana@portus.cv` | exportador | `/exporter/dashboard` |
 | `carla@portus.cv` | agente marítimo | `/cv/navios` |
 
@@ -152,8 +164,10 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/agencia-cv/entregas/[id]` | agência em Cabo Verde, admin | Comprovativo de entrega `ENT-…` para imprimir e assinar |
 | `/admin/agencias` · `/admin/agencias/nova` · `/admin/agencias/[id]` | admin | Agências de origem e em Cabo Verde, ilhas, tipos de carga e ligações entre elas |
 | `/admin/tarifas` | admin | Tarifas, dias grátis de armazenagem e prazo de abandono (BR 25), com "Verificar agora" |
-| `/admin/users` · `/admin/users/nova` · `/admin/users/[id]` | admin | Utilizadores e pedidos de acesso: aprovar com agência ou porto, criar conta da equipa, bloquear, repor palavra-passe |
-| `/admin/auditoria` | admin | Auditoria com filtros e o antes e depois de cada alteração |
+| `/admin/users` · `/admin/users/nova` · `/admin/users/[id]` | admin (Utilizadores) | Utilizadores e pedidos de acesso: aprovar com agência ou porto, criar conta da equipa, bloquear, repor palavra-passe; as contas de administração (e o perfil de administração) só o super admin |
+| `/admin/perfis` | super admin | Perfis de administração: nome, descrição e permissões; contas que os usam |
+| `/admin/bloqueios` | super admin | Parar processos (novos pedidos, validação, partida, libertação, entregas), modo de manutenção, suspender agências e portos |
+| `/admin/auditoria` | admin (Registo de atividade) | Registo de atividade: alterações, sessões, consultas e recusas, com filtros por tipo, resultado, perfil, IP e datas; pedido, IP, navegador e o antes e depois; exportar CSV |
 | `/admin/problemas` | admin | Problemas reportados pela equipa: captura, estado e resposta |
 | `/dashboard` | admin | Painel: volumes por estado, retidos, a chegar, manifestos em atraso, por levantar, pagamentos |
 | `/exportador` | exportador | Área ainda por fazer (os ecrãs de demonstração foram retirados) |
@@ -199,6 +213,9 @@ No terminal do VS Code, o Cypress precisa de `ELECTRON_RUN_AS_NODE` removido:
   - pedir acesso → administrador aprova com o porto → email → entrar; conta da equipa com palavra-passe temporária;
     auditoria filtrada pela aprovação; painel;
   - reportar problema com captura de ecrã → o administrador vê a captura e resolve;
+  - super admin cria um perfil de administração e uma conta de admin com ele → o admin vê só esses menus, as
+    operações em modo de consulta, e não entra em Perfis nem Bloqueios → registo de atividade com a entrada falhada,
+    filtros e CSV → super admin para os novos pedidos e o aviso aparece no portal;
   - criar conta de cliente no ecrã de entrada → juntar um pedido feito antes sem conta com o código do email;
   - remetente preenchido com os dados da conta (exportador) e editável.
 

@@ -19,7 +19,8 @@ Legenda:
 2. [Visão geral do processo](#2-visão-geral-do-processo): etapas, estados e menus de cada perfil
 3. [Etapas no país de envio](#3-etapas-no-país-de-envio): pedido, agência, encomenda, contentor, viagem
 4. [Etapas em Cabo Verde](#4-etapas-em-cabo-verde): chegada, Alfândega, levantamento no porto, agência em Cabo Verde
-5. [Administração](#5-administração-): painel, utilizadores, agências, auditoria, tarifas, problemas reportados
+5. [Administração](#5-administração-): super admin e administrador da plataforma, perfis de administração, painel,
+   utilizadores, agências, registo de atividade, tarifas, problemas reportados, bloqueios
 6. [Casos especiais a testar](#6-casos-especiais-a-testar)
 7. [O que ainda não existe](#7-o-que-ainda-não-existe-não-registar-como-erro)
 8. [Teste de ponta a ponta](#8-teste-de-ponta-a-ponta-cerca-de-30-minutos)
@@ -56,7 +57,8 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas do porto estão no **
 | `portaria@portus.cv` | Portaria | Porto da Praia | Levantamentos |
 | `agencia.praia@portus.cv` | Agência em Cabo Verde (Edna Tavares) | Morabeza Praia: Santiago, Maio, Fogo, Brava | Encomendas a entregar |
 | `agencia.mindelo@portus.cv` | Agência em Cabo Verde (Hélio Lima) | Morabeza Mindelo: São Vicente, Santo Antão, São Nicolau, Sal, Boa Vista | Encomendas a entregar |
-| `joao@portus.cv` | Administrador | Todas as agências e portos | Utilizadores |
+| `joao@portus.cv` | Super admin (dono da plataforma) | Tudo, incluindo administradores, perfis e bloqueios | Painel geral |
+| `governo@portus.cv` | Administrador da plataforma (Marta Lopes), perfil "Governo — supervisão" | Painel, registo de atividade e operações **só em consulta** | Painel geral |
 | `ana@portus.cv` | Exportador | — | Área em preparação ⏳ |
 | `bruno@portus.cv` | Transitário | — | Pedido de acesso em revisão: **não entra** até o administrador o aprovar |
 | `duarte@portus.cv` | Operador do terminal | — | Conta bloqueada: **não entra** |
@@ -113,7 +115,7 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas do porto estão no **
 | 10 | Agência em Cabo Verde (encomendas pequenas) | Agência em Cabo Verde | **A caminho da agência → Na agência → Entregue** | ✅ |
 | — | Carga não levantada no prazo | Automático (prazo nas Tarifas) | **Abandonado** | ✅ |
 | — | Acompanhamento e emails | Cliente | — | ✅ até à entrega |
-| — | Administração | Administrador | — | ✅ |
+| — | Administração, registo de atividade e bloqueios | Super admin / administrador da plataforma | — | ✅ |
 
 > **Encomendas pequenas e carga grande.** As **encomendas pequenas** (caixas) são entregues por uma **agência em
 > Cabo Verde** ligada à agência de envio: depois da Alfândega, a agência levanta-as no porto, leva-as para as suas
@@ -139,7 +141,8 @@ Cada conta vê só o que lhe diz respeito. Toda a equipa tem também o botão **
 | Alfândega | Despacho aduaneiro |
 | Portaria | Levantamentos |
 | Agência em Cabo Verde | Encomendas a entregar · Entregar ao destinatário |
-| Administrador | Painel geral · Utilizadores · Agências · Pedidos de clientes · Encomendas · Importar lista · Contentores · Viagens e manifestos · Chegadas e conferência · Despacho aduaneiro · Levantamentos · Agências em Cabo Verde · Tarifas · Auditoria · Problemas reportados |
+| Super admin | Painel geral · Utilizadores · Perfis de administração · Agências · Pedidos de clientes · Encomendas · Importar lista · Contentores · Viagens e manifestos · Chegadas e conferência · Despacho aduaneiro · Levantamentos · Agências em Cabo Verde · Tarifas · Registo de atividade · Problemas reportados · Bloqueios |
+| Administrador da plataforma | Só os menus das permissões do seu perfil de administração (ex.: "Governo — supervisão": Painel geral · as operações em consulta · Registo de atividade) |
 | Exportador | Início (área em preparação ⏳) |
 
 ---
@@ -492,7 +495,26 @@ separadores mostram cada etapa, com o número de encomendas: **Liberadas no port
 
 ## 5. Administração ✅
 
-**Quem:** `joao@portus.cv`. Tem todos os menus das etapas, em todas as agências e portos, e ainda:
+Há dois níveis de administração:
+
+| | Super admin (`joao@portus.cv`) | Administrador da plataforma (`governo@portus.cv`) |
+|---|---|---|
+| Quem é | Os donos do Portus | Quem supervisiona, ex.: um agente do Governo |
+| Operações (encomendas, contentores, Alfândega…) | Vê e faz tudo, em todas as agências e portos | **Só consulta**: as ações ficam escondidas e aparece o aviso "Modo de consulta" |
+| Áreas de administração | Todas | Só as do seu **perfil de administração** |
+| Administradores, perfis de administração e bloqueios | ✅ | ❌ |
+
+### Perfis de administração (`/admin/perfis`) — só super admin
+Cada perfil tem um nome, uma descrição e as **permissões**: Painel geral · Registo de atividade · Problemas reportados ·
+Utilizadores da equipa (sem administradores) · Agências e ligações · Tarifas e prazo de abandono · Consultar as
+operações. O perfil dá-se à conta em **Utilizadores** (perfil **Administrador da plataforma** → campo **Perfil de
+administração**). Mudar as permissões vale logo no pedido seguinte.
+- ☐ Crie um perfil só com "Painel geral" e "Consultar as operações", dê-o a uma conta nova e entre com ela: só vê o
+  painel e as operações, com o aviso "Modo de consulta" e sem botões de ação.
+- ☐ Com essa conta, abrir `/admin/bloqueios` ou `/admin/users` pelo endereço leva a "sem permissão".
+- ☐ Um perfil em uso não se apaga: a mensagem diz quantas contas o têm.
+- ☐ Acrescente "Utilizadores" ao perfil: a conta passa a ver Utilizadores, mas não consegue criar nem alterar contas de
+  administração ("Só o super admin gere contas de administração.").
 
 ### Painel geral (`/dashboard`)
 Pedidos por tratar, carga por levantar (quantos volumes já pagam armazenagem e quantos estão perto do abandono),
@@ -515,6 +537,8 @@ encomendas dos últimos 30 dias por agência e por país.
 - ☐ Uma conta bloqueada deixa de conseguir entrar.
 - ☐ Depois de repor, a palavra-passe antiga deixa de funcionar.
 - ☐ Não consegue bloquear a sua própria conta.
+- ☐ Só o super admin vê os perfis **Administrador da plataforma** e **Super admin** ao criar uma conta; um admin não
+  altera, não bloqueia nem repõe a palavra-passe de uma conta de administração.
 
 ### Agências (`/admin/agencias`)
 - **Agências de envio:** país de onde envia, cidade, contactos, ilhas e tipos de carga que aceitam, se fazem recolha.
@@ -526,10 +550,22 @@ encomendas dos últimos 30 dias por agência e por país.
   para as ilhas que serve.
 - ☐ Sem ligações, as encomendas pequenas dessa agência levantam-se no porto.
 
-### Auditoria (`/admin/auditoria`)
-Todas as alterações, de todos os perfis: quem, quando, a ação e o registo. Clique numa linha para ver o **antes e o
-depois** de cada campo. Filtra por tipo de registo, ação (ex.: `shipment.validate`), pessoa e dias.
+### Registo de atividade (`/admin/auditoria`)
+Quem fez o quê e quando. Ninguém o pode alterar ou apagar, nem o super admin. Regista quatro tipos:
+- **Alteração:** cada ação das etapas (ex.: `shipment.validate`), com o **antes e o depois** de cada campo.
+- **Sessão:** entradas, **entradas falhadas** (com o email tentado), contas bloqueadas a tentar entrar e saídas.
+- **Consulta:** quem abriu dados pessoais ou descarregou documentos (encomenda, levantamento, Gate Pass, etiquetas,
+  comprovativos, manifestos, listas de carga, fotografias, contas) e a própria exportação do registo.
+- **Recusa:** acessos negados e tentativas erradas (código de levantamento, documento ou NIF, etiqueta falsa, link
+  alterado, código para juntar pedidos).
+
+Cada linha diz o perfil que a pessoa tinha na altura e o resultado (Feito, Recusado, Falhado). Clique numa linha
+para ver o pedido, o **IP** e o **navegador**. Filtra por tipo, resultado, registo, perfil, pessoa, ação, IP e
+datas; **Exportar CSV** descarrega o que está filtrado (abre no Excel).
 - ☐ Cada ação feita nas etapas aparece aqui com o seu nome.
+- ☐ Entre com uma palavra-passe errada: aparece "Entrada falhada" com o email e o IP.
+- ☐ Abra uma encomenda: aparece "Abriu a encomenda" (tipo Consulta).
+- ☐ O CSV exportado tem as mesmas linhas do filtro.
 
 ### Tarifas e prazo de abandono (`/admin/tarifas`)
 - **Tarifas:** manuseamento por volume, armazenagem por dia e dias grátis.
@@ -542,6 +578,19 @@ depois** de cada campo. Filtra por tipo de registo, ação (ex.: `shipment.valid
 ### Problemas reportados (`/admin/problemas`)
 O que a equipa reportou com o botão **Reportar problema**: tipo, prioridade, descrição, página, navegador e captura
 de ecrã. Mude o estado (Novo, Em análise, Resolvido, Não é erro) e escreva uma nota.
+
+### Bloqueios (`/admin/bloqueios`) — só super admin
+- **Processos:** parar, em toda a plataforma, os **novos pedidos de clientes**, a **validação de encomendas**, a
+  **partida de navios**, a **libertação na Alfândega** ou as **entregas** (portaria e agências em Cabo Verde), com um
+  aviso. Quem tentar vê o aviso; a equipa vê-o também no topo do portal. **Retomar** volta ao normal.
+- **Modo de manutenção:** ninguém trabalha nem entra (nem os clientes), só o super admin.
+- **Agências e portos:** suspender com motivo. As contas dessa agência ou porto deixam de trabalhar (e de entrar),
+  e a agência sai de Enviar encomenda e da escolha da agência em Cabo Verde.
+- O super admin nunca fica bloqueado e tudo fica no registo de atividade.
+- ☐ Pare os novos pedidos: em `/enviar` o pedido não é aceite e aparece o aviso; retome e volta a funcionar.
+- ☐ Ponha em manutenção: `agente@portus.cv` não consegue entrar e vê o aviso; `joao@portus.cv` entra. **Retome no fim.**
+- ☐ Suspenda a agência de Lisboa: o agente vê "A sua agência está suspensa" com o motivo e a agência sai da lista de
+  Enviar encomenda. **Reative no fim.**
 
 ---
 
@@ -570,6 +619,12 @@ de ecrã. Mude o estado (Novo, Em análise, Resolvido, Não é erro) e escreva u
 | Link falsificado | Mudar uma letra do link `/pedido/…` | "Este link não é válido" |
 | Aprovação sem âmbito (BR 28) | Aprovar um pedido de acesso da Alfândega sem escolher o porto | "Escolha o porto deste utilizador." |
 | Abandono (BR 25) | Prazo curto e **Verificar agora** | Aviso por email uma só vez; depois Abandonado |
+| Modo de consulta | Com `governo@portus.cv`, abrir uma encomenda, um contentor ou a portaria | Sem botões de ação e com o aviso "Modo de consulta"; pela API, "só permite consultar" |
+| Área fora do perfil | Com `governo@portus.cv`, abrir `/admin/users` pelo endereço | Página "sem permissão" |
+| Conta de administração | Admin com "Utilizadores" tenta bloquear `joao@portus.cv` | "Só o super admin gere contas de administração." |
+| Processo parado | Super admin para as entregas; a portaria tenta entregar | O aviso escrito pelo super admin |
+| Manutenção | Super admin põe em manutenção; outra conta tenta entrar | O aviso de manutenção; o super admin entra |
+| Agência suspensa | Suspender a agência de Lisboa; `agente@portus.cv` tenta trabalhar | "A sua agência está suspensa." com o motivo |
 | Encomenda pequena no porto | Procurar na portaria uma encomenda pequena com agência em Cabo Verde | "Esta encomenda é entregue pela agência em Cabo Verde, não no porto." |
 | Duas agências na ilha | Ligar uma segunda agência que sirva Santiago e validar sem escolher | "Escolha a agência em Cabo Verde que entrega ao destinatário." |
 | Código do comprovativo errado | Entregar a outra pessoa com `LEV-ZZZZZZ` | "O código não corresponde ao comprovativo desta encomenda." |
@@ -623,7 +678,8 @@ aparecem. Para testar a portaria do porto, repita com uma **mudança** e, na lin
 | 10 | `alfandega` | Validar o manifesto; **Despachar encomendas**; **Canal verde**; **Libertar** com direitos | |
 | 11 | `agencia.praia` | **Liberadas no porto**: marcar e **Levantar no porto**; **Receber na agência**: os 2 códigos; **Na agência** → **Entregar**; **Registar pagamento**; **Outra pessoa, com o comprovativo**: `LEV-…`, NIF do destinatário, nome e documento; **Entregar** | `ENT-…` |
 | 12 | Cliente | Link do pedido: linha do tempo completa até **Entregue**; no Mailpit, os emails de cada marco | |
-| 13 | `joao` | **Auditoria**: as ações de 3 a 11; **Painel geral**: os números mudaram | |
+| 13 | `joao` | **Registo de atividade**: as ações de 3 a 11, as entradas de cada conta e as consultas; **Painel geral**: os números mudaram | |
+| 14 | `governo` | Entrar: só Painel geral, as operações e o Registo de atividade; abrir a encomenda: **Modo de consulta**, sem botões | |
 
 ---
 
@@ -670,4 +726,9 @@ ficam registados sozinhos. O administrador vê tudo em **Problemas reportados**.
 | **Comprovativo de entrega** (`ENT-…`) | Emitido pela agência em Cabo Verde na entrega, com quem levantou e os volumes. |
 | **Abandonado** | Carga liberada que não foi levantada dentro do prazo (BR 25). |
 | **Mailpit** | Caixa de correio de testes onde ficam os emails da plataforma enquanto não há um fornecedor real. |
+| **Super admin** | Os donos do Portus: fazem tudo, incluindo gerir administradores, perfis de administração e bloqueios. |
+| **Administrador da plataforma** | Quem supervisiona (ex.: Governo): usa só as áreas do seu perfil de administração e só consulta as operações. |
+| **Perfil de administração** | Conjunto de permissões criado pelo super admin e dado a cada administrador da plataforma. |
+| **Registo de atividade** | Registo imutável de quem fez o quê e quando: alterações, sessões, consultas e recusas. |
+| **Modo de manutenção** | Bloqueio do super admin em que só ele trabalha e entra na plataforma. |
 | **BR / RF** | Regras de negócio / requisitos funcionais do documento de requisitos (ex.: BR 25, RF-A36). |
