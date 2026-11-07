@@ -3,11 +3,13 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
-import { isAllowedRoute, roleLabels, roleNavigation } from "@/lib/permissions";
+import { isAllowedRoute, navigationFor, roleLabels } from "@/lib/permissions";
 import { useAuthStore } from "@/store/auth-store";
 import { logout } from "@/services/api/auth";
 import { Sidebar, findActiveNavItem } from "@/components/layout/sidebar";
 import { ReportProblem } from "@/components/layout/report-problem";
+import { PlatformStatusBanner } from "@/components/layout/platform-status";
+import { ReadOnlyBanner } from "@/components/layout/read-only";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -37,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (user && !isAllowedRoute(user.role, pathname)) {
+    if (user && !isAllowedRoute(user, pathname)) {
       router.push("/unauthorized");
     }
   }, [isHydrated, isAuthenticated, pathname, router, user]);
@@ -46,7 +48,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  const section = findActiveNavItem(roleNavigation[user.role], pathname);
+  const section = findActiveNavItem(navigationFor(user), pathname);
   const initials = user.name
     .split(" ")
     .map((part) => part[0])
@@ -92,7 +94,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <div className="mx-auto max-w-7xl p-4 sm:p-8">{children}</div>
+        <div className="mx-auto max-w-7xl p-4 sm:p-8">
+          <PlatformStatusBanner />
+          <ReadOnlyBanner pathname={pathname} />
+          {children}
+        </div>
       </main>
     </div>
   );

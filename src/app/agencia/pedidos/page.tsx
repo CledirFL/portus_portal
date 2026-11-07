@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarClock, CheckCircle2, Clock3, Inbox, PackageCheck, Phone, Truck, XCircle } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { CargoTypeIcon } from "@/components/cargo-type-icon";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { nextRequestStatuses, type RequestStatus, type ShipmentRequest } from "@
 import { RequestStatusBadge } from "@/modules/customer/components/request-status";
 import { agencyShipmentRequestAction, listAgencyShipmentRequests } from "@/services/api/shipment-requests";
 import { useAuthStore } from "@/store/auth-store";
+import { isAdminRole } from "@/lib/permissions";
 
 type AgencyTarget = Exclude<RequestStatus, "submitted">;
 
@@ -65,7 +67,7 @@ export default function AgencyRequestsPage() {
   );
   const visible = requests.filter((request) => filters.find((item) => item.key === filter)?.statuses.includes(request.status));
   const selected = requests.find((request) => request.id === selectedId) ?? visible[0];
-  const agencyName = user?.role === "admin" ? "Todas as agências" : requests[0]?.agency.name;
+  const agencyName = isAdminRole(user?.role) ? "Todas as agências" : requests[0]?.agency.name;
 
   return (
     <AppShell>
@@ -134,7 +136,7 @@ export default function AgencyRequestsPage() {
                       </span>
                       <span className="mt-0.5 block truncate text-xs text-slate-500">
                         {type.publicLabel}
-                        {user?.role === "admin" ? ` · ${request.agency.name}` : ""}
+                        {isAdminRole(user?.role) ? ` · ${request.agency.name}` : ""}
                       </span>
                     </span>
                   </button>
@@ -155,6 +157,7 @@ export default function AgencyRequestsPage() {
 
 function RequestPanel({ request, onChange }: { request: ShipmentRequest; onChange: () => void }) {
   const type = getCargoType(request.category);
+  const readOnly = useReadOnly();
   const [scheduledFor, setScheduledFor] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
@@ -272,7 +275,7 @@ function RequestPanel({ request, onChange }: { request: ShipmentRequest; onChang
         </p>
       ) : null}
 
-      {actions.length ? (
+      {actions.length > 0 && !readOnly ? (
         <div className="mt-5 space-y-3 border-t border-slate-100 pt-4">
           {actions.includes("pickup_scheduled") ? (
             <Input

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
-import { defaultRouteByRole } from "@/lib/permissions";
+import { defaultRouteFor } from "@/lib/permissions";
 import { useAuthStore } from "@/store/auth-store";
 
 const links = [
@@ -32,7 +32,7 @@ export function PublicHeader() {
             </Link>
           ))}
           <Link
-            href={user ? defaultRouteByRole[user.role] : "/login"}
+            href={user ? defaultRouteFor(user) : "/login"}
             className="ml-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-slate-800 shadow-sm hover:bg-slate-50"
           >
             {user ? "A minha área" : "Entrar"}

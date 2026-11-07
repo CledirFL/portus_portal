@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, FilePlus2, Pencil, Plus, Send, Ship, X } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -45,6 +46,7 @@ function describeError(error: unknown, fallback: string) {
 export default function VoyageDetailPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAuthStore((state) => state.user);
+  const readOnly = useReadOnly();
   const [voyage, setVoyage] = useState<Voyage | null>(null);
   const [loadError, setLoadError] = useState("");
   const [error, setError] = useState<{ message: string; items: string[] }>({ message: "", items: [] });
@@ -110,7 +112,8 @@ export default function VoyageDetailPage() {
     );
   }
 
-  const planned = voyage.status === "planned";
+  // Planeada e esta conta pode alterá-la (o admin da plataforma só consulta).
+  const planned = voyage.status === "planned" && !readOnly;
   const latest = voyage.manifests[0];
   const canSendLatest = latest && latest.status === "generated" && latest.complete && !latest.outdated;
   const unsealed = voyage.containers.filter((container) => container.status !== "sealed" && container.status !== "shipped");
@@ -254,7 +257,7 @@ export default function VoyageDetailPage() {
             title="Manifesto"
             subtitle="Cada versão guarda a carga no momento em que foi gerada (BL Master, volumes, destinatários e totais)."
             actions={
-              voyage.status !== "arrived" ? (
+              voyage.status !== "arrived" && !readOnly ? (
                 <Button
                   size="sm"
                   className="shrink-0 whitespace-nowrap"
@@ -298,7 +301,7 @@ export default function VoyageDetailPage() {
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-3">
                       <ExportButtons label="Descarregar" onExport={(format) => exportManifest(voyage, manifest, format)} />
-                      {index === 0 && canSendLatest ? (
+                      {index === 0 && canSendLatest && !readOnly ? (
                         <Button size="sm" disabled={busy} data-cy="send-manifest" onClick={() => void run(() => sendManifest(voyage.id, manifest.id), "Não foi possível registar o envio.")}>
                           <Send className="h-3.5 w-3.5" aria-hidden /> Registar envio à Alfândega e Enapor
                         </Button>
@@ -347,7 +350,7 @@ export default function VoyageDetailPage() {
                 </>
               )
             ) : (
-              <p className="text-sm text-slate-600">{voyage.departedAt ? `Partiu em ${formatDateTime(voyage.departedAt)}.` : "—"}</p>
+              <p className="text-sm text-slate-600">{voyage.departedAt ? `Partiu em ${formatDateTime(voyage.departedAt)}.` : "Ainda não partiu."}</p>
             )}
           </Card>
         </div>

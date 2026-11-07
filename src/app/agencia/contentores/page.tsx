@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { OperateOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ import { createContainer, listContainers, type ContainerSummary, type Page } fro
 import type { Agency } from "@/domain/agency";
 import { fetchAgencies } from "@/services/api/agencies";
 import { useAuthStore } from "@/store/auth-store";
+import { isAdminRole } from "@/lib/permissions";
 
 const tabs: Array<{ key: ContainerStatus | "all"; label: string }> = [
   { key: "all", label: "Todos" },
@@ -182,13 +184,15 @@ export default function ContainersPage() {
         title="Contentores"
         description="Consolide os volumes em contentores e BL Master, sele e associe a uma viagem."
         actions={
-          <Button onClick={() => setShowForm((value) => !value)} variant={showForm ? "outline" : "primary"}>
-            <Plus className="h-4 w-4" aria-hidden /> {showForm ? "Fechar" : "Novo contentor"}
-          </Button>
+          <OperateOnly>
+            <Button onClick={() => setShowForm((value) => !value)} variant={showForm ? "outline" : "primary"}>
+              <Plus className="h-4 w-4" aria-hidden /> {showForm ? "Fechar" : "Novo contentor"}
+            </Button>
+          </OperateOnly>
         }
       />
 
-      {showForm ? <NewContainerForm isAdmin={user?.role === "admin"} /> : null}
+      {showForm ? <NewContainerForm isAdmin={isAdminRole(user?.role)} /> : null}
 
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1" role="tablist">

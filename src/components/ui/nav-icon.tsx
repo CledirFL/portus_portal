@@ -9,6 +9,8 @@ import {
   FileText,
   Globe2,
   Inbox,
+  KeyRound,
+  Lock,
   Anchor,
   Receipt,
   ScanLine,
@@ -28,6 +30,8 @@ import type { NavIcon as NavIconName } from "@/types/user";
 
 const icons: Record<NavIconName, LucideIcon> = {
   bug: Bug,
+  lock: Lock,
+  key: KeyRound,
   dashboard: LayoutDashboard,
   globe: Globe2,
   building: Building2,

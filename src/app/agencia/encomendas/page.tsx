@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { OperateOnly } from "@/components/layout/read-only";
 import { CargoTypeIcon } from "@/components/cargo-type-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,11 +59,13 @@ export default function ShipmentsPage() {
         title="Encomendas"
         description="Encomendas registadas no balcão ou criadas a partir de pedidos de clientes."
         actions={
-          <Link href="/agencia/encomendas/nova">
-            <Button>
-              <Plus className="h-4 w-4" aria-hidden /> Nova encomenda
-            </Button>
-          </Link>
+          <OperateOnly>
+            <Link href="/agencia/encomendas/nova">
+              <Button>
+                <Plus className="h-4 w-4" aria-hidden /> Nova encomenda
+              </Button>
+            </Link>
+          </OperateOnly>
         }
       />
 

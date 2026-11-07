@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ type Decision = { voyageId: string; kind: "validate" | "reject"; text: string };
 
 export default function CustomsPage() {
   const user = useAuthStore((state) => state.user);
+  const readOnly = useReadOnly();
   const [voyages, setVoyages] = useState<CustomsVoyage[] | null>(null);
   const [error, setError] = useState("");
   const [decision, setDecision] = useState<Decision | null>(null);
@@ -89,7 +91,7 @@ export default function CustomsPage() {
                 {voyage.manifest?.customsNote ? <span className="text-rose-700">Motivo: {voyage.manifest.customsNote}</span> : null}
               </div>
 
-              {voyage.manifest && voyage.manifest.customsStatus !== "validated" ? (
+              {voyage.manifest && voyage.manifest.customsStatus !== "validated" && !readOnly ? (
                 decision?.voyageId === voyage.id ? (
                   <form
                     className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end"

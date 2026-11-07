@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, Pencil, Plus, Printer, Trash2, XCircle } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { CargoTypeIcon } from "@/components/cargo-type-icon";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,6 +31,7 @@ import { useAuthStore } from "@/store/auth-store";
 export default function ShipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAuthStore((state) => state.user);
+  const readOnly = useReadOnly();
   const [shipment, setShipment] = useState<Shipment | null>(null);
   const [loadError, setLoadError] = useState("");
   const [issues, setIssues] = useState<string[]>([]);
@@ -108,7 +110,8 @@ export default function ShipmentDetailPage() {
   }
 
   const type = getCargoType(shipment.category);
-  const isDraft = shipment.status === "draft";
+  // Rascunho que esta conta pode alterar (o admin da plataforma só consulta).
+  const isDraft = shipment.status === "draft" && !readOnly;
   const detailEntries = type.operatorFields.filter((field) => shipment.details[field.key]);
 
   return (
@@ -151,7 +154,7 @@ export default function ShipmentDetailPage() {
                 </Button>
               </Link>
             ) : null}
-            {shipment.status !== "cancelled" && cancelReason === null ? (
+            {shipment.status !== "cancelled" && cancelReason === null && !readOnly ? (
               <Button variant="ghost" onClick={() => setCancelReason("")}>
                 <XCircle className="h-4 w-4" aria-hidden /> Cancelar
               </Button>

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { NavIcon } from "@/components/ui/nav-icon";
-import { roleLabels, roleNavigation } from "@/lib/permissions";
+import { navigationFor, roleLabels } from "@/lib/permissions";
 import { useAuthStore } from "@/store/auth-store";
 import type { NavItem } from "@/types/user";
 
@@ -28,7 +28,7 @@ export function Sidebar() {
     return null;
   }
 
-  const items = roleNavigation[user.role];
+  const items = navigationFor(user);
   const active = findActiveNavItem(items, pathname);
 
   const nav = (

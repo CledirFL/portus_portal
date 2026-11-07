@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Anchor } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -18,6 +19,7 @@ const count = (value: number) => String(value);
 export default function ArrivalVoyagePage() {
   const { id } = useParams<{ id: string }>();
   const user = useAuthStore((state) => state.user);
+  const readOnly = useReadOnly();
   const [voyage, setVoyage] = useState<TerminalVoyage | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -58,7 +60,7 @@ export default function ArrivalVoyagePage() {
 
       <ErrorBanner message={error} />
 
-      {voyage.status === "departed" ? (
+      {voyage.status === "departed" && !readOnly ? (
         <Card title="Chegada do navio" subtitle="Quando o navio atracar e os contentores forem descarregados." className="mb-6">
           {confirming ? (
             <div className="flex flex-wrap items-center gap-3">

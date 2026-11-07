@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Lock, LockOpen, Plus, ScanLine, Trash2, Undo2 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,7 @@ function describeError(error: unknown, fallback: string) {
 export default function ContainerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAuthStore((state) => state.user);
+  const readOnly = useReadOnly();
   const [container, setContainer] = useState<Container | null>(null);
   const [loadError, setLoadError] = useState("");
   const [error, setError] = useState<{ message: string; items: string[] }>({ message: "", items: [] });
@@ -147,7 +149,8 @@ export default function ContainerDetailPage() {
     );
   }
 
-  const isOpen = container.status === "open";
+  // Aberto e esta conta pode alterá-lo (o admin da plataforma só consulta).
+  const isOpen = container.status === "open" && !readOnly;
   const blById = new Map(container.blMasters.map((bl) => [bl.id, bl]));
   const blOptions = [{ value: noBl, label: "Sem BL Master (associar depois)" }, ...container.blMasters.map((bl) => ({ value: bl.id, label: `${bl.number} (${bl.loadType})` }))];
 
@@ -413,7 +416,7 @@ export default function ContainerDetailPage() {
             </Card>
           ) : null}
 
-          {container.status === "sealed" ? (
+          {container.status === "sealed" && !readOnly ? (
             <Card title="Reabrir" subtitle="Quebra o selo. Só antes de o navio partir; o motivo fica no histórico.">
               {reopenReason === null ? (
                 <Button variant="outline" className="w-full" onClick={() => setReopenReason("")}>

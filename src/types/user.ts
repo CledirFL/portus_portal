@@ -8,7 +8,11 @@ export type Role =
   | "portaria"
   | "agente_destino"
   | "cliente"
-  | "admin";
+  | "admin"
+  | "super_admin";
+
+/** Áreas de administração (o super admin tem todas; o admin as do seu perfil de administração). */
+export type AdminPermission = "dashboard" | "activity" | "feedback" | "users" | "agencies" | "tariffs" | "operations";
 
 export type UserStatus = "active" | "review" | "blocked";
 
@@ -21,7 +25,10 @@ export interface User {
   status?: UserStatus;
   lastActive?: string;
   createdAt?: string;
+  /** Áreas de administração desta conta (AdminPermission; vazio fora da administração). */
   permissions?: string[];
+  /** Perfil de administração (só no admin). */
+  adminProfile?: { id: string; name: string } | null;
   department?: string;
   region?: string;
   /** Agência a que o utilizador pertence (âmbito de dados, BR 28). */
@@ -33,6 +40,8 @@ export interface User {
 
 export type NavIcon =
   | "bug"
+  | "lock"
+  | "key"
   | "dashboard"
   | "globe"
   | "building"

@@ -1,6 +1,6 @@
 import { apiBaseUrl } from "@/lib/config";
 import { useAuthStore } from "@/store/auth-store";
-import type { Role, User, UserStatus } from "@/types/user";
+import type { AdminPermission, Role, User, UserStatus } from "@/types/user";
 
 export interface ApiIssue {
   path: string;
@@ -30,6 +30,8 @@ export interface ApiUser {
   status: UserStatus;
   agencyId: string | null;
   portId: string | null;
+  adminProfile?: { id: string; name: string } | null;
+  permissions?: AdminPermission[];
 }
 
 export interface ApiSession {
@@ -49,6 +51,8 @@ export function toUser(user: ApiUser): User {
     agencyId: user.agencyId ?? undefined,
     portId: user.portId ?? undefined,
     phone: user.phone ?? undefined,
+    permissions: user.permissions ?? [],
+    adminProfile: user.adminProfile ?? null,
   };
 }
 

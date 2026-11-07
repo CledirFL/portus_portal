@@ -1,11 +1,11 @@
 import { apiRequest, type ApiSession, toUser } from "@/lib/api-client";
-import { defaultRouteByRole } from "@/lib/permissions";
+import { defaultRouteFor } from "@/lib/permissions";
 import { useAuthStore } from "@/store/auth-store";
 
 function startSession(session: ApiSession) {
   const user = toUser(session.user);
   useAuthStore.getState().setSession(user, session.accessToken);
-  return { user, redirectTo: defaultRouteByRole[user.role] };
+  return { user, redirectTo: defaultRouteFor(user) };
 }
 
 export async function login(email: string, password: string) {

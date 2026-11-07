@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AlertTriangle, Plus } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { OperateOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -23,6 +24,7 @@ import { fetchAgencies } from "@/services/api/agencies";
 import type { Page } from "@/services/api/containers";
 import { createVoyage, listVoyages, type Voyage } from "@/services/api/voyages";
 import { useAuthStore } from "@/store/auth-store";
+import { isAdminRole } from "@/lib/permissions";
 
 const tabs: Array<{ key: VoyageStatus | "all" | "alert"; label: string }> = [
   { key: "all", label: "Todas" },
@@ -34,7 +36,7 @@ const tabs: Array<{ key: VoyageStatus | "all" | "alert"; label: string }> = [
 export default function VoyagesPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminRole(user?.role);
   const [tab, setTab] = useState<VoyageStatus | "all" | "alert">("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -67,9 +69,11 @@ export default function VoyagesPage() {
         title="Viagens e manifestos"
         description="Associe contentores selados a uma viagem, gere o manifesto e envie-o até 72 h antes do ETA."
         actions={
-          <Button onClick={() => setShowForm((value) => !value)} variant={showForm ? "outline" : "primary"}>
-            <Plus className="h-4 w-4" aria-hidden /> {showForm ? "Fechar" : "Nova viagem"}
-          </Button>
+          <OperateOnly>
+            <Button onClick={() => setShowForm((value) => !value)} variant={showForm ? "outline" : "primary"}>
+              <Plus className="h-4 w-4" aria-hidden /> {showForm ? "Fechar" : "Nova viagem"}
+            </Button>
+          </OperateOnly>
         }
       />
 

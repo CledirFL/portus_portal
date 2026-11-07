@@ -17,6 +17,7 @@ import { fetchAgencies } from "@/services/api/agencies";
 import { possibleDuplicates, type PossibleDuplicate, type Shipment, type ShipmentFieldsInput, type VolumeInput } from "@/services/api/shipments";
 import { useAuthStore } from "@/store/auth-store";
 import { emptyVolume, toVolumeInput, VolumeFields, type VolumeRow } from "./volume-fields";
+import { isAdminRole } from "@/lib/permissions";
 
 export interface ShipmentFormValues {
   agencyId: string;
@@ -103,7 +104,7 @@ interface ShipmentFormProps {
 
 export function ShipmentForm({ initialValues = emptyShipmentForm, withVolumes, submitLabel, onSubmit }: ShipmentFormProps) {
   const user = useAuthStore((state) => state.user);
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminRole(user?.role);
   const [values, setValues] = useState(initialValues);
   const [volumes, setVolumes] = useState<VolumeRow[]>([{ ...emptyVolume }]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
@@ -131,7 +132,7 @@ export function ShipmentForm({ initialValues = emptyShipmentForm, withVolumes, s
   const isAgencyDelivered = deliveredByAgency(values.category);
   useEffect(() => {
     if (!isAgencyDelivered || !values.agencyId) return;
-    listDestinationAgencies(values.recipient.island, user?.role === "admin" ? values.agencyId : undefined)
+    listDestinationAgencies(values.recipient.island, isAdminRole(user?.role) ? values.agencyId : undefined)
       .then(setDestinations)
       .catch(() => setDestinations([]));
   }, [isAgencyDelivered, values.recipient.island, values.agencyId, user?.role]);

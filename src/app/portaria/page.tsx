@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, DoorOpen, Search, UserCheck, X } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ function ChargesCard({ view, onChange }: { view: PickupView; onChange: (view: Pi
   const [method, setMethod] = useState<PaymentMethod>("cash");
   const [reference, setReference] = useState("");
   const [exemption, setExemption] = useState<string | null>(null);
+  const readOnly = useReadOnly();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -98,7 +100,7 @@ function ChargesCard({ view, onChange }: { view: PickupView; onChange: (view: Pi
       ) : null}
       {error ? <p className="mt-2 text-sm text-rose-700">{error}</p> : null}
 
-      {charges.balanceCve > 0 ? (
+      {charges.balanceCve > 0 && !readOnly ? (
         <>
           <form
             className="mt-4 grid gap-2 border-t border-slate-100 pt-4 sm:grid-cols-2"
@@ -153,6 +155,7 @@ function ChargesCard({ view, onChange }: { view: PickupView; onChange: (view: Pi
 
 function AuthorizationsCard({ view, onChange }: { view: PickupView; onChange: (view: PickupView) => void }) {
   const [form, setForm] = useState<{ name: string; nif: string; documentType: DocumentType; documentNumber: string; validUntil: string } | null>(null);
+  const readOnly = useReadOnly();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -166,7 +169,7 @@ function AuthorizationsCard({ view, onChange }: { view: PickupView; onChange: (v
                 {authorization.name} · NIF {authorization.nif} · {authorization.documentType} {authorization.documentNumber} · até{" "}
                 {new Date(authorization.validUntil).toLocaleDateString("pt-PT")}
               </span>
-              {authorization.active ? (
+              {authorization.active && !readOnly ? (
                 <Button
                   size="sm"
                   variant="ghost"
@@ -181,7 +184,7 @@ function AuthorizationsCard({ view, onChange }: { view: PickupView; onChange: (v
         </ul>
       ) : null}
       {error ? <p className="mb-2 text-sm text-rose-700">{error}</p> : null}
-      {form ? (
+      {readOnly ? null : form ? (
         <form
           className="grid gap-2 sm:grid-cols-2"
           data-cy="authorization-form"
@@ -381,6 +384,7 @@ function HandOverCard({ view }: { view: PickupView }) {
 }
 
 export default function GatePage() {
+  const readOnly = useReadOnly();
   const [query, setQuery] = useState("");
   const [view, setView] = useState<PickupView | null>(null);
   const [error, setError] = useState("");
@@ -482,7 +486,7 @@ export default function GatePage() {
               {view.clearance.status === "released" ? <ChargesCard key={view.charges.balanceCve} view={view} onChange={setView} /> : null}
               <AuthorizationsCard view={view} onChange={setView} />
             </div>
-            {view.canPickUp ? <HandOverCard key={view.shipment.id + view.authorizations.length} view={view} /> : null}
+            {view.canPickUp && !readOnly ? <HandOverCard key={view.shipment.id + view.authorizations.length} view={view} /> : null}
           </div>
         </div>
       ) : null}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckCircle2, DoorOpen, PackageCheck, ScanLine, Search, Truck } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { OperateOnly, useReadOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -91,6 +92,7 @@ function ReceiveCard({ onReceived }: { onReceived: () => void }) {
 
 export default function CvAgencyPage() {
   const user = useAuthStore((state) => state.user);
+  const readOnly = useReadOnly();
   const [tab, setTab] = useState<AgencyStage>("released");
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
@@ -122,7 +124,7 @@ export default function CvAgencyPage() {
   }, [user, tab, search, page, pageSize, refresh]);
 
   const shipments = result?.items ?? null;
-  const selectable = tab === "released";
+  const selectable = tab === "released" && !readOnly;
 
   const toggle = (id: string) =>
     setSelected((current) => {
@@ -161,14 +163,16 @@ export default function CvAgencyPage() {
         }
       />
 
-      <div className="mb-6">
-        <ReceiveCard
-          onReceived={() => {
-            setNotice("");
-            setRefresh((value) => value + 1);
-          }}
-        />
-      </div>
+      <OperateOnly>
+        <div className="mb-6">
+          <ReceiveCard
+            onReceived={() => {
+              setNotice("");
+              setRefresh((value) => value + 1);
+            }}
+          />
+        </div>
+      </OperateOnly>
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="inline-flex flex-wrap rounded-lg border border-slate-200 bg-white p-1" role="tablist">

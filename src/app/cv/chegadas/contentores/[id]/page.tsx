@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, Camera, CheckCircle2, ClipboardCheck, MapPin, ScanLine } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,7 @@ const count = (value: number) => String(value);
 export default function TerminalContainerPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAuthStore((state) => state.user);
+  const readOnly = useReadOnly();
   const [container, setContainer] = useState<TerminalContainer | null>(null);
   const [error, setError] = useState<{ message: string; items: string[] }>({ message: "", items: [] });
   const [busy, setBusy] = useState(false);
@@ -97,7 +99,8 @@ export default function TerminalContainerPage() {
     );
   }
 
-  const open = container.status === "arrived";
+  // Por conferir e esta conta pode conferir (o admin da plataforma só consulta).
+  const open = container.status === "arrived" && !readOnly;
 
   return (
     <AppShell>
@@ -229,7 +232,7 @@ export default function TerminalContainerPage() {
                 </thead>
                 <tbody>
                   {container.volumes.map((volume) => {
-                    const editable = ["deconsolidated", "held", "released"].includes(volume.status);
+                    const editable = ["deconsolidated", "held", "released"].includes(volume.status) && !readOnly;
                     const pendingLocation = locations[volume.id];
                     return (
                       <tr key={volume.id} className="border-t border-slate-100 align-top">

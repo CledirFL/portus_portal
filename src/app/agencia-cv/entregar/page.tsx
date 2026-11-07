@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, DoorOpen, Search } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ function ChargesCard({ view, onChange }: { view: AgencyShipmentDetail; onChange:
   const [amount, setAmount] = useState(String(charges.balanceCve));
   const [method, setMethod] = useState<PaymentMethod>("cash");
   const [reference, setReference] = useState("");
+  const readOnly = useReadOnly();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -80,7 +82,7 @@ function ChargesCard({ view, onChange }: { view: AgencyShipmentDetail; onChange:
         </ul>
       ) : null}
       {error ? <p className="mt-2 text-sm text-rose-700">{error}</p> : null}
-      {charges.balanceCve > 0 ? (
+      {charges.balanceCve > 0 && !readOnly ? (
         <form
           className="mt-4 grid gap-2 border-t border-slate-100 pt-4 sm:grid-cols-2"
           data-cy="agency-payment"
@@ -232,6 +234,7 @@ function DeliverView() {
   const params = useSearchParams();
   const initial = params.get("q") ?? "";
   const user = useAuthStore((state) => state.user);
+  const readOnly = useReadOnly();
   const [query, setQuery] = useState(initial);
   const [scannedCode, setScannedCode] = useState(pickupCodeOf(initial));
   const [view, setView] = useState<AgencyShipmentDetail | null>(null);
@@ -343,7 +346,7 @@ function DeliverView() {
 
           <div className="grid gap-6 lg:grid-cols-2">
             {view.charges ? <ChargesCard key={view.charges.balanceCve} view={view} onChange={setView} /> : <div />}
-            {view.canDeliver ? <HandOverCard key={view.id + scannedCode} view={view} scannedCode={scannedCode} /> : null}
+            {view.canDeliver && !readOnly ? <HandOverCard key={view.id + scannedCode} view={view} scannedCode={scannedCode} /> : null}
           </div>
         </div>
       ) : null}

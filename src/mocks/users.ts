@@ -92,6 +92,7 @@ const departmentByRole: Record<User["role"], string> = {
   agente_destino: "Agência em Cabo Verde",
   cliente: "Clientes",
   admin: "Administração",
+  super_admin: "Administração da plataforma",
 };
 
 export const mockUserRegistry = mockUsers.map((user) => ({

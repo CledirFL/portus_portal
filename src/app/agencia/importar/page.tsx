@@ -26,6 +26,7 @@ import {
   type ShipmentImport,
 } from "@/services/api/imports";
 import { useAuthStore } from "@/store/auth-store";
+import { isAdminRole } from "@/lib/permissions";
 
 /** Modelo CSV com os títulos que o importador reconhece sozinho. */
 const templateHeader = [
@@ -59,7 +60,7 @@ const statusTones = { valid: "success", invalid: "danger", duplicate: "warning" 
 
 export default function ImportPage() {
   const user = useAuthStore((state) => state.user);
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminRole(user?.role);
   const [fields, setFields] = useState<ImportField[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [agencyId, setAgencyId] = useState("");

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, Lightbulb } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useReadOnly } from "@/components/layout/read-only";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -30,6 +31,7 @@ function ClearanceCard({ clearance, onChange }: { clearance: Clearance; onChange
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const { shipment } = clearance;
+  const readOnly = useReadOnly();
   const done = clearance.status === "released";
 
   const submit = async () => {
@@ -117,7 +119,7 @@ function ClearanceCard({ clearance, onChange }: { clearance: Clearance; onChange
 
       {error ? <p className="mt-2 text-sm text-rose-700">{error}</p> : null}
 
-      {!done ? (
+      {!done && !readOnly ? (
         action ? (
           <form
             className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-end"
