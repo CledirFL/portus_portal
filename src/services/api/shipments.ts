@@ -38,6 +38,10 @@ export interface Shipment {
     documentType: string | null;
     documentNumber: string | null;
   };
+  /** Encomendas pequenas: agência em Cabo Verde que entrega ao destinatário (null: levanta no porto). */
+  destinationAgency: { id: string; code: string; name: string; city: string; address: string; phone: string } | null;
+  /** Código de levantamento do comprovativo (nasce ao validar, com agência em Cabo Verde). */
+  pickupCode: string | null;
   volumes: Volume[];
   totals: { volumes: number; weightKg: number; volumeM3: number };
   validatedAt: string | null;
@@ -58,6 +62,8 @@ export interface VolumeInput {
 export interface ShipmentFieldsInput {
   category: CargoCategory;
   dispatchCountry: string;
+  /** Encomendas pequenas: agência em Cabo Verde (sem indicar, escolhe-se a única que serve a ilha). */
+  destinationAgencyId?: string | null;
   description: string;
   details: Record<string, string>;
   externalReference?: string;
@@ -156,6 +162,26 @@ export interface ShipmentLabels {
     sealed: boolean;
     qr: string;
   }>;
+}
+
+/** Comprovativo de envio para o remetente (o "papel" com o código de levantamento). */
+export interface ShipmentReceipt {
+  code: string;
+  validatedAt: string | null;
+  agency: { name: string; city: string; phone: string };
+  category: CargoCategory;
+  description: string;
+  sender: { name: string; phone: string; email: string | null };
+  recipient: { name: string; phone: string; island: string; nif: string | null };
+  volumes: Array<{ code: string; weightKg: number }>;
+  totals: { volumes: number; weightKg: number; volumeM3: number };
+  destinationAgency: Shipment["destinationAgency"];
+  pickupCode: string | null;
+  qr: string | null;
+}
+
+export function getShipmentReceipt(id: string) {
+  return apiRequest<ShipmentReceipt>(`/shipments/${id}/receipt`);
 }
 
 export function getShipmentLabels(id: string) {

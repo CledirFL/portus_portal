@@ -8,6 +8,8 @@ import { Input, fieldClasses, fieldErrorClasses } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import type { Agency } from "@/domain/agency";
 import { cargoTypes, getCargoType, type CargoCategory, type CargoFieldDefinition } from "@/domain/cargo-types";
+import { deliveredByAgency } from "@/domain/destination";
+import { listDestinationAgencies } from "@/services/api/admin-agencies";
 import { dispatchCountries } from "@/domain/countries";
 import { caboVerdeIslands } from "@/domain/shipment-request";
 import { ApiError } from "@/lib/api-client";
@@ -25,6 +27,8 @@ export interface ShipmentFormValues {
   details: Record<string, string>;
   sender: { name: string; phone: string; email: string };
   recipient: { name: string; phone: string; island: string; nif: string; documentType: string; documentNumber: string };
+  /** Encomendas pequenas: agência em Cabo Verde ("" = a única que serve a ilha, escolhida ao validar). */
+  destinationAgencyId: string;
 }
 
 export const emptyShipmentForm: ShipmentFormValues = {
@@ -36,6 +40,7 @@ export const emptyShipmentForm: ShipmentFormValues = {
   details: {},
   sender: { name: "", phone: "", email: "" },
   recipient: { name: "", phone: "+238 ", island: "Santiago", nif: "", documentType: "", documentNumber: "" },
+  destinationAgencyId: "",
 };
 
 export function shipmentToForm(shipment: Shipment): ShipmentFormValues {
@@ -55,6 +60,7 @@ export function shipmentToForm(shipment: Shipment): ShipmentFormValues {
       documentType: shipment.recipient.documentType ?? "",
       documentNumber: shipment.recipient.documentNumber ?? "",
     },
+    destinationAgencyId: shipment.destinationAgency?.id ?? "",
   };
 }
 
@@ -76,6 +82,7 @@ function toFieldsInput(values: ShipmentFormValues, confirmDuplicates: boolean): 
       documentType: (values.recipient.documentType || undefined) as ShipmentFieldsInput["recipient"]["documentType"],
       documentNumber: values.recipient.documentNumber.trim() || undefined,
     },
+    destinationAgencyId: deliveredByAgency(values.category) ? values.destinationAgencyId || null : null,
     confirmDuplicates,
   };
 }
@@ -104,6 +111,7 @@ export function ShipmentForm({ initialValues = emptyShipmentForm, withVolumes, s
   const [formError, setFormError] = useState("");
   const [duplicates, setDuplicates] = useState<PossibleDuplicate[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [destinations, setDestinations] = useState<Array<{ id: string; name: string; city: string }>>([]);
 
   // O país de onde envia vem da agência do agente; o admin escolhe a agência.
   useEffect(() => {
@@ -118,6 +126,15 @@ export function ShipmentForm({ initialValues = emptyShipmentForm, withVolumes, s
       })
       .catch(() => setAgencies([]));
   }, [user?.agencyId]);
+
+  // Encomendas pequenas: agências em Cabo Verde da agência de origem que servem a ilha do destinatário.
+  const isAgencyDelivered = deliveredByAgency(values.category);
+  useEffect(() => {
+    if (!isAgencyDelivered || !values.agencyId) return;
+    listDestinationAgencies(values.recipient.island, user?.role === "admin" ? values.agencyId : undefined)
+      .then(setDestinations)
+      .catch(() => setDestinations([]));
+  }, [isAgencyDelivered, values.recipient.island, values.agencyId, user?.role]);
 
   const cargoType = getCargoType(values.category);
   const update = (patch: Partial<ShipmentFormValues>) => setValues((current) => ({ ...current, ...patch }));
@@ -310,6 +327,27 @@ export function ShipmentForm({ initialValues = emptyShipmentForm, withVolumes, s
               options={caboVerdeIslands.map((island) => ({ value: island, label: island }))}
               error={err("recipient.island")}
             />
+            {isAgencyDelivered ? (
+              <Select
+                label="Agência em Cabo Verde"
+                value={values.destinationAgencyId}
+                onChange={(event) => update({ destinationAgencyId: event.target.value })}
+                options={[
+                  {
+                    value: "",
+                    label:
+                      destinations.length === 1
+                        ? `${destinations[0]!.name} (a única que serve a ilha)`
+                        : destinations.length
+                          ? "Escolha a agência"
+                          : "Sem agência em Cabo Verde: levanta no porto",
+                  },
+                  ...(destinations.length > 1 ? destinations.map((agency) => ({ value: agency.id, label: `${agency.name} · ${agency.city}` })) : []),
+                ]}
+                hint="Entrega a encomenda ao destinatário e recebe o código de levantamento."
+                error={err("destinationAgencyId")}
+              />
+            ) : null}
             <Input
               label="NIF"
               inputMode="numeric"

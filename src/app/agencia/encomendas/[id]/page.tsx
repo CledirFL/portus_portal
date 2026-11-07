@@ -138,6 +138,13 @@ export default function ShipmentDetailPage() {
               </>
             ) : null}
             {shipment.status === "validated" ? (
+              <Link href={`/agencia/encomendas/${shipment.id}/comprovativo`}>
+                <Button variant="outline">
+                  <Printer className="h-4 w-4" aria-hidden /> Comprovativo
+                </Button>
+              </Link>
+            ) : null}
+            {shipment.status === "validated" ? (
               <Link href={`/agencia/encomendas/${shipment.id}/etiquetas`}>
                 <Button>
                   <Printer className="h-4 w-4" aria-hidden /> Imprimir etiquetas
@@ -252,6 +259,25 @@ export default function ShipmentDetailPage() {
                 {shipment.recipient.documentType ?? "Documento"} {shipment.recipient.documentNumber}
               </p>
             ) : null}
+          </Card>
+          <Card title="Levantamento em Cabo Verde">
+            {shipment.destinationAgency ? (
+              <div data-cy="destination-agency" className="space-y-1 text-sm">
+                <p className="font-medium text-slate-900">{shipment.destinationAgency.name}</p>
+                <p className="text-slate-500">
+                  {shipment.destinationAgency.address}, {shipment.destinationAgency.city} · {shipment.destinationAgency.phone}
+                </p>
+                {shipment.pickupCode ? (
+                  <p>
+                    Código de levantamento <span className="font-mono font-semibold tracking-widest text-slate-900">{shipment.pickupCode}</span>
+                  </p>
+                ) : (
+                  <p className="text-slate-500">O código de levantamento é gerado ao validar.</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">No porto de chegada (sem agência em Cabo Verde associada).</p>
+            )}
           </Card>
         </div>
       </div>
