@@ -1,29 +1,71 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, Search } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
 import { Select } from "@/components/ui/select";
 import { roleLabels } from "@/lib/permissions";
-import { type AuditEntry, type AuditFilters, auditEntityLabels, changedFields, listAudit } from "@/services/api/audit";
+import {
+  type AuditCategory,
+  auditActionLabels,
+  auditCategoryLabels,
+  type AuditEntry,
+  auditEntityLabels,
+  type AuditFilters,
+  type AuditOutcome,
+  auditOutcomeLabels,
+  changedFields,
+  exportAudit,
+  listAudit,
+} from "@/services/api/audit";
 import { useAuthStore } from "@/store/auth-store";
 import type { Role } from "@/types/user";
 
 const show = (value: unknown) => (value === undefined ? "—" : typeof value === "string" ? value : JSON.stringify(value));
+const roleName = (role: string | null | undefined) => (role ? (roleLabels[role as Role] ?? role) : "");
 
-/** O que mudou: campos alterados, ou o registo completo quando só há antes ou depois. */
+const categoryTones: Record<AuditCategory, "info" | "neutral" | "success" | "danger"> = {
+  change: "info",
+  session: "neutral",
+  access: "success",
+  refusal: "danger",
+};
+const outcomeTones: Record<AuditOutcome, "success" | "danger" | "warning"> = { success: "success", denied: "danger", failed: "warning" };
+
+/** O que mudou, com o pedido, o IP e o navegador. */
 function AuditDetails({ entry }: { entry: AuditEntry }) {
   const changes = changedFields(entry.before, entry.after);
   return (
     <div className="space-y-2 text-xs">
-      <p className="text-slate-500">
-        Registo <span className="font-mono">{entry.entityId}</span>
-        {entry.ip ? ` · IP ${entry.ip}` : ""}
-      </p>
+      <dl className="grid gap-x-6 gap-y-1 text-slate-600 sm:grid-cols-2">
+        <div>
+          <dt className="inline text-slate-400">Registo </dt>
+          <dd className="inline font-mono">{entry.entityId}</dd>
+        </div>
+        {entry.path ? (
+          <div>
+            <dt className="inline text-slate-400">Pedido </dt>
+            <dd className="inline font-mono">{entry.path}</dd>
+          </div>
+        ) : null}
+        {entry.ip ? (
+          <div>
+            <dt className="inline text-slate-400">IP </dt>
+            <dd className="inline font-mono">{entry.ip}</dd>
+          </div>
+        ) : null}
+        {entry.userAgent ? (
+          <div className="sm:col-span-2">
+            <dt className="inline text-slate-400">Navegador </dt>
+            <dd className="inline break-all">{entry.userAgent}</dd>
+          </div>
+        ) : null}
+      </dl>
       {changes.length ? (
         <table className="w-full table-fixed">
           <thead className="text-left text-slate-500">
@@ -59,6 +101,7 @@ export default function AuditPage() {
   const [result, setResult] = useState<Awaited<ReturnType<typeof listAudit>> | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -71,7 +114,7 @@ export default function AuditPage() {
         setError("");
       })
       .catch((cause: unknown) => {
-        if (isCurrent) setError(cause instanceof Error ? cause.message : "Não foi possível carregar a auditoria.");
+        if (isCurrent) setError(cause instanceof Error ? cause.message : "Não foi possível carregar o registo de atividade.");
       });
     return () => {
       isCurrent = false;
@@ -82,16 +125,52 @@ export default function AuditPage() {
 
   return (
     <AppShell>
-      <PageHeader title="Auditoria" description="Todas as alterações: quem fez, quando e o que mudou. O registo não pode ser alterado (BR 27)." />
+      <PageHeader
+        title="Registo de atividade"
+        description="Quem fez o quê e quando: alterações, entradas e saídas, consultas de dados pessoais e descargas, e recusas. Ninguém o pode alterar (BR 27)."
+        actions={
+          <Button
+            variant="outline"
+            disabled={exporting}
+            data-cy="audit-export"
+            onClick={async () => {
+              setExporting(true);
+              setError("");
+              try {
+                await exportAudit(filters);
+              } catch (cause) {
+                setError(cause instanceof Error ? cause.message : "Não foi possível exportar.");
+              } finally {
+                setExporting(false);
+              }
+            }}
+          >
+            <Download className="h-4 w-4" aria-hidden /> Exportar CSV
+          </Button>
+        }
+      />
 
       <form
-        className="mb-4 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-6 lg:items-end"
+        className="mb-4 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-5 lg:items-end"
+        data-cy="audit-filters"
         onSubmit={(event) => {
           event.preventDefault();
           setFilters(form);
           setPage(1);
         }}
       >
+        <Select
+          label="Tipo"
+          value={form.category ?? ""}
+          onChange={(event) => set({ category: event.target.value as AuditCategory | "" })}
+          options={[{ value: "", label: "Todos" }, ...(Object.keys(auditCategoryLabels) as AuditCategory[]).map((key) => ({ value: key, label: auditCategoryLabels[key] }))]}
+        />
+        <Select
+          label="Resultado"
+          value={form.outcome ?? ""}
+          onChange={(event) => set({ outcome: event.target.value as AuditOutcome | "" })}
+          options={[{ value: "", label: "Todos" }, ...(Object.keys(auditOutcomeLabels) as AuditOutcome[]).map((key) => ({ value: key, label: auditOutcomeLabels[key] }))]}
+        />
         <Select
           label="Registo"
           value={form.entity ?? ""}
@@ -101,8 +180,15 @@ export default function AuditPage() {
             ...(result?.entities ?? []).map((entity) => ({ value: entity, label: auditEntityLabels[entity] ?? entity })),
           ]}
         />
-        <Input label="Ação" placeholder="ex.: shipment.validate" value={form.action ?? ""} onChange={(event) => set({ action: event.target.value })} />
+        <Select
+          label="Perfil"
+          value={form.role ?? ""}
+          onChange={(event) => set({ role: event.target.value })}
+          options={[{ value: "", label: "Todos" }, ...(Object.keys(roleLabels) as Role[]).map((role) => ({ value: role, label: roleLabels[role] }))]}
+        />
         <Input label="Quem" placeholder="Nome ou email" value={form.actor ?? ""} onChange={(event) => set({ actor: event.target.value })} />
+        <Input label="Ação" placeholder="ex.: shipment.validate" value={form.action ?? ""} onChange={(event) => set({ action: event.target.value })} />
+        <Input label="IP" placeholder="ex.: 192.168." value={form.ip ?? ""} onChange={(event) => set({ ip: event.target.value })} />
         <Input label="Desde" type="date" value={form.from ?? ""} onChange={(event) => set({ from: event.target.value })} />
         <Input label="Até" type="date" value={form.to ?? ""} onChange={(event) => set({ to: event.target.value })} />
         <Button type="submit">
@@ -126,8 +212,10 @@ export default function AuditPage() {
                 <th className="w-8 px-2 py-3" aria-label="Detalhe" />
                 <th className="px-4 py-3 font-medium">Quando</th>
                 <th className="px-4 py-3 font-medium">Quem</th>
+                <th className="px-4 py-3 font-medium">Tipo</th>
                 <th className="px-4 py-3 font-medium">Ação</th>
                 <th className="px-4 py-3 font-medium">Registo</th>
+                <th className="px-4 py-3 font-medium">Resultado</th>
               </tr>
             </thead>
             <tbody>
@@ -142,19 +230,28 @@ export default function AuditPage() {
                       {entry.actor ? (
                         <>
                           {entry.actor.name}
-                          <p className="text-xs text-slate-400">{roleLabels[entry.actor.role as Role] ?? entry.actor.role}</p>
+                          <p className="text-xs text-slate-400">{roleName(entry.actorRole ?? entry.actor.role)}</p>
                         </>
                       ) : (
-                        <span className="text-slate-400">Cliente sem conta ou sistema</span>
+                        <span className="text-slate-400">Anónimo ou sistema</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs">{entry.action}</td>
+                    <td className="px-4 py-3">
+                      <Badge tone={categoryTones[entry.category]}>{auditCategoryLabels[entry.category]}</Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      {auditActionLabels[entry.action] ? <p>{auditActionLabels[entry.action]}</p> : null}
+                      <p className="font-mono text-xs text-slate-500">{entry.action}</p>
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap">{auditEntityLabels[entry.entity] ?? entry.entity}</td>
+                    <td className="px-4 py-3">
+                      <Badge tone={outcomeTones[entry.outcome]}>{auditOutcomeLabels[entry.outcome]}</Badge>
+                    </td>
                   </tr>
                   {open === entry.id ? (
                     <tr className="bg-slate-50/60">
                       <td />
-                      <td colSpan={4} className="px-4 py-3">
+                      <td colSpan={6} className="px-4 py-3">
                         <AuditDetails entry={entry} />
                       </td>
                     </tr>
