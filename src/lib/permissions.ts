@@ -8,6 +8,7 @@ export const roleLabels: Record<Role, string> = {
   cv_operator: "Operador do terminal",
   alfandega: "Alfândega",
   portaria: "Portaria",
+  agente_destino: "Agência em Cabo Verde",
   cliente: "Cliente",
   admin: "Administrador",
 };
@@ -32,12 +33,14 @@ export const roleNavigation: Record<Role, NavItem[]> = {
   cv_operator: [{ label: "Chegadas e conferência", href: "/cv/chegadas", icon: "scan" }],
   alfandega: [{ label: "Despacho aduaneiro", href: "/alfandega", icon: "stamp" }],
   portaria: [{ label: "Levantamentos", href: "/portaria", icon: "door" }],
+  agente_destino: [{ label: "Encomendas a entregar", href: "/agencia-cv", icon: "boxes" }],
   cliente: [
     { label: "Os meus pedidos", href: "/cliente", icon: "inbox" },
   ],
   admin: [
     { label: "Painel geral", href: "/dashboard", icon: "dashboard" },
     { label: "Utilizadores", href: "/admin/users", icon: "users" },
+    { label: "Agências", href: "/admin/agencias", icon: "building" },
     { label: "Pedidos de clientes", href: "/agencia/pedidos", icon: "inbox" },
     { label: "Encomendas", href: "/agencia/encomendas", icon: "boxes" },
     { label: "Importar lista", href: "/agencia/importar", icon: "upload" },
@@ -60,6 +63,7 @@ export const defaultRouteByRole: Record<Role, string> = {
   cv_operator: "/cv/chegadas",
   alfandega: "/alfandega",
   portaria: "/portaria",
+  agente_destino: "/agencia-cv",
   cliente: "/cliente",
   admin: "/admin/users",
 };

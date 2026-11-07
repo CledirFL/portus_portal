@@ -6,6 +6,7 @@ export type Role =
   | "cv_operator"
   | "alfandega"
   | "portaria"
+  | "agente_destino"
   | "cliente"
   | "admin";
 

@@ -12,6 +12,9 @@ export const volumeStatuses = [
   "deconsolidated",
   "held",
   "released",
+  // Encomenda pequena: a agência em Cabo Verde levanta-a no porto e entrega-a na sua agência.
+  "to_agency",
+  "at_agency",
   "delivered",
   "abandoned",
 ] as const;
@@ -27,7 +30,9 @@ const volumeTransitions: Record<VolumeStatus, readonly VolumeStatus[]> = {
   arrived: ["deconsolidated"],
   deconsolidated: ["held", "released", "abandoned"],
   held: ["released", "abandoned"],
-  released: ["delivered", "abandoned"],
+  released: ["to_agency", "delivered", "abandoned"],
+  to_agency: ["at_agency"],
+  at_agency: ["delivered", "abandoned"],
   delivered: [],
   abandoned: [],
 };

@@ -40,7 +40,7 @@ export const userStatusLabels: Record<UserStatus, string> = {
 };
 
 /** Perfis da equipa e o âmbito que cada um exige (o servidor volta a validar). */
-export const agencyRoles: Role[] = ["agente_recolha", "transitario"];
+export const agencyRoles: Role[] = ["agente_recolha", "transitario", "agente_destino"];
 export const portRoles: Role[] = ["agente_maritimo", "cv_operator", "alfandega", "portaria"];
 export const staffRoles: Role[] = [...agencyRoles, ...portRoles, "exporter", "admin"];
 

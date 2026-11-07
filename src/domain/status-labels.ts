@@ -18,6 +18,8 @@ export const volumeStatusLabels: Record<VolumeStatus, string> = {
   deconsolidated: "Desconsolidado",
   held: "Retido",
   released: "Liberado",
+  to_agency: "A caminho da agência",
+  at_agency: "Na agência",
   delivered: "Entregue",
   abandoned: "Abandonado",
 };

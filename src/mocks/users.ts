@@ -89,6 +89,7 @@ const departmentByRole: Record<User["role"], string> = {
   cv_operator: "Operações portuárias",
   alfandega: "Alfândega",
   portaria: "Portaria e levantamentos",
+  agente_destino: "Agência em Cabo Verde",
   cliente: "Clientes",
   admin: "Administração",
 };

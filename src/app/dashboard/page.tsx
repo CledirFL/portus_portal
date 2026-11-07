@@ -15,7 +15,7 @@ import { type DashboardSummary, getDashboard } from "@/services/api/dashboard";
 import { useAuthStore } from "@/store/auth-store";
 
 /** Ordem do percurso de um volume, do balcão à entrega. */
-const volumeFlow: VolumeStatus[] = ["draft", "collected", "consolidated", "shipped", "arrived", "deconsolidated", "held", "released", "delivered", "abandoned"];
+const volumeFlow: VolumeStatus[] = ["draft", "collected", "consolidated", "shipped", "arrived", "deconsolidated", "held", "released", "to_agency", "at_agency", "delivered", "abandoned"];
 const formatDay = (iso: string) => new Date(iso).toLocaleString("pt-PT", { dateStyle: "medium", timeStyle: "short" });
 
 function RankedList({ rows }: { rows: Array<{ label: string; count: number }> }) {
