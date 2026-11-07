@@ -33,7 +33,10 @@ export const roleNavigation: Record<Role, NavItem[]> = {
   cv_operator: [{ label: "Chegadas e conferência", href: "/cv/chegadas", icon: "scan" }],
   alfandega: [{ label: "Despacho aduaneiro", href: "/alfandega", icon: "stamp" }],
   portaria: [{ label: "Levantamentos", href: "/portaria", icon: "door" }],
-  agente_destino: [{ label: "Encomendas a entregar", href: "/agencia-cv", icon: "boxes" }],
+  agente_destino: [
+    { label: "Encomendas a entregar", href: "/agencia-cv", icon: "boxes" },
+    { label: "Entregar ao destinatário", href: "/agencia-cv/entregar", icon: "door" },
+  ],
   cliente: [
     { label: "Os meus pedidos", href: "/cliente", icon: "inbox" },
   ],
@@ -49,6 +52,7 @@ export const roleNavigation: Record<Role, NavItem[]> = {
     { label: "Chegadas e conferência", href: "/cv/chegadas", icon: "scan" },
     { label: "Despacho aduaneiro", href: "/alfandega", icon: "stamp" },
     { label: "Levantamentos", href: "/portaria", icon: "door" },
+    { label: "Agências em Cabo Verde", href: "/agencia-cv", icon: "map-pin" },
     { label: "Tarifas", href: "/admin/tarifas", icon: "receipt" },
     { label: "Auditoria", href: "/admin/auditoria", icon: "shield" },
     { label: "Problemas reportados", href: "/admin/problemas", icon: "bug" },
