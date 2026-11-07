@@ -1,7 +1,7 @@
 # Manual de utilização e testes do Portus
 
 Este manual explica como usar o Portus do princípio ao fim: desde o pedido do cliente num país de envio até ao
-levantamento da carga em Cabo Verde. Segue a ordem real do processo e, em cada etapa, diz **quem** faz, **onde**,
+levantamento da carga em Cabo Verde, no porto ou na agência em Cabo Verde. Segue a ordem real do processo e, em cada etapa, diz **quem** faz, **onde**,
 **que passos** seguir e **o que verificar**.
 
 Serve também de roteiro de testes. Marque cada ☐ à medida que testa. Quando algo falhar, faltar ou puder
@@ -18,8 +18,8 @@ Legenda:
 1. [Preparação](#1-preparação): arrancar, contas de demonstração, dicas
 2. [Visão geral do processo](#2-visão-geral-do-processo): etapas, estados e menus de cada perfil
 3. [Etapas no país de envio](#3-etapas-no-país-de-envio): pedido, agência, encomenda, contentor, viagem
-4. [Etapas em Cabo Verde](#4-etapas-em-cabo-verde): chegada, Alfândega, levantamento
-5. [Administração](#5-administração-): painel, utilizadores, auditoria, tarifas, problemas reportados
+4. [Etapas em Cabo Verde](#4-etapas-em-cabo-verde): chegada, Alfândega, levantamento no porto, agência em Cabo Verde
+5. [Administração](#5-administração-): painel, utilizadores, agências, auditoria, tarifas, problemas reportados
 6. [Casos especiais a testar](#6-casos-especiais-a-testar)
 7. [O que ainda não existe](#7-o-que-ainda-não-existe-não-registar-como-erro)
 8. [Teste de ponta a ponta](#8-teste-de-ponta-a-ponta-cerca-de-30-minutos)
@@ -42,7 +42,7 @@ Legenda:
 
 ### 1.2 Contas de demonstração
 
-Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão no **porto da Praia**.
+Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas do porto estão no **porto da Praia**.
 
 | Conta | Perfil | Onde trabalha | Página inicial |
 |---|---|---|---|
@@ -54,6 +54,8 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
 | `terminal@portus.cv` | Operador do terminal | Porto da Praia | Chegadas e conferência |
 | `alfandega@portus.cv` | Alfândega | Porto da Praia | Despacho aduaneiro |
 | `portaria@portus.cv` | Portaria | Porto da Praia | Levantamentos |
+| `agencia.praia@portus.cv` | Agência em Cabo Verde (Edna Tavares) | Morabeza Praia: Santiago, Maio, Fogo, Brava | Encomendas a entregar |
+| `agencia.mindelo@portus.cv` | Agência em Cabo Verde (Hélio Lima) | Morabeza Mindelo: São Vicente, Santo Antão, São Nicolau, Sal, Boa Vista | Encomendas a entregar |
 | `joao@portus.cv` | Administrador | Todas as agências e portos | Utilizadores |
 | `ana@portus.cv` | Exportador | — | Área em preparação ⏳ |
 | `bruno@portus.cv` | Transitário | — | Pedido de acesso em revisão: **não entra** até o administrador o aprovar |
@@ -69,7 +71,10 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
   a câmara do telemóvel, lê o QR das etiquetas impressas.
 - **O NIF do destinatário é obrigatório** (9 algarismos, ex.: `123456789`) no pedido, no registo da agência e na
   importação. Só as encomendas antigas, de antes desta regra, podem não ter NIF.
-- **A viagem tem de chegar à Praia** (`CVRAI`), porque as contas de Cabo Verde só veem esse porto.
+- **A viagem tem de chegar à Praia** (`CVRAI`), porque as contas do porto só veem esse porto.
+- **Encomendas pequenas vão para a agência em Cabo Verde.** Uma caixa enviada pela Morabeza (Lisboa) é entregue
+  pela Morabeza Praia ou Mindelo, conforme a ilha. Para testar a **portaria do porto**, use uma carga grande (por
+  exemplo, uma **mudança**).
 - **Use emails inventados** nos pedidos (ex.: `rosa@teste.pt`). Os emails vão todos para o Mailpit
   (<http://localhost:8025>); ninguém os recebe de verdade.
 
@@ -82,9 +87,15 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
  ─────────────────────────────────────────────────                 ───────────────────────────────────────
  1 Cliente      2 Agência        3-4 Agente/Agência   5-6 Transitário    7 Terminal     8 Alfândega   9 Portaria
  faz pedido  →  aceita/agenda →  recebe, valida,   →  contentor,     →  chegada,    →  manifesto, →  taxas,
-                                 etiqueta             viagem,           conferência    canal,        entrega,
-                                                      manifesto,        por QR         libertação    Gate Pass
-                                                      partida
+                                 etiqueta,            viagem,           conferência    canal,        entrega,
+                                 comprovativo         manifesto,        por QR         libertação    Gate Pass
+                                                      partida                                  │     (carga grande)
+                                                                                               │
+                                                                                               └──→ 10 Agência em CV
+                                                                                                    levanta no porto,
+                                                                                                    recebe, cobra,
+                                                                                                    entrega
+                                                                                                    (encomendas pequenas)
 ```
 
 | # | Etapa | Quem | Estado do volume depois | Estado |
@@ -98,10 +109,17 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas de Cabo Verde estão 
 | 6 | Viagem, manifesto e partida | Transitário | **Embarcado** | ✅ |
 | 7 | Chegada e conferência | Terminal / agente marítimo | **Chegado → Desconsolidado** | ✅ |
 | 8 | Despacho aduaneiro | Alfândega | **Liberado** (ou **Retido**) | ✅ |
-| 9 | Taxas e levantamento | Portaria | **Entregue** | ✅ |
+| 9 | Taxas e levantamento no porto (carga grande) | Portaria | **Entregue** | ✅ |
+| 10 | Agência em Cabo Verde (encomendas pequenas) | Agência em Cabo Verde | **A caminho da agência → Na agência → Entregue** | ✅ |
 | — | Carga não levantada no prazo | Automático (prazo nas Tarifas) | **Abandonado** | ✅ |
 | — | Acompanhamento e emails | Cliente | — | ✅ até à entrega |
 | — | Administração | Administrador | — | ✅ |
+
+> **Encomendas pequenas e carga grande.** As **encomendas pequenas** (caixas) são entregues por uma **agência em
+> Cabo Verde** ligada à agência de envio: depois da Alfândega, a agência levanta-as no porto, leva-as para as suas
+> instalações e entrega-as ao destinatário (etapa 10). A **carga grande** (veículos, mudanças, paletes, carga
+> comercial) levanta-se na **portaria do porto** (etapa 9). Se a agência de envio não tiver nenhuma agência em Cabo
+> Verde ligada, as encomendas pequenas também se levantam no porto.
 
 > **Agência e agente de recolha.** A agência não tem uma conta própria. Quem trabalha nela entra como **agente
 > de recolha** e trata os pedidos e as encomendas da agência. O **transitário** é da mesma agência e trata do
@@ -120,7 +138,8 @@ Cada conta vê só o que lhe diz respeito. Toda a equipa tem também o botão **
 | Operador do terminal | Chegadas e conferência |
 | Alfândega | Despacho aduaneiro |
 | Portaria | Levantamentos |
-| Administrador | Painel geral · Utilizadores · Pedidos de clientes · Encomendas · Importar lista · Contentores · Viagens e manifestos · Chegadas e conferência · Despacho aduaneiro · Levantamentos · Tarifas · Auditoria · Problemas reportados |
+| Agência em Cabo Verde | Encomendas a entregar · Entregar ao destinatário |
+| Administrador | Painel geral · Utilizadores · Agências · Pedidos de clientes · Encomendas · Importar lista · Contentores · Viagens e manifestos · Chegadas e conferência · Despacho aduaneiro · Levantamentos · Agências em Cabo Verde · Tarifas · Auditoria · Problemas reportados |
 | Exportador | Início (área em preparação ⏳) |
 
 ---
@@ -195,6 +214,8 @@ ações:
 **Caminho B: o cliente aparece no balcão sem pedido**
 1. **Encomendas** → **Nova encomenda** (`/agencia/encomendas/nova`).
 2. Preencha a carga, o remetente, o destinatário (o **NIF é obrigatório**; o documento ajuda no levantamento) e os volumes.
+3. Numa **encomenda pequena**, o campo **Agência em Cabo Verde** mostra as agências ligadas que servem a ilha do
+   destinatário. Com uma só, fica escolhida sozinha; com várias, escolha a que o cliente preferir.
 
 **O que verificar**
 - ☐ A encomenda criada a partir do pedido traz o remetente, o destinatário, a carga e a ilha.
@@ -241,7 +262,11 @@ Serve para agências que já têm as encomendas numa folha de cálculo.
      mesmo dia; ou um veículo com o mesmo VIN noutra encomenda ativa), mostra-a. O agente decide se continua.
 4. A encomenda fica **Validada** e cada volume fica **Recolhido**.
 5. **Imprimir etiquetas:** uma por volume, com um QR assinado. Cole cada uma no volume certo.
-6. Leve os volumes para o armazém da agência. Ficam à espera de contentor.
+6. **Encomenda pequena: comprovativo para o remetente.** Ao validar, nasce o **código de levantamento** (`LEV-…`).
+   Clique em **Comprovativo** e imprima-o: tem a encomenda, os volumes, a **agência em Cabo Verde** que entrega
+   (morada e telefone), o código e um QR. O remetente recebe-o também por email e pode reencaminhá-lo a quem vai
+   levantar.
+7. Leve os volumes para o armazém da agência. Ficam à espera de contentor.
 
 Uma encomenda, em rascunho ou já validada, pode ser **cancelada** com motivo.
 
@@ -250,6 +275,9 @@ Uma encomenda, em rascunho ou já validada, pode ser **cancelada** com motivo.
 - ☐ O aviso de duplicado aparece (também para um VIN repetido) e deixa continuar.
 - ☐ As etiquetas imprimem uma por volume, com o código `ENC-…-01`, `-02`…
 - ☐ Depois de validada, a encomenda já não se edita.
+- ☐ Numa encomenda pequena, o detalhe mostra o cartão **Levantamento em Cabo Verde** com a agência e o código, e o
+  email "Comprovativo de envio ENC-…: código de levantamento LEV-…" chega ao Mailpit.
+- ☐ Numa ilha servida por duas agências ligadas, validar sem escolher pede "Escolha a agência em Cabo Verde…".
 
 ### Acompanhamento pelo cliente ✅ (em qualquer momento)
 
@@ -272,6 +300,10 @@ notas da agência, e pode **cancelar o pedido** (com motivo opcional). Recebe um
 contentor → em viagem (navio e chegada prevista) → chegou a Cabo Verde → pronta para levantar → entregue. Quando a
 carga está pronta, aparece o **código de levantamento** `LEV-…` (para passar ao destinatário), o porto e as taxas
 a pagar nesse dia. Também recebe um email em cada marco: em viagem, chegou, pronta para levantar e entregue.
+
+Numa **encomenda pequena** entregue pela agência em Cabo Verde, a linha do tempo tem mais dois marcos: **liberada pela
+Alfândega → a caminho da agência → pronta para levantar na agência → entregue**. O código e as taxas aparecem quando
+a carga chega à agência, com o nome e a morada da agência; o email é "Pronta para levantar na agência".
 
 **O que verificar**
 - ☐ Com o telefone errado, o pedido não aparece. Um link alterado mostra "Este link não é válido".
@@ -373,7 +405,8 @@ a pagar nesse dia. Também recebe um email em cada marco: em viagem, chegou, pro
    verde nos outros casos.
 3. Atribua o canal (**Canal verde** ou **Canal vermelho**; no vermelho, escreva o resultado da inspeção).
 4. **Reter**, com motivo: os volumes ficam **Retido**. Ou **Libertar**, com os direitos em CVE: os volumes ficam
-   **Liberado** e aparece o **código de levantamento** (`LEV-…`).
+   **Liberado** e aparece o **código de levantamento** (`LEV-…`). Numa encomenda pequena é o mesmo código do
+   comprovativo, criado ao validar.
 5. O remetente recebe por email o código e as taxas, e vê-os na linha do tempo. Ao destinatário, por agora, o código
    chega pelo remetente ou à mão (⏳ o SMS ainda não existe).
 
@@ -382,11 +415,15 @@ a pagar nesse dia. Também recebe um email em cada marco: em viagem, chegou, pro
 - ☐ A sugestão de canal muda com as ocorrências registadas na etapa 7.
 - ☐ Uma encomenda retida pode ser libertada depois.
 - ☐ O código `LEV-…` aparece depois de libertar e chega ao remetente no email "Carga pronta para levantar".
+- ☐ Numa encomenda pequena, o email é "Carga liberada pela Alfândega" e diz que a agência em Cabo Verde vai levantá-la.
 
 ### Etapa 9 — Portaria: taxas e levantamento ✅
 
 **Quem:** `portaria@portus.cv`.
 **Onde:** **Levantamentos** (`/portaria`).
+
+Para a **carga grande** (veículos, mudanças, paletes, carga comercial). As encomendas pequenas entregues por uma
+agência em Cabo Verde são recusadas aqui: ver a etapa 10.
 
 1. Procure pelo **código de levantamento**, pelo **QR** de um volume ou pelo código da encomenda.
 2. **Taxas:** manuseamento por volume, armazenagem por dia depois dos dias grátis, e os direitos. Registe o
@@ -410,6 +447,46 @@ a pagar nesse dia. Também recebe um email em cada marco: em viagem, chegou, pro
 - ☐ Uma encomenda **antiga** sem NIF nem documento do destinatário não consegue ser entregue (as novas já têm NIF
   obrigatório).
 - ☐ Na entrega, o remetente recebe o email "Carga entregue" e a linha do tempo fica completa.
+- ☐ Uma encomenda pequena com agência em Cabo Verde é recusada: "Esta encomenda é entregue pela agência em Cabo
+  Verde, não no porto."
+
+### Etapa 10 — Agência em Cabo Verde: levantar, receber e entregar ✅
+
+**Quem:** `agencia.praia@portus.cv` (Santiago, Maio, Fogo, Brava) ou `agencia.mindelo@portus.cv` (Barlavento, Sal,
+Boa Vista). Cada conta vê só as encomendas da sua agência.
+**Onde:** **Encomendas a entregar** (`/agencia-cv`) e **Entregar ao destinatário** (`/agencia-cv/entregar`).
+
+A agência trata do despacho das encomendas pequenas, leva-as do porto para as suas instalações e entrega-as. Os
+separadores mostram cada etapa, com o número de encomendas: **Liberadas no porto**, **A caminho**, **Na agência**,
+**Entregues** e **Ainda no porto** (no navio, na conferência ou na Alfândega).
+
+1. **Levantar no porto:** em **Liberadas no porto**, marque as encomendas que a agência levantou e clique em
+   **Levantar no porto**. Os volumes passam a **A caminho da agência**.
+2. **Receber na agência:** à chegada, leia o QR de cada volume (ou escreva o código) em **Receber na agência**. O
+   volume passa a **Na agência**. Quando chegam todos os volumes da encomenda, o remetente recebe o email "Pronta
+   para levantar na agência".
+3. **Entregar:** em **Na agência**, clique em **Entregar** (ou vá a **Entregar ao destinatário** e leia o QR do
+   comprovativo, ou escreva o código `LEV-…` ou `ENC-…`).
+4. **Taxas:** tarifas gerais (manuseamento e armazenagem) e direitos da Alfândega. Registe o **pagamento**. Sem tudo
+   pago não há entrega.
+5. **Quem levanta:**
+   - **O destinatário:** nome, documento apresentado e nº; o nº do documento ou o NIF tem de coincidir com o
+     registado na encomenda.
+   - **Outra pessoa, com o comprovativo:** o **código do comprovativo** (`LEV-…`; vem preenchido se leu o QR do
+     comprovativo), o **documento ou NIF do destinatário**, e o nome e o documento de quem levanta.
+6. Clique em **Entregar**. É emitido o **comprovativo de entrega** (`ENT-…`) para imprimir e assinar. Os volumes ficam
+   **Entregue** e o remetente recebe o email "Carga entregue".
+
+**O que verificar**
+- ☐ Uma encomenda pequena libertada pela Alfândega aparece em **Liberadas no porto**, com os contadores certos.
+- ☐ Ler um volume que ainda não foi levantado no porto pede para registar primeiro o levantamento.
+- ☐ Ler o mesmo volume duas vezes diz "já estava na agência".
+- ☐ O email "Pronta para levantar na agência" só chega quando todos os volumes estão na agência.
+- ☐ Não entrega com taxas por pagar.
+- ☐ Um código errado é recusado: "O código não corresponde ao comprovativo desta encomenda."
+- ☐ Um documento ou NIF do destinatário errado é recusado.
+- ☐ O comprovativo de entrega mostra quem levantou (e se foi com o comprovativo), os volumes e o valor pago.
+- ☐ A conta da Praia não vê as encomendas do Mindelo, e vice-versa.
 
 ---
 
@@ -427,7 +504,8 @@ encomendas dos últimos 30 dias por agência e por país.
 1. **Pedidos de acesso:** quem trabalha numa agência ou no porto pede acesso em **Pedir acesso** (`/register`,
    ligação no ecrã de entrada). A conta fica em revisão e a pessoa recebe um email.
 2. No separador **Pedidos de acesso**, abra a pessoa, confirme a empresa e onde trabalha, escolha a **agência**
-   (agente de recolha, transitário) ou o **porto** (agente marítimo, terminal, Alfândega, portaria) e clique em
+   (agente de recolha, transitário, agência em Cabo Verde) ou o **porto** (agente marítimo, terminal, Alfândega,
+   portaria) e clique em
    **Aprovar**. A pessoa recebe um email e já pode entrar.
 3. **Nova conta:** cria uma conta da equipa já ativa e mostra uma **palavra-passe temporária**, só dessa vez. Entregue-a
    pessoalmente ou por telefone.
@@ -437,6 +515,16 @@ encomendas dos últimos 30 dias por agência e por país.
 - ☐ Uma conta bloqueada deixa de conseguir entrar.
 - ☐ Depois de repor, a palavra-passe antiga deixa de funcionar.
 - ☐ Não consegue bloquear a sua própria conta.
+
+### Agências (`/admin/agencias`)
+- **Agências de envio:** país de onde envia, cidade, contactos, ilhas e tipos de carga que aceitam, se fazem recolha.
+- **Agências em Cabo Verde:** cidade, morada, contactos e ilhas que servem. As contas com o perfil **Agência em Cabo
+  Verde** ficam associadas a uma delas (em **Utilizadores**).
+- **Ligações:** numa agência de envio, marque as agências em Cabo Verde que entregam as suas encomendas pequenas.
+  Uma agência de envio pode ter várias e uma agência em Cabo Verde pode trabalhar com várias de envio.
+- ☐ Uma nova agência em Cabo Verde ligada a Lisboa aparece no campo **Agência em Cabo Verde** das encomendas pequenas
+  para as ilhas que serve.
+- ☐ Sem ligações, as encomendas pequenas dessa agência levantam-se no porto.
 
 ### Auditoria (`/admin/auditoria`)
 Todas as alterações, de todos os perfis: quem, quando, a ação e o registo. Clique numa linha para ver o **antes e o
@@ -482,6 +570,11 @@ de ecrã. Mude o estado (Novo, Em análise, Resolvido, Não é erro) e escreva u
 | Link falsificado | Mudar uma letra do link `/pedido/…` | "Este link não é válido" |
 | Aprovação sem âmbito (BR 28) | Aprovar um pedido de acesso da Alfândega sem escolher o porto | "Escolha o porto deste utilizador." |
 | Abandono (BR 25) | Prazo curto e **Verificar agora** | Aviso por email uma só vez; depois Abandonado |
+| Encomenda pequena no porto | Procurar na portaria uma encomenda pequena com agência em Cabo Verde | "Esta encomenda é entregue pela agência em Cabo Verde, não no porto." |
+| Duas agências na ilha | Ligar uma segunda agência que sirva Santiago e validar sem escolher | "Escolha a agência em Cabo Verde que entrega ao destinatário." |
+| Código do comprovativo errado | Entregar a outra pessoa com `LEV-ZZZZZZ` | "O código não corresponde ao comprovativo desta encomenda." |
+| Documento do destinatário errado | Entregar a outra pessoa com um documento que não é o do destinatário | "O documento do destinatário não corresponde ao registado." |
+| Receber antes de levantar | Ler na agência um volume ainda **Liberado** | "Registe primeiro o levantamento no porto da encomenda ENC-…" |
 
 ---
 
@@ -497,7 +590,9 @@ Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas
 | Juntar pedidos feitos sem email | ⏳ Só se juntam os que têm o mesmo email da conta |
 | Papel do exportador | ⏳ Por definir; a área do exportador está em preparação |
 | Recolha: período (manhã/tarde) e data preferida | ⏳ Próxima versão, depois do feedback das partes interessadas |
-| Portal do destinatário em Cabo Verde | ⏳ O destinatário recebe o código pelo remetente |
+| Portal do destinatário em Cabo Verde | ⏳ O destinatário recebe o código (ou o comprovativo) pelo remetente |
+| Transporte entre ilhas (ex.: CV Interilhas) | ⏳ A agência regista o levantamento no porto e a receção; o transporte entre ilhas não tem etapas próprias |
+| Agência em Cabo Verde para carga grande | ⏳ Veículos, mudanças e paletes levantam-se no porto |
 | SMS ao destinatário | ⏳ Só há emails ao remetente |
 | Emails para fora (fornecedor real) | ⏳ Em teste vão todos para o Mailpit; falta escolher o fornecedor (SES, Resend, Brevo) |
 | Recolha sem internet (B7) | ⏳ O protótipo `/agent/collections` guarda só no navegador 🧪 |
@@ -511,7 +606,8 @@ Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas
 
 ## 8. Teste de ponta a ponta (cerca de 30 minutos)
 
-Uma única encomenda do pedido até ao Gate Pass. Anote os códigos à medida que aparecem.
+Uma única encomenda pequena, do pedido até à entrega na agência em Cabo Verde. Anote os códigos à medida que
+aparecem. Para testar a portaria do porto, repita com uma **mudança** e, na linha 11, use a conta `portaria`.
 
 | # | Conta | Ação | Anotar |
 |---|---|---|---|
@@ -520,12 +616,12 @@ Uma única encomenda do pedido até ao Gate Pass. Anote os códigos à medida qu
 | 3 | `agente` | **Pedidos de clientes**: **Aceitar**, depois **Agendar** para amanhã | |
 | 4 | Cliente | Link do pedido: **Recolha agendada**, com a data; email do agendamento no Mailpit | |
 | 5 | `agente` | **Carga recebida (criar encomenda)** | `ENC-…` |
-| 6 | `agente` | Encomenda: acrescentar 2 volumes, **Validar**, **Imprimir etiquetas** | `ENC-…-01`, `-02` |
+| 6 | `agente` | Encomenda: acrescentar 2 volumes, **Validar** (agência Morabeza Praia), **Imprimir etiquetas**, **Comprovativo** | `ENC-…-01`, `-02`, `LEV-…` |
 | 7 | `transitario` | **Contentores**: novo contentor `CSQU3054383` (ou outro válido), BL Master, ler os 2 códigos, **Selar e fechar** | |
 | 8 | `transitario` | **Viagens**: nova viagem para a **Praia**, ETA daqui a 2 dias; associar o contentor; gerar e registar o envio do manifesto; **Registar partida** | |
 | 9 | `terminal` | **Chegadas**: **Registar chegada**; abrir o contentor; localização `A-01-1`; ler os 2 códigos; **Fechar desconsolidação** | |
-| 10 | `alfandega` | Validar o manifesto; **Despachar encomendas**; **Canal verde**; **Libertar** com direitos | `LEV-…` |
-| 11 | `portaria` | Procurar o `LEV-…`; **Registar pagamento**; NIF do destinatário; ler os 2 códigos; código `LEV-…`; **Entregar** | `GP-…` |
+| 10 | `alfandega` | Validar o manifesto; **Despachar encomendas**; **Canal verde**; **Libertar** com direitos | |
+| 11 | `agencia.praia` | **Liberadas no porto**: marcar e **Levantar no porto**; **Receber na agência**: os 2 códigos; **Na agência** → **Entregar**; **Registar pagamento**; **Outra pessoa, com o comprovativo**: `LEV-…`, NIF do destinatário, nome e documento; **Entregar** | `ENT-…` |
 | 12 | Cliente | Link do pedido: linha do tempo completa até **Entregue**; no Mailpit, os emails de cada marco | |
 | 13 | `joao` | **Auditoria**: as ações de 3 a 11; **Painel geral**: os números mudaram | |
 
@@ -567,8 +663,11 @@ ficam registados sozinhos. O administrador vê tudo em **Problemas reportados**.
 | **Desconsolidação** | Abrir o contentor no porto e conferir cada volume. |
 | **Ocorrência** | Problema registado na conferência: falta, dano, selo violado ou excesso. |
 | **Canal verde / vermelho** | Decisão da Alfândega: libertar sem inspeção / inspecionar fisicamente. |
-| **Código de levantamento** (`LEV-…`) | Código dado ao libertar a carga; o destinatário apresenta-o na portaria. |
+| **Código de levantamento** (`LEV-…`) | Código para levantar a carga. Nas encomendas pequenas nasce ao validar e está no comprovativo de envio; nas outras é dado ao libertar a carga. |
+| **Comprovativo de envio** | Papel entregue ao remetente ao fechar a caixa (e enviado por email), com a agência em Cabo Verde, o código de levantamento e um QR. Quem o traz, com o documento do destinatário, pode levantar. |
+| **Agência em Cabo Verde** | Agência ligada à agência de envio que despacha, leva para as suas instalações e entrega as encomendas pequenas. |
 | **Gate Pass** (`GP-…`) | Comprovativo de saída da carga do porto, emitido na entrega. |
+| **Comprovativo de entrega** (`ENT-…`) | Emitido pela agência em Cabo Verde na entrega, com quem levantou e os volumes. |
 | **Abandonado** | Carga liberada que não foi levantada dentro do prazo (BR 25). |
 | **Mailpit** | Caixa de correio de testes onde ficam os emails da plataforma enquanto não há um fornecedor real. |
 | **BR / RF** | Regras de negócio / requisitos funcionais do documento de requisitos (ex.: BR 25, RF-A36). |
