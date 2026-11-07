@@ -37,7 +37,7 @@ function waitForEmail(to: string, subject: RegExp, attempts = 20): Cypress.Chain
 }
 
 describe("o cliente acompanha a encomenda até ao levantamento", () => {
-  it("shows the voyage, then the pickup code, on the personal link page", () => {
+  it("shows the voyage, then the Cabo Verde agency and the pickup code, on the personal link page", () => {
     const suffix = String(Date.now()).slice(-6);
     const email = `seguir.${suffix}@example.pt`;
     const vessel = `Seguimento ${suffix}`;
@@ -104,12 +104,26 @@ describe("o cliente acompanha a encomenda até ao levantamento", () => {
                             const clearanceId = clearances.body[0].id as string;
                             call(customs, "POST", `/customs/clearances/${clearanceId}/channel`, { channel: "green" });
                             call(customs, "POST", `/customs/clearances/${clearanceId}/release`, { dutiesCve: 500 }).then((released) => {
+                              // Encomenda pequena: a agência em Cabo Verde levanta-a no porto; ainda não está pronta.
                               cy.reload();
-                              cy.get('[data-cy="pickup-info"]', { timeout: 60_000 }).should("contain.text", released.body.pickupCode);
-                              cy.contains("Pronta para levantar").should("be.visible");
+                              cy.get('[data-cy="shipment-timeline"]', { timeout: 60_000 }).should("contain.text", "Liberada pela Alfândega");
+                              cy.contains("A agência em Cabo Verde vai levantá-la no porto.").should("be.visible");
+                              cy.get('[data-cy="pickup-info"]').should("not.exist");
+                              waitForEmail(email, /Carga liberada pela Alfândega/);
+
+                              // Agência em Cabo Verde: levanta no porto e recebe na agência.
+                              headersFor("agencia.praia@portus.cv").then((agency) => {
+                                call(agency, "POST", "/cv-agency/collect", { shipmentIds: [shipmentId] });
+                                call(agency, "POST", "/cv-agency/receive", { code: label.qr });
+                              });
+                              cy.reload();
+                              cy.get('[data-cy="pickup-info"]', { timeout: 60_000 })
+                                .should("contain.text", released.body.pickupCode)
+                                .and("contain.text", "Morabeza Praia");
+                              cy.get('[data-cy="shipment-timeline"]').should("contain.text", "Pronta para levantar na agência");
                               cy.contains("T-01-1").should("not.exist");
                               cy.screenshot("10-seguimento-pronta", { capture: "fullPage" });
-                              waitForEmail(email, /Carga pronta para levantar/);
+                              waitForEmail(email, /Pronta para levantar na agência/);
                             });
                           });
                         });
