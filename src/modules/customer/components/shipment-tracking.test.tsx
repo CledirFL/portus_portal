@@ -1,10 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ShipmentTracking } from "@/domain/shipment-request";
-import { ShipmentTimeline, ShipmentTrackingDetails } from "@/modules/customer/components/shipment-tracking";
+import { ShipmentTimeline, ShipmentTrackingDetails, TrackingStageBadge } from "@/modules/customer/components/shipment-tracking";
 
-const steps = (reached: number) =>
-  ["received", "labelled", "consolidated", "in_transit", "arrived", "cleared", "delivered"].map((key, index) => ({
+const portKeys = ["received", "labelled", "consolidated", "in_transit", "arrived", "cleared", "delivered"];
+const agencyKeys = ["received", "labelled", "consolidated", "in_transit", "arrived", "cleared", "to_agency", "at_agency", "delivered"];
+const steps = (reached: number, keys = portKeys) =>
+  keys.map((key, index) => ({
     key: key as ShipmentTracking["steps"][number]["key"],
     label: `Passo ${key}`,
     done: index <= reached,
@@ -42,5 +44,34 @@ describe("shipment tracking", () => {
     expect(screen.getByText("LEV-4H7K2P")).toBeInTheDocument();
     expect(screen.getByText("1250,00 CVE", { exact: false })).toBeInTheDocument();
     expect(screen.queryByText(/Chegada prevista/)).not.toBeInTheDocument();
+  });
+
+  it("tells the customer when a small parcel is waiting at the Cabo Verde agency", () => {
+    const cleared: ShipmentTracking = { ...base, stage: "cleared", steps: steps(5, agencyKeys) };
+    const { unmount } = render(
+      <>
+        <TrackingStageBadge tracking={cleared} />
+        <ShipmentTimeline tracking={cleared} />
+      </>,
+    );
+    expect(screen.getByText("Liberada pela Alfândega")).toBeInTheDocument();
+    expect(screen.getByText(/A agência em Cabo Verde vai levantá-la no porto/)).toBeInTheDocument();
+    unmount();
+
+    const atAgency: ShipmentTracking = {
+      ...cleared,
+      stage: "at_agency",
+      steps: steps(7, agencyKeys),
+      pickup: { code: "LEV-4H7K2P", port: "Morabeza Praia, Achada Santo António, Praia", balanceCve: 0 },
+    };
+    render(
+      <>
+        <TrackingStageBadge tracking={atAgency} />
+        <ShipmentTrackingDetails tracking={atAgency} />
+      </>,
+    );
+    expect(screen.getByText("Pronta na agência")).toBeInTheDocument();
+    expect(screen.getByText("Pronta para levantar em Morabeza Praia, Achada Santo António, Praia")).toBeInTheDocument();
+    expect(screen.getByText(/leva o documento do destinatário e este código/)).toBeInTheDocument();
   });
 });

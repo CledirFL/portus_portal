@@ -61,7 +61,16 @@ export const requestStatusDescriptions: Record<RequestStatus, string> = {
 
 export type HandoverMethod = "recolha" | "entrega_na_agencia";
 
-export type TrackingStepKey = "received" | "labelled" | "consolidated" | "in_transit" | "arrived" | "cleared" | "delivered";
+export type TrackingStepKey =
+  | "received"
+  | "labelled"
+  | "consolidated"
+  | "in_transit"
+  | "arrived"
+  | "cleared"
+  | "to_agency"
+  | "at_agency"
+  | "delivered";
 export type TrackingStage = TrackingStepKey | "held" | "abandoned" | "cancelled";
 
 /** Linha do tempo da encomenda depois de a agência receber a carga (a API calcula os marcos). */
@@ -82,6 +91,8 @@ export const trackingStageLabels: Record<TrackingStage, string> = {
   in_transit: "Em viagem",
   arrived: "Chegou a Cabo Verde",
   cleared: "Pronta para levantar",
+  to_agency: "A caminho da agência",
+  at_agency: "Pronta na agência",
   delivered: "Entregue",
   held: "Retida na Alfândega",
   abandoned: "Abandonada",
@@ -95,11 +106,24 @@ export const trackingStageDescriptions: Record<TrackingStage, string> = {
   in_transit: "A carga está a caminho de Cabo Verde.",
   arrived: "A carga vai ser conferida no terminal e despachada pela Alfândega.",
   cleared: "A Alfândega libertou a carga. O destinatário já a pode levantar.",
+  to_agency: "A agência em Cabo Verde levantou a carga no porto e está a levá-la para as suas instalações.",
+  at_agency: "A carga está na agência em Cabo Verde. O destinatário já a pode levantar.",
   delivered: "A carga foi levantada.",
   held: "A Alfândega reteve a carga. Contacte a agência para saber o que falta.",
   abandoned: "O prazo de armazenagem terminou sem a carga ser levantada. Contacte a agência.",
   cancelled: "A encomenda foi cancelada. Contacte a agência.",
 };
+
+/** Encomenda pequena entregue por uma agência em Cabo Verde (a linha do tempo tem os marcos da agência). */
+export const viaAgency = (tracking: ShipmentTracking) => tracking.steps.some((step) => step.key === "at_agency");
+
+/** Nome e explicação do marco atual; nas encomendas da agência, "cleared" ainda não está pronta para levantar. */
+export function trackingStageText(tracking: ShipmentTracking) {
+  if (tracking.stage === "cleared" && viaAgency(tracking)) {
+    return { label: "Liberada pela Alfândega", description: "A Alfândega libertou a carga. A agência em Cabo Verde vai levantá-la no porto." };
+  }
+  return { label: trackingStageLabels[tracking.stage], description: trackingStageDescriptions[tracking.stage] };
+}
 
 /** Pedido tal como a API o devolve. */
 export interface ShipmentRequest {

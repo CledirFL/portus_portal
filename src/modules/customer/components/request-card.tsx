@@ -31,7 +31,7 @@ export function RequestCard({ request, onCancel }: RequestCardProps) {
             </p>
           </div>
         </div>
-        {tracking ? <TrackingStageBadge stage={tracking.stage} /> : <RequestStatusBadge status={request.status} />}
+        {tracking ? <TrackingStageBadge tracking={tracking} /> : <RequestStatusBadge status={request.status} />}
       </div>
 
       <div className="mt-4 grid gap-6 md:grid-cols-[1fr_1.1fr]">

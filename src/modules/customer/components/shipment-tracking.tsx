@@ -3,12 +3,7 @@
 import { AlertTriangle, Check, Copy, Ship } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import {
-  type ShipmentTracking,
-  type TrackingStage,
-  trackingStageDescriptions,
-  trackingStageLabels,
-} from "@/domain/shipment-request";
+import { type ShipmentTracking, type TrackingStage, trackingStageText, viaAgency } from "@/domain/shipment-request";
 
 const stageTones: Record<TrackingStage, "neutral" | "success" | "warning" | "danger" | "info"> = {
   received: "info",
@@ -17,6 +12,8 @@ const stageTones: Record<TrackingStage, "neutral" | "success" | "warning" | "dan
   in_transit: "info",
   arrived: "info",
   cleared: "success",
+  to_agency: "info",
+  at_agency: "success",
   delivered: "success",
   held: "danger",
   abandoned: "danger",
@@ -27,8 +24,10 @@ const formatDate = (iso: string, withTime = true) =>
   new Date(iso).toLocaleString("pt-PT", withTime ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "full" });
 const formatCve = (value: number) => `${value.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CVE`;
 
-export function TrackingStageBadge({ stage }: { stage: TrackingStage }) {
-  return <Badge tone={stageTones[stage]}>{trackingStageLabels[stage]}</Badge>;
+export function TrackingStageBadge({ tracking }: { tracking: ShipmentTracking }) {
+  // Nas encomendas da agência, liberada pela Alfândega ainda não é "pronta".
+  const tone = tracking.stage === "cleared" && viaAgency(tracking) ? "info" : stageTones[tracking.stage];
+  return <Badge tone={tone}>{trackingStageText(tracking).label}</Badge>;
 }
 
 /** Marcos da encomenda, do balcão da agência à entrega em Cabo Verde. */
@@ -54,7 +53,7 @@ export function ShipmentTimeline({ tracking }: { tracking: ShipmentTracking }) {
             </span>
             <div className="-mt-0.5">
               <p className={`text-sm font-medium ${step.done ? "text-slate-900" : "text-slate-400"}`}>{step.label}</p>
-              {isCurrent ? <p className="text-xs text-slate-500">{trackingStageDescriptions[tracking.stage]}</p> : null}
+              {isCurrent ? <p className="text-xs text-slate-500">{trackingStageText(tracking).description}</p> : null}
               {step.at ? <p className="text-xs text-slate-400">{formatDate(step.at)}</p> : null}
             </div>
           </li>
@@ -96,10 +95,17 @@ export function ShipmentTrackingDetails({ tracking }: { tracking: ShipmentTracki
             </button>
           </div>
           <p className="mt-2">Taxas a pagar hoje: <strong>{formatCve(pickup.balanceCve)}</strong> (a armazenagem aumenta com os dias).</p>
-          <p className="mt-1">
-            O destinatário leva o documento de identificação (ou o NIF) e este código. Passe-lhe o código. Se for outra pessoa a
-            levantar, tem de ser autorizada na portaria.
-          </p>
+          {tracking.stage === "at_agency" ? (
+            <p className="mt-1">
+              O destinatário leva o documento de identificação (ou o NIF). Se for outra pessoa a levantar, leva o documento do
+              destinatário e este código, que está também no comprovativo enviado por email.
+            </p>
+          ) : (
+            <p className="mt-1">
+              O destinatário leva o documento de identificação (ou o NIF) e este código. Passe-lhe o código. Se for outra pessoa a
+              levantar, tem de ser autorizada na portaria.
+            </p>
+          )}
         </div>
       ) : null}
 
