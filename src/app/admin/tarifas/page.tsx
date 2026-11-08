@@ -16,7 +16,15 @@ import {
   updateAbandonmentSettings,
   updateTariff,
 } from "@/services/api/arrivals";
+import { VehicleRegimesForms, VehicleTaxSettingsForm } from "@/modules/admin/vehicle-settings";
 import { useAuthStore } from "@/store/auth-store";
+
+const unitLabels = {
+  per_volume: "Por volume.",
+  per_volume_day: "Por volume e por dia, depois dos dias grátis (BR 25).",
+  per_shipment: "Uma vez por encomenda.",
+} as const;
+const categoryNames: Record<string, string> = { veiculo: "viaturas" };
 
 function TariffForm({ tariff, onSaved }: { tariff: TariffRule; onSaved: (tariffs: TariffRule[]) => void }) {
   const [amount, setAmount] = useState(String(tariff.amountCve));
@@ -26,7 +34,10 @@ function TariffForm({ tariff, onSaved }: { tariff: TariffRule; onSaved: (tariffs
   const daily = tariff.unit === "per_volume_day";
 
   return (
-    <Card title={tariff.label} subtitle={daily ? "Por volume e por dia, depois dos dias grátis (BR 25)." : "Por volume."}>
+    <Card
+      title={tariff.label}
+      subtitle={`${unitLabels[tariff.unit]}${tariff.categories?.length ? ` Só ${tariff.categories.map((category) => categoryNames[category] ?? category).join(", ")}.` : ""}`}
+    >
       <form
         className="grid gap-3 sm:grid-cols-3 sm:items-start"
         onSubmit={async (event) => {
@@ -143,7 +154,7 @@ export default function TariffsPage() {
     <AppShell>
       <PageHeader
         title="Tarifas"
-        description="Valores cobrados na portaria antes do levantamento (RF-A25). Os direitos aduaneiros são fixados pela Alfândega em cada encomenda."
+        description="Valores cobrados na portaria antes do levantamento (RF-A25), regimes e impostos das viaturas. Os direitos aduaneiros são fixados pela Alfândega em cada encomenda."
       />
       <ErrorBanner message={error} />
       {tariffs ? (
@@ -152,6 +163,9 @@ export default function TariffsPage() {
             <TariffForm key={`${tariff.code}-${tariff.amountCve}-${tariff.freeDays}`} tariff={tariff} onSaved={setTariffs} />
           ))}
           <AbandonmentForm />
+          <h2 className="mt-6 text-lg font-semibold text-slate-900">Viaturas</h2>
+          <VehicleTaxSettingsForm />
+          <VehicleRegimesForms />
         </div>
       ) : !error ? (
         <p className="py-10 text-center text-sm text-slate-500">A carregar…</p>

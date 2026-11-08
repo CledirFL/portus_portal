@@ -34,7 +34,7 @@ export function suggestChannel(input: ChannelInput): { channel: CustomsChannel; 
   return { channel: reasons.length ? "red" : "green", reasons };
 }
 
-export type TariffUnit = "per_volume" | "per_volume_day";
+export type TariffUnit = "per_volume" | "per_volume_day" | "per_shipment";
 
 export interface TariffRule {
   code: string;
@@ -42,6 +42,8 @@ export interface TariffRule {
   unit: TariffUnit;
   amountCve: number;
   freeDays: number;
+  /** Tipos de carga a que se aplica; vazio: todos. */
+  categories?: string[];
 }
 
 export interface ChargeLine {
@@ -76,6 +78,8 @@ export function storageDays(arrivedAt: Date | null, now: Date) {
  */
 export function computeCharges(input: {
   tariffs: TariffRule[];
+  /** Tipo de carga da encomenda (as tarifas com tipos só se aplicam a esses). */
+  category?: string;
   volumes: number;
   arrivedAt: Date | null;
   now: Date;
@@ -86,7 +90,13 @@ export function computeCharges(input: {
   const days = storageDays(input.arrivedAt, input.now);
   const lines: ChargeLine[] = [];
   for (const tariff of input.tariffs) {
-    const quantity = tariff.unit === "per_volume" ? input.volumes : input.volumes * Math.max(0, days - tariff.freeDays);
+    if (tariff.categories?.length && (!input.category || !tariff.categories.includes(input.category))) continue;
+    const quantity =
+      tariff.unit === "per_volume"
+        ? input.volumes
+        : tariff.unit === "per_shipment"
+          ? Math.min(1, input.volumes)
+          : input.volumes * Math.max(0, days - tariff.freeDays);
     if (quantity > 0 && tariff.amountCve > 0) {
       lines.push({ code: tariff.code, label: tariff.label, quantity, amountCve: round2(quantity * tariff.amountCve) });
     }

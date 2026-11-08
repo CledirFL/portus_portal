@@ -43,6 +43,20 @@ describe("computeCharges (RF-A26, BR 21, BR 25)", () => {
     expect(computeCharges({ ...base, paidCve: 600, exempt: false }).balanceCve).toBe(0);
   });
 
+  it("charges the port fees of a vehicle once per shipment and only for the cargo types they apply to", () => {
+    const portFees: TariffRule[] = [
+      ...tariffs,
+      { code: "container_handling", label: "Movimentação do contentor", unit: "per_shipment", amountCve: 6000, freeDays: 0, categories: ["veiculo"] },
+    ];
+    const base = { tariffs: portFees, volumes: 1, arrivedAt, now: new Date("2026-11-02T10:00:00Z"), dutiesCve: 0, paidCve: 0, exempt: false };
+    expect(computeCharges({ ...base, category: "veiculo" }).lines.map((line) => [line.code, line.quantity, line.amountCve])).toEqual([
+      ["handling", 1, 500],
+      ["container_handling", 1, 6000],
+    ]);
+    expect(computeCharges({ ...base, category: "encomenda_pequena" }).lines.map((line) => line.code)).toEqual(["handling"]);
+    expect(computeCharges({ ...base, category: "veiculo", volumes: 0 }).lines).toEqual([]);
+  });
+
   it("counts a started day as a storage day", () => {
     expect(storageDays(arrivedAt, new Date("2026-11-01T10:00:01Z"))).toBe(1);
     expect(storageDays(null, new Date())).toBe(0);
