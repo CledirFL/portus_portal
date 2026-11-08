@@ -42,6 +42,12 @@ export interface Shipment {
   destinationAgency: { id: string; code: string; name: string; city: string; address: string; phone: string } | null;
   /** Código de levantamento do comprovativo (nasce ao validar, com agência em Cabo Verde). */
   pickupCode: string | null;
+  /** Transporte e seguro pagos na origem (obrigatório nas viaturas antes do contentor e da partida). */
+  transport: {
+    required: boolean;
+    paid: boolean;
+    payments: Array<{ id: string; amount: number; currency: string; method: string; reference: string | null; at: string }>;
+  };
   volumes: Volume[];
   totals: { volumes: number; weightKg: number; volumeM3: number };
   validatedAt: string | null;
@@ -136,6 +142,10 @@ export function removeVolume(id: string, volumeId: string) {
 
 export function validateShipment(id: string, confirmDuplicates = false) {
   return apiRequest<Shipment>(`/shipments/${id}/validate`, { method: "POST", body: { confirmDuplicates } });
+}
+
+export function payTransport(id: string, input: { amount: number; currency: "EUR" | "USD" | "CVE"; method: "cash" | "card" | "transfer"; reference: string | null }) {
+  return apiRequest<Shipment>(`/shipments/${id}/transport-payments`, { method: "POST", body: input });
 }
 
 export function cancelShipment(id: string, reason: string) {

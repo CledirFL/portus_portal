@@ -144,6 +144,16 @@ describe("encomendas da agência", () => {
     cy.get('[data-cy="vehicle-estimate-total"]', { timeout: 30_000 }).should("contain.text", "CVE");
     cy.contains("button", "Validar").click();
     cy.contains("Validada").should("be.visible");
+
+    // Viatura: o transporte e o seguro pagam-se antes do contentor.
+    cy.get('[data-cy="transport-unpaid"]').should("contain.text", "não entra no contentor");
+    cy.get('[data-cy="transport-payment-form"]').within(() => {
+      field("Valor").type("1250");
+      field("Recibo / referência").type("TRF-E2E");
+      cy.contains("button", "Registar pagamento do transporte e seguro").click();
+    });
+    cy.get('[data-cy="transport-paid"]').should("be.visible");
+    cy.contains("1250,00 EUR").should("be.visible");
   });
 
   it("warns about a possible duplicate and lets the agent decide", () => {

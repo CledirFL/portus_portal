@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { fieldValueLabel, getCargoType } from "@/domain/cargo-types";
 import { VehicleEstimate } from "@/modules/shipments/components/vehicle-estimate";
+import { TransportPaymentCard } from "@/modules/shipments/components/transport-payment-card";
 import { getDispatchCountry } from "@/domain/countries";
 import { ApiError } from "@/lib/api-client";
 import { ShipmentStatusBadge, VolumeStatusBadge } from "@/modules/shipments/components/shipment-status";
@@ -252,6 +253,7 @@ export default function ShipmentDetailPage() {
         </Card>
 
         <div className="space-y-6">
+          {shipment.transport.required ? <TransportPaymentCard shipment={shipment} onChange={setShipment} /> : null}
           <Card title="Remetente">
             <p className="font-medium text-slate-900">{shipment.sender.name}</p>
             <p className="text-sm text-slate-500">{shipment.sender.phone}</p>
