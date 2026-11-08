@@ -44,7 +44,7 @@ export const userStatusLabels: Record<UserStatus, string> = {
 
 /** Perfis da equipa e o âmbito que cada um exige (o servidor volta a validar). */
 export const agencyRoles: Role[] = ["agente_recolha", "transitario", "agente_destino"];
-export const portRoles: Role[] = ["agente_maritimo", "cv_operator", "alfandega", "portaria"];
+export const portRoles: Role[] = ["agente_maritimo", "cv_operator", "alfandega", "portaria", "tecnico_dgtr"];
 export const staffRoles: Role[] = [...agencyRoles, ...portRoles, "exporter", "admin", "super_admin"];
 /** Contas de administração: só o super admin as cria, altera ou bloqueia. */
 export const administrationRoles: Role[] = ["admin", "super_admin"];

@@ -90,6 +90,7 @@ const departmentByRole: Record<User["role"], string> = {
   alfandega: "Alfândega",
   portaria: "Portaria e levantamentos",
   agente_destino: "Agência em Cabo Verde",
+  tecnico_dgtr: "DGTR",
   cliente: "Clientes",
   admin: "Administração",
   super_admin: "Administração da plataforma",

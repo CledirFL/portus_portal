@@ -7,6 +7,7 @@ export type Role =
   | "alfandega"
   | "portaria"
   | "agente_destino"
+  | "tecnico_dgtr"
   | "cliente"
   | "admin"
   | "super_admin";
@@ -42,6 +43,7 @@ export type NavIcon =
   | "bug"
   | "lock"
   | "key"
+  | "car"
   | "dashboard"
   | "globe"
   | "building"

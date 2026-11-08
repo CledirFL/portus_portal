@@ -14,7 +14,7 @@ export function OperateOnly({ children }: { children: React.ReactNode }) {
   return useReadOnly() ? null : <>{children}</>;
 }
 
-const operationRoutes = ["/agencia/", "/cv/", "/alfandega", "/portaria", "/agencia-cv"];
+const operationRoutes = ["/agencia/", "/cv/", "/alfandega", "/portaria", "/agencia-cv", "/dgtr"];
 
 /** Aviso no topo dos ecrãs de operações para o admin da plataforma. */
 export function ReadOnlyBanner({ pathname }: { pathname: string }) {

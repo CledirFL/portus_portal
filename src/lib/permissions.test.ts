@@ -37,6 +37,8 @@ describe("isAllowedRoute", () => {
       "/agencia/viagens",
       "/cv/chegadas",
       "/alfandega",
+      "/alfandega/viaturas",
+      "/dgtr",
       "/portaria",
       "/agencia-cv",
       "/admin/auditoria",

@@ -33,6 +33,8 @@ function ClearanceCard({ clearance, onChange }: { clearance: Clearance; onChange
   const { shipment } = clearance;
   const readOnly = useReadOnly();
   const done = clearance.status === "released";
+  // Viaturas: desalfandegamento pelo dono (Viaturas); a libertação vem com a matrícula da DGTR.
+  const vehicle = shipment.category === "veiculo";
 
   const submit = async () => {
     if (!action) return;
@@ -119,7 +121,15 @@ function ClearanceCard({ clearance, onChange }: { clearance: Clearance; onChange
 
       {error ? <p className="mt-2 text-sm text-rose-700">{error}</p> : null}
 
-      {!done && !readOnly ? (
+      {vehicle && !done ? (
+        <p className="mt-3 border-t border-slate-100 pt-3 text-sm text-slate-600" data-cy="vehicle-self-clearance">
+          Viatura: o dono faz o desalfandegamento no Portus.{" "}
+          <Link href="/alfandega/viaturas" className="font-medium text-brand-700 hover:text-brand-800">
+            Abrir Viaturas
+          </Link>
+        </p>
+      ) : null}
+      {!done && !readOnly && !vehicle ? (
         action ? (
           <form
             className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-end"
