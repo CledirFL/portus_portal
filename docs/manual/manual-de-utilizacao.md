@@ -24,7 +24,7 @@ Legenda:
    utilizadores, agências, registo de atividade, tarifas, problemas reportados, bloqueios
 6. [Casos especiais a testar](#6-casos-especiais-a-testar)
 7. [O que ainda não existe](#7-o-que-ainda-não-existe-não-registar-como-erro)
-8. [Testes de ponta a ponta](#8-testes-de-ponta-a-ponta): encomenda pequena; viatura recolhida na Amadora e matriculada na Praia
+8. [Testes de ponta a ponta](#8-testes-de-ponta-a-ponta): encomenda pequena; viatura, da morada do dono à matrícula em Cabo Verde
 9. [Registo de problemas](#9-registo-de-problemas)
 10. [Glossário](#10-glossário)
 
@@ -50,8 +50,8 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas do porto estão no **
 |---|---|---|---|
 | *(sem conta)* | Cliente | — | `/enviar`, `/acompanhar` |
 | `cliente@portus.cv` | Cliente com conta (Rosa Tavares) | — | Os meus pedidos |
-| `agente@portus.cv` | Agente de recolha | Agência Morabeza Envios, Lisboa (Amadora) | Recolhas |
-| `transitario@portus.cv` | Transitário | Agência Morabeza Envios, Lisboa (Amadora) | Viagens e manifestos |
+| `agente@portus.cv` | Agente de recolha | Agência Morabeza Envios, Lisboa | Recolhas |
+| `transitario@portus.cv` | Transitário | Agência Morabeza Envios, Lisboa | Viagens e manifestos |
 | `carla@portus.cv` | Agente marítimo | Porto da Praia | Chegadas |
 | `terminal@portus.cv` | Operador do terminal | Porto da Praia | Chegadas e conferência |
 | `alfandega@portus.cv` | Alfândega | Porto da Praia | Despacho aduaneiro |
@@ -725,6 +725,7 @@ Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas
 | Ligação à DNRE / Sydonia World | ⏳ O dossiê fica no Portus; não há API pública para enviar a declaração |
 | Consulta ao EUCARIS (registo europeu) | ⏳ Cabo Verde não é membro: confirma-se com o documento de registo e o COC |
 | Viatura entregue na morada em Cabo Verde | ⏳ Levanta-se na portaria do porto |
+| Valores da viatura noutras moedas (USD, GBP…) | ⏳ A declaração e a estimativa usam euros; quem envia de fora da zona euro converte o valor |
 | Outros idiomas | ⏳ Só português |
 
 ---
@@ -753,11 +754,18 @@ aparecem. Para testar a portaria do porto, repita com uma **mudança** e, na lin
 | 13 | `joao` | **Registo de atividade**: as ações de 3 a 11, as entradas de cada conta e as consultas; **Painel geral**: os números mudaram | |
 | 14 | `governo` | Entrar: só Painel geral, as operações e o Registo de atividade; abrir a encomenda: **Modo de consulta**, sem botões | |
 
-### 8.2 Viatura: recolha na Amadora, matrícula na Praia (cerca de 45 minutos)
+### 8.2 Viatura: da morada do dono à matrícula em Cabo Verde (cerca de 45 minutos)
 
-**O cenário:** a Rosa Tavares (`cliente@portus.cv`) quer enviar o seu carro. A **Morabeza Envios** vai buscá-lo à
-morada, na **Amadora**, e envia-o para a **Praia**. Lá, a própria Rosa faz o **desalfandegamento** no Portus, o técnico da
-**DGTR** faz a inspeção e emite a **matrícula**, e o destinatário levanta o carro na **portaria do porto**.
+**O cenário:** o dono de um carro, **em qualquer país de onde envia** (Portugal, França, Holanda, Estados Unidos…),
+quer mandá-lo para Cabo Verde. Uma agência desse país que **aceita viaturas e faz recolha** vai buscá-lo à **morada do
+dono**, onde quer que seja, e envia-o para Cabo Verde. Lá, o próprio dono faz o **desalfandegamento** no Portus, o
+técnico da **DGTR** faz a inspeção e emite a **matrícula**, e o destinatário levanta o carro na **portaria do porto**.
+
+**Com os dados de demonstração** usa-se um exemplo concreto: o dono é a Rosa Tavares (`cliente@portus.cv`), a agência é
+a **Morabeza Envios** (Portugal; tem as contas `agente` e `transitario`), a morada da recolha pode ser qualquer uma
+(ex.: uma rua da Amadora) e a viagem chega à **Praia** (as contas do porto são da Praia). Para testar a partir de outro
+país, escolha uma agência desse país que aceite viaturas (ex.: Kriola Cargo, Roterdão; Atlantic Bridge Shipping, EUA) e
+crie em **Utilizadores** um agente e um transitário dessa agência.
 
 **Antes de começar:** tenha 7 ficheiros PDF ou fotografias quaisquer (fazem de fatura, COC, registo, cancelamento,
 identificação, comprovativo do transporte e seguro). Em **Tarifas** (`joao`) pode ver e ajustar os regimes e os impostos
@@ -765,9 +773,9 @@ de viaturas usados na estimativa.
 
 | # | Conta | Ação | Anotar |
 |---|---|---|---|
-| 1 | `cliente` (Rosa) | Entrar e ir a **Enviar encomenda**. **Carro, mota ou carrinha**: marca, modelo, ano `2019`, estado **Usado**, valor `7000`. Em **Uso da viatura**, escolha **Táxi**: aparece o aviso "só para viaturas novas"; mude para **Particular** e veja a **estimativa dos impostos** | estimativa |
-| 2 | `cliente` | Portugal → **Santiago**, agência **Morabeza Envios (Amadora)**, **recolha** na morada (ex.: Rua da Liberdade 10, Amadora). "Quem envia" já vem com os dados da Rosa; destinatário com **NIF** e documento; enviar | `PED-…` |
-| 3 | `agente` | **Pedidos de clientes**: **Aceitar** e **Agendar** a recolha na Amadora | |
+| 1 | `cliente` (o dono) | Entrar e ir a **Enviar encomenda**. **Carro, mota ou carrinha**: marca, modelo, ano `2019`, estado **Usado**, valor `7000`. Em **Uso da viatura**, escolha **Táxi**: aparece o aviso "só para viaturas novas"; mude para **Particular** e veja a **estimativa dos impostos** | estimativa |
+| 2 | `cliente` | **País de onde envia** (no exemplo, Portugal) → ilha de destino (no exemplo, **Santiago**), a agência que aceita viaturas e faz recolha (no exemplo, **Morabeza Envios**), **recolha** na morada do dono (qualquer morada; ex.: uma rua da Amadora). "Quem envia" já vem com os dados da conta; destinatário com **NIF** e documento; enviar | `PED-…` |
+| 3 | `agente` | **Pedidos de clientes**: **Aceitar** e **Agendar** a recolha na morada do dono | |
 | 4 | `agente` | Depois de ir buscar o carro: **Carga recebida (criar encomenda)** | `ENC-…` |
 | 5 | `agente` | Encomenda → **Editar dados**: VIN (17 caracteres), cilindrada `1300`, combustível, **valor do transporte** `800` e **do seguro** `150`. Acrescentar o volume (ex.: 1100 kg, 12 m³). **Validar** e **Imprimir etiquetas** | `ENC-…-01` |
 | 6 | `transitario` | **Contentores**: novo contentor, BL Master **FCL**, ler o código do carro → **recusado**: "não tem o transporte e o seguro pagos" | |
@@ -791,7 +799,7 @@ de viaturas usados na estimativa.
 - ☐ O carro não entrou no contentor antes de o transporte e o seguro estarem pagos (passo 6).
 - ☐ Cada passo só foi possível na ordem certa: inspeção → pagamento → matrícula.
 - ☐ Na portaria, o total é só o das taxas do porto: os direitos já estavam pagos.
-- ☐ A Rosa recebeu os emails: submetido, correções, direitos liquidados, inspeção, pagamento e matrícula.
+- ☐ O dono recebeu os emails: submetido, correções, direitos liquidados, inspeção, pagamento e matrícula.
 
 ---
 
