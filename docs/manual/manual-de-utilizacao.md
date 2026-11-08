@@ -18,7 +18,8 @@ Legenda:
 1. [Preparação](#1-preparação): arrancar, contas de demonstração, dicas
 2. [Visão geral do processo](#2-visão-geral-do-processo): etapas, estados e menus de cada perfil
 3. [Etapas no país de envio](#3-etapas-no-país-de-envio): pedido, agência, encomenda, contentor, viagem
-4. [Etapas em Cabo Verde](#4-etapas-em-cabo-verde): chegada, Alfândega, levantamento no porto, agência em Cabo Verde
+4. [Etapas em Cabo Verde](#4-etapas-em-cabo-verde): chegada, Alfândega, levantamento no porto, agência em Cabo Verde,
+   viaturas (desalfandegamento pelo dono, inspeção e matrícula da DGTR)
 5. [Administração](#5-administração-): super admin e administrador da plataforma, perfis de administração, painel,
    utilizadores, agências, registo de atividade, tarifas, problemas reportados, bloqueios
 6. [Casos especiais a testar](#6-casos-especiais-a-testar)
@@ -55,6 +56,7 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas do porto estão no **
 | `terminal@portus.cv` | Operador do terminal | Porto da Praia | Chegadas e conferência |
 | `alfandega@portus.cv` | Alfândega | Porto da Praia | Despacho aduaneiro |
 | `portaria@portus.cv` | Portaria | Porto da Praia | Levantamentos |
+| `dgtr@portus.cv` | Técnico da DGTR (Carlos Gomes) | Porto da Praia | Inspeção e matrícula |
 | `agencia.praia@portus.cv` | Agência em Cabo Verde (Edna Tavares) | Morabeza Praia: Santiago, Maio, Fogo, Brava | Encomendas a entregar |
 | `agencia.mindelo@portus.cv` | Agência em Cabo Verde (Hélio Lima) | Morabeza Mindelo: São Vicente, Santo Antão, São Nicolau, Sal, Boa Vista | Encomendas a entregar |
 | `joao@portus.cv` | Super admin (dono da plataforma) | Tudo, incluindo administradores, perfis e bloqueios | Painel geral |
@@ -113,6 +115,7 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas do porto estão no **
 | 8 | Despacho aduaneiro | Alfândega | **Liberado** (ou **Retido**) | ✅ |
 | 9 | Taxas e levantamento no porto (carga grande) | Portaria | **Entregue** | ✅ |
 | 10 | Agência em Cabo Verde (encomendas pequenas) | Agência em Cabo Verde | **A caminho da agência → Na agência → Entregue** | ✅ |
+| 11 | Viaturas: desalfandegamento pelo dono, inspeção e matrícula | Dono, Alfândega, técnico da DGTR | **Liberado** (com a matrícula) → **Entregue** na portaria | ✅ |
 | — | Carga não levantada no prazo | Automático (prazo nas Tarifas) | **Abandonado** | ✅ |
 | — | Acompanhamento e emails | Cliente | — | ✅ até à entrega |
 | — | Administração, registo de atividade e bloqueios | Super admin / administrador da plataforma | — | ✅ |
@@ -133,15 +136,16 @@ Cada conta vê só o que lhe diz respeito. Toda a equipa tem também o botão **
 
 | Perfil | Menus |
 |---|---|
-| Cliente (com conta) | Os meus pedidos |
+| Cliente (com conta) | Os meus pedidos · As minhas viaturas |
 | Agente de recolha | Recolhas 🧪 · Nova recolha 🧪 · Pedidos de clientes · Encomendas · Importar lista |
 | Transitário | Viagens e manifestos · Contentores · Encomendas · Importar lista |
 | Agente marítimo | Chegadas |
 | Operador do terminal | Chegadas e conferência |
-| Alfândega | Despacho aduaneiro |
+| Alfândega | Despacho aduaneiro · Viaturas |
+| Técnico da DGTR | Inspeção e matrícula |
 | Portaria | Levantamentos |
 | Agência em Cabo Verde | Encomendas a entregar · Entregar ao destinatário |
-| Super admin | Painel geral · Utilizadores · Perfis de administração · Agências · Pedidos de clientes · Encomendas · Importar lista · Contentores · Viagens e manifestos · Chegadas e conferência · Despacho aduaneiro · Levantamentos · Agências em Cabo Verde · Tarifas · Registo de atividade · Problemas reportados · Bloqueios |
+| Super admin | Painel geral · Utilizadores · Perfis de administração · Agências · Pedidos de clientes · Encomendas · Importar lista · Contentores · Viagens e manifestos · Chegadas e conferência · Despacho aduaneiro · Viaturas (desalfandegamento) · Inspeção e matrícula (DGTR) · Levantamentos · Agências em Cabo Verde · Tarifas · Registo de atividade · Problemas reportados · Bloqueios |
 | Administrador da plataforma | Só os menus das permissões do seu perfil de administração (ex.: "Governo — supervisão": Painel geral · as operações em consulta · Registo de atividade) |
 | Exportador | Início (área em preparação ⏳) |
 
@@ -179,6 +183,9 @@ Com email indicado, chega também um email com o código e o botão **Ver ou can
 - ☐ O email "Pedido PED-… recebido" chega ao Mailpit e o botão abre o pedido (`/pedido/…`).
 - ☐ Sem NIF do destinatário, ou com um NIF que não tem 9 algarismos, não avança.
 - ☐ Com conta criada, o pedido aparece em **Os meus pedidos** (`/cliente`).
+- ☐ **Viatura:** escolha o **uso da viatura em Cabo Verde** (particular, táxi, emigrante, elétrico), o ano, o estado e o
+  valor de compra: aparece a **estimativa dos impostos** (direitos, ICE, taxa específica, taxa comunitária e IVA). Com
+  **Táxi** e uma viatura usada, ou acima de 1400 cm³, aparece o aviso de que o regime não se aplica.
 
 ### Etapa 2 — Agência: tratar o pedido ✅
 
@@ -281,6 +288,9 @@ Uma encomenda, em rascunho ou já validada, pode ser **cancelada** com motivo.
 - ☐ Numa encomenda pequena, o detalhe mostra o cartão **Levantamento em Cabo Verde** com a agência e o código, e o
   email "Comprovativo de envio ENC-…: código de levantamento LEV-…" chega ao Mailpit.
 - ☐ Numa ilha servida por duas agências ligadas, validar sem escolher pede "Escolha a agência em Cabo Verde…".
+- ☐ **Viatura:** a encomenda mostra a estimativa dos impostos e o cartão **Transporte e seguro**, "Por pagar". Registe o
+  pagamento (valor, moeda, meio, recibo): passa a "Pago". **Sem este pagamento a viatura não entra no contentor nem o
+  navio parte.**
 
 ### Acompanhamento pelo cliente ✅ (em qualquer momento)
 
@@ -343,6 +353,7 @@ a carga chega à agência, com o nome e a morada da agência; o email é "Pronta
 - ☐ Ao ultrapassar o peso ou o volume do contentor ou do BL Master, a leitura é **bloqueada** e é pedida uma
   recontagem.
 - ☐ Não sela com volumes sem BL Master.
+- ☐ Uma viatura sem o transporte e o seguro pagos é recusada: "A viatura ENC-… não tem o transporte e o seguro pagos".
 - ☐ Os ficheiros exportados abrem e têm os volumes.
 
 ### Etapa 6 — Transitário: viagem, manifesto e partida ✅
@@ -491,6 +502,50 @@ separadores mostram cada etapa, com o número de encomendas: **Liberadas no port
 - ☐ O comprovativo de entrega mostra quem levantou (e se foi com o comprovativo), os volumes e o valor pago.
 - ☐ A conta da Praia não vê as encomendas do Mindelo, e vice-versa.
 
+### Etapa 11 — Viaturas: desalfandegamento pelo dono, inspeção e matrícula ✅
+
+Como em Portugal, **quem enviou a viatura faz o desalfandegamento** no Portus, sem despachante. A **Alfândega** analisa
+e liquida os direitos, o **técnico da DGTR** faz a inspeção técnica no porto e emite a matrícula. A libertação normal da
+etapa 8 não serve para viaturas.
+
+**Quem:** o dono (`cliente@portus.cv`, com conta de cliente: a viatura tem de ser de um pedido seu ou ter o seu email
+como remetente), `alfandega@portus.cv` e `dgtr@portus.cv`.
+
+1. **Dono — As minhas viaturas** (`/cliente/viaturas`): a viatura aparece quando a agência fecha a encomenda. Clique em
+   **Desalfandegar** → **Começar o desalfandegamento**.
+2. **Declaração:** confirme o uso da viatura (regime) e os valores de compra, transporte e seguro (em euros).
+3. **Documentos** (PDF ou fotografia, até 5 MB): os que o regime exige — fatura de compra, certificado de conformidade
+   (COC) ou pedido de homologação, documento de registo do país de origem, cancelamento da matrícula para exportação,
+   identificação e NIF do dono, comprovativo do transporte, apólice do seguro (e a licença de táxi, ou o comprovativo de
+   regresso definitivo, conforme o regime). Clique em **Submeter à Alfândega**.
+4. **Alfândega — Viaturas** (`/alfandega/viaturas`): em **Por analisar**, abra a viatura, veja cada documento e
+   **Aceite** ou **Recuse** (com motivo). Se faltar algo, **Pedir correções**: o dono recebe um email, troca o documento e
+   submete de novo.
+5. Com os documentos todos aceites e a viatura conferida no terminal (etapa 7), **Liquidar os direitos**: vazio usa o
+   valor calculado pelas regras (em **Tarifas**); pode escrever outro valor e uma nota.
+6. **DGTR — Inspeção e matrícula** (`/dgtr`): em **Por inspecionar**, registe a **inspeção técnica** (aprovada, ou
+   reprovada com o motivo; reprovada pode repetir-se).
+7. **Alfândega:** em **Por pagar**, registe o **pagamento dos direitos** com o nº do recibo (DUC).
+8. **DGTR:** em **Por matricular**, escreva a **matrícula** (ex.: `ST-12-AB`) e clique em **Emitir matrícula**. A viatura
+   fica libertada e nasce o **código de levantamento** `LEV-…`.
+9. **Portaria** (etapa 9): procura pelo código; as taxas já não têm os direitos (pagos), só as do porto: manuseamento,
+   **movimentação do contentor**, **taxa de BL**, **abertura do contentor** e armazenagem. Paga-se e entrega-se com o
+   Gate Pass.
+
+O dono recebe um email em cada passo e acompanha tudo na página da viatura (passos, documentos, direitos, histórico) e
+na linha do tempo do pedido.
+
+**O que verificar**
+- ☐ Submeter sem todos os documentos mostra "Faltam documentos: …".
+- ☐ Um ficheiro que não é PDF nem imagem é recusado.
+- ☐ Depois de submeter, o dono já não muda nada, até a Alfândega pedir correções.
+- ☐ Um documento recusado aparece ao dono com o motivo, e o email "Corrija o desalfandegamento…" chega ao Mailpit.
+- ☐ A Alfândega não liquida com documentos por aceitar nem antes de a viatura ser conferida no terminal.
+- ☐ A Alfândega não regista o pagamento antes da inspeção aprovada; a DGTR não emite a matrícula antes do pagamento.
+- ☐ A mesma matrícula não se dá a duas viaturas.
+- ☐ Na etapa 8, **Libertar** uma viatura mostra o aviso para usar **Viaturas**.
+- ☐ Depois da matrícula, o dono vê a matrícula e o código de levantamento; na portaria, os direitos aparecem como pagos.
+
 ---
 
 ## 5. Administração ✅
@@ -568,7 +623,14 @@ datas; **Exportar CSV** descarrega o que está filtrado (abre no Excel).
 - ☐ O CSV exportado tem as mesmas linhas do filtro.
 
 ### Tarifas e prazo de abandono (`/admin/tarifas`)
-- **Tarifas:** manuseamento por volume, armazenagem por dia e dias grátis.
+- **Tarifas:** manuseamento por volume, armazenagem por dia e dias grátis, e as **taxas do porto só das viaturas**,
+  uma vez por encomenda: movimentação do contentor (Enapor), taxa de BL e abertura do contentor.
+- **Impostos de viaturas:** câmbio do euro, IVA, taxa comunitária, taxa específica do ICE (usadas até N anos) e os
+  escalões do ICE por idade.
+- **Regimes de viatura** (particular, táxi, emigrante, elétrico): direitos (%), isenções (ICE, taxa específica, IVA),
+  cilindrada máxima, só novas, combustível exigido e os **documentos que o dono tem de enviar**.
+- Os valores do seed são **de demonstração**: confirme-os com a Alfândega e atualize-os quando mudar o Orçamento do Estado.
+- ☐ Mude a % de direitos do táxi: a estimativa no pedido muda logo.
 - **Prazo de abandono:** dias depois da chegada do navio até a carga liberada e não levantada passar a
   **Abandonado** (60 por omissão), e quantos dias antes o remetente é avisado por email (10). A verificação corre
   de hora a hora; **Verificar agora** corre-a logo.
@@ -630,6 +692,11 @@ de ecrã. Mude o estado (Novo, Em análise, Resolvido, Não é erro) e escreva u
 | Código do comprovativo errado | Entregar a outra pessoa com `LEV-ZZZZZZ` | "O código não corresponde ao comprovativo desta encomenda." |
 | Documento do destinatário errado | Entregar a outra pessoa com um documento que não é o do destinatário | "O documento do destinatário não corresponde ao registado." |
 | Receber antes de levantar | Ler na agência um volume ainda **Liberado** | "Registe primeiro o levantamento no porto da encomenda ENC-…" |
+| Viatura sem transporte pago | Ler a viatura no contentor sem o pagamento | "…não tem o transporte e o seguro pagos…" |
+| Regime que não se aplica | Táxi com uma viatura usada | Aviso na estimativa; não deixa submeter |
+| Documentos em falta | Submeter o desalfandegamento sem um documento | "Faltam documentos: …" |
+| Viatura na libertação normal | **Libertar** uma viatura em Despacho aduaneiro | Aviso para usar **Viaturas** |
+| Ordem dos passos | Registar o pagamento antes da inspeção, ou a matrícula antes do pagamento | "O processo está noutro passo" |
 
 ---
 
@@ -655,6 +722,9 @@ Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas
 | Relatórios exportáveis (RF-A37) | ⏳ O painel mostra os números, mas ainda não exporta |
 | Obrigar a mudar a palavra-passe temporária no primeiro acesso | ⏳ |
 | Pagamentos eletrónicos | ⏳ Regista-se o pagamento feito ao balcão |
+| Ligação à DNRE / Sydonia World | ⏳ O dossiê fica no Portus; não há API pública para enviar a declaração |
+| Consulta ao EUCARIS (registo europeu) | ⏳ Cabo Verde não é membro: confirma-se com o documento de registo e o COC |
+| Viatura entregue na morada em Cabo Verde | ⏳ Levanta-se na portaria do porto |
 | Outros idiomas | ⏳ Só português |
 
 ---
@@ -731,4 +801,9 @@ ficam registados sozinhos. O administrador vê tudo em **Problemas reportados**.
 | **Perfil de administração** | Conjunto de permissões criado pelo super admin e dado a cada administrador da plataforma. |
 | **Registo de atividade** | Registo imutável de quem fez o quê e quando: alterações, sessões, consultas e recusas. |
 | **Modo de manutenção** | Bloqueio do super admin em que só ele trabalha e entra na plataforma. |
+| **Desalfandegamento pelo dono** | O dono da viatura declara-a e envia os documentos no Portus; a Alfândega liquida os direitos. |
+| **Regime de viatura** | Uso da viatura em Cabo Verde (particular, táxi, emigrante, elétrico), com direitos e isenções próprios. |
+| **COC** | Certificado de conformidade do fabricante; sem ele, faz-se um pedido de homologação. |
+| **DUC** | Recibo do pagamento dos direitos na Alfândega. |
+| **DGTR** | Direção-Geral dos Transportes Rodoviários: inspeção técnica e matrícula das viaturas. |
 | **BR / RF** | Regras de negócio / requisitos funcionais do documento de requisitos (ex.: BR 25, RF-A36). |
