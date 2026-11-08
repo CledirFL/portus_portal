@@ -70,6 +70,9 @@ export type TrackingStepKey =
   | "cleared"
   | "to_agency"
   | "at_agency"
+  | "assessed"
+  | "inspected"
+  | "duties_paid"
   | "delivered";
 export type TrackingStage = TrackingStepKey | "held" | "abandoned" | "cancelled";
 
@@ -93,6 +96,9 @@ export const trackingStageLabels: Record<TrackingStage, string> = {
   cleared: "Pronta para levantar",
   to_agency: "A caminho da agência",
   at_agency: "Pronta na agência",
+  assessed: "Direitos liquidados",
+  inspected: "Inspeção aprovada",
+  duties_paid: "Direitos pagos",
   delivered: "Entregue",
   held: "Retida na Alfândega",
   abandoned: "Abandonada",
@@ -108,6 +114,9 @@ export const trackingStageDescriptions: Record<TrackingStage, string> = {
   cleared: "A Alfândega libertou a carga. O destinatário já a pode levantar.",
   to_agency: "A agência em Cabo Verde levantou a carga no porto e está a levá-la para as suas instalações.",
   at_agency: "A carga está na agência em Cabo Verde. O destinatário já a pode levantar.",
+  assessed: "A Alfândega aceitou os documentos e liquidou os direitos. Segue-se a inspeção técnica da DGTR no porto.",
+  inspected: "A viatura passou na inspeção técnica. Pague os direitos para a DGTR emitir a matrícula.",
+  duties_paid: "Os direitos estão pagos. A DGTR vai emitir a matrícula.",
   delivered: "A carga foi levantada.",
   held: "A Alfândega reteve a carga. Contacte a agência para saber o que falta.",
   abandoned: "O prazo de armazenagem terminou sem a carga ser levantada. Contacte a agência.",
@@ -119,6 +128,15 @@ export const viaAgency = (tracking: ShipmentTracking) => tracking.steps.some((st
 
 /** Nome e explicação do marco atual; nas encomendas da agência, "cleared" ainda não está pronta para levantar. */
 export function trackingStageText(tracking: ShipmentTracking) {
+  if (tracking.stage === "arrived" && tracking.steps.some((step) => step.key === "assessed")) {
+    return {
+      label: trackingStageLabels.arrived,
+      description: "A viatura chegou. Faça o desalfandegamento em As minhas viaturas: declaração, documentos, direitos, inspeção e matrícula.",
+    };
+  }
+  if (tracking.stage === "cleared" && tracking.steps.some((step) => step.key === "assessed")) {
+    return { label: "Matriculada: pronta para levantar", description: "A DGTR emitiu a matrícula. Levante a viatura na portaria do porto com o código de levantamento." };
+  }
   if (tracking.stage === "cleared" && viaAgency(tracking)) {
     return { label: "Liberada pela Alfândega", description: "A Alfândega libertou a carga. A agência em Cabo Verde vai levantá-la no porto." };
   }

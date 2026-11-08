@@ -4,6 +4,7 @@ import type { ShipmentTracking } from "@/domain/shipment-request";
 import { ShipmentTimeline, ShipmentTrackingDetails, TrackingStageBadge } from "@/modules/customer/components/shipment-tracking";
 
 const portKeys = ["received", "labelled", "consolidated", "in_transit", "arrived", "cleared", "delivered"];
+const vehicleKeys = ["received", "labelled", "consolidated", "in_transit", "arrived", "assessed", "inspected", "duties_paid", "cleared", "delivered"];
 const agencyKeys = ["received", "labelled", "consolidated", "in_transit", "arrived", "cleared", "to_agency", "at_agency", "delivered"];
 const steps = (reached: number, keys = portKeys) =>
   keys.map((key, index) => ({
@@ -73,5 +74,22 @@ describe("shipment tracking", () => {
     expect(screen.getByText("Pronta na agência")).toBeInTheDocument();
     expect(screen.getByText("Pronta para levantar em Morabeza Praia, Achada Santo António, Praia")).toBeInTheDocument();
     expect(screen.getByText(/leva o documento do destinatário e este código/)).toBeInTheDocument();
+  });
+
+  it("guides the vehicle owner through the clearance milestones", () => {
+    const arrived: ShipmentTracking = { ...base, stage: "arrived", steps: steps(4, vehicleKeys) };
+    const { unmount } = render(<ShipmentTimeline tracking={arrived} />);
+    expect(screen.getByText(/Faça o desalfandegamento em As minhas viaturas/)).toBeInTheDocument();
+    unmount();
+
+    const assessed: ShipmentTracking = { ...base, stage: "assessed", steps: steps(5, vehicleKeys) };
+    render(
+      <>
+        <TrackingStageBadge tracking={assessed} />
+        <ShipmentTimeline tracking={assessed} />
+      </>,
+    );
+    expect(screen.getByText("Direitos liquidados")).toBeInTheDocument();
+    expect(screen.getByText(/Segue-se a inspeção técnica da DGTR/)).toBeInTheDocument();
   });
 });
