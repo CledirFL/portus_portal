@@ -24,7 +24,7 @@ Legenda:
    utilizadores, agências, registo de atividade, tarifas, problemas reportados, bloqueios
 6. [Casos especiais a testar](#6-casos-especiais-a-testar)
 7. [O que ainda não existe](#7-o-que-ainda-não-existe-não-registar-como-erro)
-8. [Teste de ponta a ponta](#8-teste-de-ponta-a-ponta-cerca-de-30-minutos)
+8. [Testes de ponta a ponta](#8-testes-de-ponta-a-ponta): encomenda pequena; viatura recolhida na Amadora e matriculada na Praia
 9. [Registo de problemas](#9-registo-de-problemas)
 10. [Glossário](#10-glossário)
 
@@ -50,8 +50,8 @@ Todas usam a palavra-passe `PortusDemo!2026-CV`. As contas do porto estão no **
 |---|---|---|---|
 | *(sem conta)* | Cliente | — | `/enviar`, `/acompanhar` |
 | `cliente@portus.cv` | Cliente com conta (Rosa Tavares) | — | Os meus pedidos |
-| `agente@portus.cv` | Agente de recolha | Agência Morabeza Envios, Lisboa | Recolhas |
-| `transitario@portus.cv` | Transitário | Agência Morabeza Envios, Lisboa | Viagens e manifestos |
+| `agente@portus.cv` | Agente de recolha | Agência Morabeza Envios, Lisboa (Amadora) | Recolhas |
+| `transitario@portus.cv` | Transitário | Agência Morabeza Envios, Lisboa (Amadora) | Viagens e manifestos |
 | `carla@portus.cv` | Agente marítimo | Porto da Praia | Chegadas |
 | `terminal@portus.cv` | Operador do terminal | Porto da Praia | Chegadas e conferência |
 | `alfandega@portus.cv` | Alfândega | Porto da Praia | Despacho aduaneiro |
@@ -729,7 +729,9 @@ Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas
 
 ---
 
-## 8. Teste de ponta a ponta (cerca de 30 minutos)
+## 8. Testes de ponta a ponta
+
+### 8.1 Encomenda pequena (cerca de 30 minutos)
 
 Uma única encomenda pequena, do pedido até à entrega na agência em Cabo Verde. Anote os códigos à medida que
 aparecem. Para testar a portaria do porto, repita com uma **mudança** e, na linha 11, use a conta `portaria`.
@@ -750,6 +752,46 @@ aparecem. Para testar a portaria do porto, repita com uma **mudança** e, na lin
 | 12 | Cliente | Link do pedido: linha do tempo completa até **Entregue**; no Mailpit, os emails de cada marco | |
 | 13 | `joao` | **Registo de atividade**: as ações de 3 a 11, as entradas de cada conta e as consultas; **Painel geral**: os números mudaram | |
 | 14 | `governo` | Entrar: só Painel geral, as operações e o Registo de atividade; abrir a encomenda: **Modo de consulta**, sem botões | |
+
+### 8.2 Viatura: recolha na Amadora, matrícula na Praia (cerca de 45 minutos)
+
+**O cenário:** a Rosa Tavares (`cliente@portus.cv`) quer enviar o seu carro. A **Morabeza Envios** vai buscá-lo à
+morada, na **Amadora**, e envia-o para a **Praia**. Lá, a própria Rosa faz o **desalfandegamento** no Portus, o técnico da
+**DGTR** faz a inspeção e emite a **matrícula**, e o destinatário levanta o carro na **portaria do porto**.
+
+**Antes de começar:** tenha 7 ficheiros PDF ou fotografias quaisquer (fazem de fatura, COC, registo, cancelamento,
+identificação, comprovativo do transporte e seguro). Em **Tarifas** (`joao`) pode ver e ajustar os regimes e os impostos
+de viaturas usados na estimativa.
+
+| # | Conta | Ação | Anotar |
+|---|---|---|---|
+| 1 | `cliente` (Rosa) | Entrar e ir a **Enviar encomenda**. **Carro, mota ou carrinha**: marca, modelo, ano `2019`, estado **Usado**, valor `7000`. Em **Uso da viatura**, escolha **Táxi**: aparece o aviso "só para viaturas novas"; mude para **Particular** e veja a **estimativa dos impostos** | estimativa |
+| 2 | `cliente` | Portugal → **Santiago**, agência **Morabeza Envios (Amadora)**, **recolha** na morada (ex.: Rua da Liberdade 10, Amadora). "Quem envia" já vem com os dados da Rosa; destinatário com **NIF** e documento; enviar | `PED-…` |
+| 3 | `agente` | **Pedidos de clientes**: **Aceitar** e **Agendar** a recolha na Amadora | |
+| 4 | `agente` | Depois de ir buscar o carro: **Carga recebida (criar encomenda)** | `ENC-…` |
+| 5 | `agente` | Encomenda → **Editar dados**: VIN (17 caracteres), cilindrada `1300`, combustível, **valor do transporte** `800` e **do seguro** `150`. Acrescentar o volume (ex.: 1100 kg, 12 m³). **Validar** e **Imprimir etiquetas** | `ENC-…-01` |
+| 6 | `transitario` | **Contentores**: novo contentor, BL Master **FCL**, ler o código do carro → **recusado**: "não tem o transporte e o seguro pagos" | |
+| 7 | `agente` | Encomenda → **Transporte e seguro**: registar o pagamento (ex.: `950` EUR, transferência, recibo) → **Pago** | |
+| 8 | `transitario` | Contentor: ler o código de novo → aceite; **Selar e fechar**. **Viagens**: nova viagem para a **Praia**; associar o contentor; gerar e registar o envio do manifesto; **Registar partida** | |
+| 9 | `terminal` | **Chegadas**: **Registar chegada**; abrir o contentor; localização; ler o código do carro; **Fechar desconsolidação** | |
+| 10 | `alfandega` | **Despacho aduaneiro**: **Validar** o manifesto. Em **Despachar encomendas**, o carro mostra "o dono faz o desalfandegamento" (não há **Libertar**) | |
+| 11 | `cliente` | **As minhas viaturas** → **Desalfandegar** → **Começar o desalfandegamento**. Confirme o uso e os valores; **Submeter** sem documentos → "Faltam documentos"; envie os 7 documentos; **Submeter à Alfândega** | |
+| 12 | `alfandega` | **Viaturas** → **Por analisar**: abra o carro e veja os documentos; **Recusar** um (ex.: o COC, "ilegível") e **Pedir correções** | |
+| 13 | `cliente` | A página mostra o motivo; no Mailpit, o email "Corrija o desalfandegamento…". Retire o documento recusado, envie outro e **Submeta** de novo | |
+| 14 | `alfandega` | **Aceitar** os documentos; **Liquidar os direitos** (vazio = valor calculado) | direitos (CVE) |
+| 15 | `dgtr` | **Inspeção e matrícula** → **Por inspecionar**: registe a inspeção **Aprovada** (para testar, primeiro **Reprovada** com o motivo) | |
+| 16 | `alfandega` | **Viaturas** → **Por pagar**: **Registar pagamento** com o nº do recibo | `DUC-…` |
+| 17 | `dgtr` | **Por matricular**: escreva a matrícula (ex.: `ST-12-AB`) e **Emitir matrícula** | matrícula, `LEV-…` |
+| 18 | `cliente` | Página da viatura: **matrícula** e **código de levantamento**. **Os meus pedidos**: a linha do tempo tem direitos liquidados, inspeção, pagamento e matrícula. No Mailpit, um email por passo | |
+| 19 | `portaria` | **Levantamentos**: procurar o `LEV-…`. Os direitos aparecem pagos; ficam só as taxas do porto (manuseamento, movimentação do contentor, BL, abertura do contentor). **Registar pagamento**; documento do destinatário; ler o código do carro; código `LEV-…`; **Entregar** | `GP-…` |
+| 20 | `joao` | **Registo de atividade**: filtre a ação `vehicle_clearance` para ver todos os passos, quem os fez e quando | |
+
+**O que verificar no fim**
+- ☐ A estimativa do passo 1 e os direitos liquidados no passo 14 batem certo (sem ajuste da Alfândega).
+- ☐ O carro não entrou no contentor antes de o transporte e o seguro estarem pagos (passo 6).
+- ☐ Cada passo só foi possível na ordem certa: inspeção → pagamento → matrícula.
+- ☐ Na portaria, o total é só o das taxas do porto: os direitos já estavam pagos.
+- ☐ A Rosa recebeu os emails: submetido, correções, direitos liquidados, inspeção, pagamento e matrícula.
 
 ---
 
