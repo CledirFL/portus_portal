@@ -69,6 +69,7 @@ apenas conveniência.
 | `/agencia/importar` (importar listas .xlsx/.csv) | **API** |
 | `/agencia/contentores`, `/agencia/viagens` (consolidação, viagens, manifestos) | **API** |
 | `/cv/chegadas`, `/alfandega`, `/portaria`, `/admin/tarifas` | **API** |
+| `/cliente/viaturas`, `/alfandega/viaturas`, `/dgtr` (desalfandegamento de viaturas) | **API** |
 | `/agencia-cv` (agência em Cabo Verde), `/admin/agencias` | **API** |
 | `/pedido/[token]` (link do email), `/register` (pedir acesso) | **API** |
 | `/dashboard`, `/admin/users`, `/admin/auditoria`, `/admin/problemas`, `/admin/perfis`, `/admin/bloqueios` | **API** |
@@ -123,6 +124,7 @@ Criadas pelo `npm run db:seed` do backend. Palavra-passe: a de `SEED_DEMO_PASSWO
 | `cliente@portus.cv` | cliente (Rosa Tavares) | `/cliente` |
 | `joao@portus.cv` | super admin (tudo, incluindo perfis de administração e bloqueios) | `/dashboard` |
 | `governo@portus.cv` | administrador da plataforma, perfil "Governo — supervisão" (painel, registo de atividade, operações em consulta) | `/dashboard` |
+| `dgtr@portus.cv` | técnico da DGTR (Praia): inspeção técnica e matrícula das viaturas | `/dgtr` |
 | `ana@portus.cv` | exportador | `/exporter/dashboard` |
 | `carla@portus.cv` | agente marítimo | `/cv/navios` |
 
@@ -162,8 +164,11 @@ Clientes não precisam de conta. Se a criarem no fim do pedido, entram em `/clie
 | `/agencia-cv` | agência em Cabo Verde, admin | Encomendas pequenas por etapa (liberadas, a caminho, na agência, entregues, no porto): levantar no porto em lote, receber na agência pelo QR |
 | `/agencia-cv/entregar` | agência em Cabo Verde, admin | Procurar pelo QR do comprovativo ou código, cobrar as taxas, entregar ao destinatário (documento ou NIF) ou a outra pessoa com o código e o documento do destinatário |
 | `/agencia-cv/entregas/[id]` | agência em Cabo Verde, admin | Comprovativo de entrega `ENT-…` para imprimir e assinar |
+| `/cliente/viaturas` · `/cliente/viaturas/[shipmentId]` | cliente (dono) | As minhas viaturas: desalfandegamento com declaração (regime e valores), documentos, estimativa, passos, matrícula e código de levantamento |
+| `/alfandega/viaturas` · `/alfandega/viaturas/[id]` | Alfândega, admin | Viaturas por analisar: aceitar ou recusar documentos, pedir correções, liquidar os direitos, registar o pagamento |
+| `/dgtr` · `/dgtr/viaturas/[id]` | técnico da DGTR, admin | Inspeção técnica (aprovada ou reprovada) e matrícula |
 | `/admin/agencias` · `/admin/agencias/nova` · `/admin/agencias/[id]` | admin | Agências de origem e em Cabo Verde, ilhas, tipos de carga e ligações entre elas |
-| `/admin/tarifas` | admin | Tarifas, dias grátis de armazenagem e prazo de abandono (BR 25), com "Verificar agora" |
+| `/admin/tarifas` | admin | Tarifas (por volume, por dia ou por encomenda, ex.: taxas da Enapor das viaturas), prazo de abandono (BR 25), impostos de viaturas e regimes (particular, táxi, emigrante, elétrico) |
 | `/admin/users` · `/admin/users/nova` · `/admin/users/[id]` | admin (Utilizadores) | Utilizadores e pedidos de acesso: aprovar com agência ou porto, criar conta da equipa, bloquear, repor palavra-passe; as contas de administração (e o perfil de administração) só o super admin |
 | `/admin/perfis` | super admin | Perfis de administração: nome, descrição e permissões; contas que os usam |
 | `/admin/bloqueios` | super admin | Parar processos (novos pedidos, validação, partida, libertação, entregas), modo de manutenção, suspender agências e portos |
@@ -217,7 +222,10 @@ No terminal do VS Code, o Cypress precisa de `ELECTRON_RUN_AS_NODE` removido:
     operações em modo de consulta, e não entra em Perfis nem Bloqueios → registo de atividade com a entrada falhada,
     filtros e CSV → super admin para os novos pedidos e o aviso aparece no portal;
   - criar conta de cliente no ecrã de entrada → juntar um pedido feito antes sem conta com o código do email;
-  - remetente preenchido com os dados da conta (exportador) e editável.
+  - remetente preenchido com os dados da conta (exportador) e editável;
+  - viatura: regime e estimativa no pedido (táxi usada avisa), transporte e seguro pagos na encomenda;
+  - desalfandegamento: o dono envia os documentos e submete → a Alfândega aceita e liquida → a DGTR inspeciona →
+    pagamento → a DGTR emite a matrícula → o dono vê a matrícula e o código de levantamento.
 
 Os testes de email precisam do Mailpit do backend (`docker compose up -d`, caixa em <http://localhost:8025>).
 
