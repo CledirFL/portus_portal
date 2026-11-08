@@ -128,6 +128,15 @@ describe("pedido de envio pelo cliente", () => {
     cy.contains("label", "Carro, mota ou carrinha").click();
     field("Marca").type("Toyota");
     field("Modelo").type("Hilux");
+    field("Ano (opcional)").type("2020");
+    field("Estado (opcional)").select("Usado");
+    field("Uso da viatura em Cabo Verde").select("Táxi");
+    field("Valor de compra (opcional) · €").type("9000");
+    // Táxi só para viaturas novas: a estimativa avisa; como particular, calcula.
+    cy.get('[data-cy="vehicle-estimate-issues"]', { timeout: 30_000 }).should("contain.text", "só para viaturas novas");
+    field("Uso da viatura em Cabo Verde").select("Particular");
+    cy.get('[data-cy="vehicle-estimate-total"]', { timeout: 30_000 }).should("contain.text", "CVE");
+    cy.get('[data-cy="vehicle-estimate-issues"]').should("not.exist");
     field("Descrição curta").type("Carrinha usada a gasóleo");
     cy.contains("button", "Continuar").click();
 

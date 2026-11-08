@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Input, fieldClasses } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
-import { getCargoType } from "@/domain/cargo-types";
+import { fieldValueLabel, getCargoType } from "@/domain/cargo-types";
 import { nextRequestStatuses, type RequestStatus, type ShipmentRequest } from "@/domain/shipment-request";
 import { RequestStatusBadge } from "@/modules/customer/components/request-status";
 import { agencyShipmentRequestAction, listAgencyShipmentRequests } from "@/services/api/shipment-requests";
@@ -211,7 +211,7 @@ function RequestPanel({ request, onChange }: { request: ShipmentRequest; onChang
               <div key={field.key} className="rounded-md bg-slate-100 px-2 py-1 text-slate-700">
                 <dt className="inline text-slate-500">{field.shortLabel ?? field.label}: </dt>
                 <dd className="inline font-medium">
-                  {request.details[field.key]}
+                  {fieldValueLabel(field, request.details[field.key] ?? "")}
                   {field.unit ? ` ${field.unit}` : ""}
                 </dd>
               </div>

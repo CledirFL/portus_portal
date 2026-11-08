@@ -22,7 +22,7 @@ describe("operator fields (BR 32)", () => {
 
   it("requires every mandatory field to validate", () => {
     const keys = operatorFieldIssues("veiculo", { make: "Toyota" }, { requireAll: true }).map((issue) => issue.key);
-    expect(keys).toEqual(["vin", "model", "year", "engineCc", "fuel", "condition", "value"]);
+    expect(keys).toEqual(["vin", "model", "year", "engineCc", "fuel", "condition", "regime", "value"]);
   });
 
   it("accepts a complete vehicle and checks select options, HS codes and years", () => {
@@ -34,6 +34,7 @@ describe("operator fields (BR 32)", () => {
       engineCc: "1600",
       fuel: "Gasolina",
       condition: "Usado",
+      regime: "particular",
       value: "3500",
     };
     expect(operatorFieldIssues("veiculo", vehicle, { requireAll: true })).toEqual([]);

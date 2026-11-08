@@ -21,6 +21,8 @@ export interface CargoFieldDefinition {
   type: "text" | "number" | "select" | "textarea";
   placeholder?: string;
   options?: string[];
+  /** Texto a mostrar para cada opção, quando o valor guardado é um código (ex.: regime "taxi" → "Táxi"). */
+  optionLabels?: Record<string, string>;
   required?: boolean;
   unit?: string;
   /** Validação extra do valor, quando preenchido. */
@@ -47,6 +49,23 @@ export interface CargoTypeDefinition {
 
 const conditionOptions = ["Novo", "Usado"];
 const fuelOptions = ["Gasolina", "Gasóleo", "Híbrido", "Elétrico", "GPL"];
+
+/** Regimes de viatura (os valores de cada um são configurados pelo administrador). */
+export const vehicleRegimeLabels: Record<string, string> = {
+  particular: "Particular",
+  taxi: "Táxi",
+  emigrante: "Emigrante (regresso definitivo)",
+  eletrico: "Elétrico",
+};
+const regimeField: CargoFieldDefinition = {
+  key: "regime",
+  label: "Uso da viatura em Cabo Verde",
+  shortLabel: "Regime",
+  type: "select",
+  required: true,
+  options: Object.keys(vehicleRegimeLabels),
+  optionLabels: vehicleRegimeLabels,
+};
 
 export const cargoTypes: CargoTypeDefinition[] = [
   {
@@ -76,6 +95,10 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "year", label: "Ano", type: "number", placeholder: "2018" },
       { key: "condition", label: "Estado", type: "select", options: conditionOptions },
       { key: "vin", shortLabel: "VIN", label: "VIN / nº de quadro (se souber)", type: "text", placeholder: "17 caracteres" },
+      regimeField,
+      { key: "engineCc", label: "Cilindrada", type: "number", unit: "cm³", format: "positive", placeholder: "1400" },
+      { key: "fuel", label: "Combustível", type: "select", options: fuelOptions },
+      { key: "value", label: "Valor de compra", type: "number", unit: "€", format: "positive" },
     ],
     operatorFields: [
       { key: "vin", label: "VIN", type: "text", required: true, format: "vin", placeholder: "17 caracteres" },
@@ -85,10 +108,13 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "engineCc", label: "Cilindrada", type: "number", unit: "cm³", required: true, format: "positive" },
       { key: "fuel", label: "Combustível", type: "select", required: true, options: fuelOptions },
       { key: "condition", label: "Estado", type: "select", required: true, options: conditionOptions },
+      regimeField,
       { key: "value", label: "Valor de compra", type: "number", unit: "€", required: true, format: "positive" },
+      { key: "transportCostEur", label: "Valor do transporte", type: "number", unit: "€", format: "positive" },
+      { key: "insuranceCostEur", label: "Valor do seguro", type: "number", unit: "€", format: "positive" },
       { key: "mileageKm", label: "Quilometragem", type: "number", unit: "km", format: "positive" },
     ],
-    requiredDocuments: ["Fatura ou prova de compra", "Documento de registo de origem", "Fotos do estado"],
+    requiredDocuments: ["Fatura de compra", "Certificado de conformidade (COC) ou pedido de homologação", "Documento de registo de origem", "Fotos do estado"],
   },
   {
     id: "pecas_veiculo",
@@ -208,6 +234,11 @@ export function getCargoType(id: CargoCategory) {
     throw new Error(`Tipo de carga desconhecido: ${id}`);
   }
   return definition;
+}
+
+/** Valor a mostrar de um campo (o texto da opção, se o valor for um código). */
+export function fieldValueLabel(field: CargoFieldDefinition, value: string) {
+  return field.optionLabels?.[value] ?? value;
 }
 
 export function isCargoCategory(value: string): value is CargoCategory {

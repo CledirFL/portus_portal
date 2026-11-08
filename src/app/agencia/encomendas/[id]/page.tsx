@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { getCargoType } from "@/domain/cargo-types";
+import { fieldValueLabel, getCargoType } from "@/domain/cargo-types";
+import { VehicleEstimate } from "@/modules/shipments/components/vehicle-estimate";
 import { getDispatchCountry } from "@/domain/countries";
 import { ApiError } from "@/lib/api-client";
 import { ShipmentStatusBadge, VolumeStatusBadge } from "@/modules/shipments/components/shipment-status";
@@ -233,7 +234,7 @@ export default function ShipmentDetailPage() {
                 <div key={field.key} className="flex justify-between gap-3 border-b border-slate-100 py-1">
                   <dt className="text-slate-500">{field.label}</dt>
                   <dd className={`text-right font-medium text-slate-900 ${field.format === "vin" ? "font-mono" : ""}`}>
-                    {shipment.details[field.key]}
+                    {fieldValueLabel(field, shipment.details[field.key] ?? "")}
                     {field.unit ? ` ${field.unit}` : ""}
                   </dd>
                 </div>
@@ -242,6 +243,11 @@ export default function ShipmentDetailPage() {
           ) : null}
           {type.requiredDocuments.length ? (
             <p className="mt-4 text-xs text-slate-500">Documentos a recolher: {type.requiredDocuments.join(", ")}.</p>
+          ) : null}
+          {shipment.category === "veiculo" ? (
+            <div className="mt-4">
+              <VehicleEstimate details={shipment.details} />
+            </div>
           ) : null}
         </Card>
 

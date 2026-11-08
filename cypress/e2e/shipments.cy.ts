@@ -126,6 +126,7 @@ describe("encomendas da agência", () => {
     cy.contains("Faltam dados obrigatórios").should("be.visible");
     cy.contains("li", "Modelo:").should("be.visible");
     cy.contains("li", "Combustível:").should("be.visible");
+    cy.contains("li", "Uso da viatura em Cabo Verde:").should("be.visible");
 
     cy.contains("a", "Editar dados").click();
     cy.contains("h2", /^Editar ENC-/, { timeout: 30_000 }).should("be.visible");
@@ -134,10 +135,13 @@ describe("encomendas da agência", () => {
     field("Cilindrada (cm³)").type("2400");
     field("Combustível").select("Gasóleo");
     field("Estado").select("Usado");
+    field("Uso da viatura em Cabo Verde").select("Particular");
     field("Valor de compra (€)").type("15000");
     cy.contains("button", "Guardar alterações").click();
 
     cy.contains("dd", "Gasóleo").should("be.visible");
+    cy.contains("dd", "Particular").should("be.visible");
+    cy.get('[data-cy="vehicle-estimate-total"]', { timeout: 30_000 }).should("contain.text", "CVE");
     cy.contains("button", "Validar").click();
     cy.contains("Validada").should("be.visible");
   });

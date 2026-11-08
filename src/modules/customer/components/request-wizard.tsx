@@ -12,7 +12,8 @@ import { Input, fieldClasses, fieldErrorClasses } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { agenciesFor, servedCountryCodes, type Agency } from "@/domain/agency";
 import { getDispatchCountry, dispatchCountries, guessDispatchCountry, readBrowserLocation } from "@/domain/countries";
-import { cargoTypes, getCargoType, missingPublicFields } from "@/domain/cargo-types";
+import { cargoTypes, fieldValueLabel, getCargoType, missingPublicFields } from "@/domain/cargo-types";
+import { VehicleEstimate } from "@/modules/shipments/components/vehicle-estimate";
 import {
   caboVerdeIslands,
   shipmentRequestSchema,
@@ -340,7 +341,7 @@ export function RequestWizard() {
                   <Select
                     key={`${category}-${field.key}`}
                     label={label}
-                    options={[{ value: "", label: "—" }, ...(field.options ?? []).map((option) => ({ value: option, label: option }))]}
+                    options={[{ value: "", label: "—" }, ...(field.options ?? []).map((option) => ({ value: option, label: fieldValueLabel(field, option) }))]}
                     {...register(`details.${field.key}`, { onChange: () => clearErrors(`details.${field.key}`) })}
                     error={error}
                   />
@@ -367,6 +368,11 @@ export function RequestWizard() {
                 {errors.description ? <span className="mt-1 block text-xs text-rose-600">{errors.description.message}</span> : null}
               </label>
             </div>
+            {category === "veiculo" ? (
+              <div className="mt-4">
+                <VehicleEstimate details={(values.details ?? {}) as Record<string, string | undefined>} />
+              </div>
+            ) : null}
           </Card>
         </div>
       ) : null}
@@ -549,7 +555,11 @@ export function RequestWizard() {
               {cargoType.publicFields
                 .filter((field) => values.details?.[field.key])
                 .map((field) => (
-                  <Summary key={field.key} label={field.shortLabel ?? field.label} value={`${values.details?.[field.key]}${field.unit ? ` ${field.unit}` : ""}`} />
+                  <Summary
+                    key={field.key}
+                    label={field.shortLabel ?? field.label}
+                    value={`${fieldValueLabel(field, values.details?.[field.key] ?? "")}${field.unit ? ` ${field.unit}` : ""}`}
+                  />
                 ))}
               <Summary label="Remetente" value={`${values.sender?.name} · ${values.sender?.phone}`} />
               <Summary label="Destinatário" value={`${values.recipient?.name} · ${values.recipient?.phone} · ${values.recipient?.island}`} />

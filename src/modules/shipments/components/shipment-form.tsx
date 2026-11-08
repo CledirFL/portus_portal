@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Input, fieldClasses, fieldErrorClasses } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import type { Agency } from "@/domain/agency";
-import { cargoTypes, getCargoType, type CargoCategory, type CargoFieldDefinition } from "@/domain/cargo-types";
+import { cargoTypes, fieldValueLabel, getCargoType, type CargoCategory, type CargoFieldDefinition } from "@/domain/cargo-types";
+import { VehicleEstimate } from "@/modules/shipments/components/vehicle-estimate";
 import { deliveredByAgency } from "@/domain/destination";
 import { listDestinationAgencies } from "@/services/api/admin-agencies";
 import { dispatchCountries } from "@/domain/countries";
@@ -274,6 +275,11 @@ export function ShipmentForm({ initialValues = emptyShipmentForm, withVolumes, s
                 />
               ))}
             </div>
+            {values.category === "veiculo" ? (
+              <div className="mt-4">
+                <VehicleEstimate details={values.details} />
+              </div>
+            ) : null}
           </div>
         ) : null}
       </Card>
@@ -444,7 +450,7 @@ function OperatorField({
         value={value}
         hint={hint}
         onChange={(event) => onChange(event.target.value)}
-        options={[{ value: "", label: "—" }, ...(field.options ?? []).map((option) => ({ value: option, label: option }))]}
+        options={[{ value: "", label: "—" }, ...(field.options ?? []).map((option) => ({ value: option, label: fieldValueLabel(field, option) }))]}
         error={error}
       />
     );
