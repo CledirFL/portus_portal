@@ -277,7 +277,7 @@ export function ShipmentForm({ initialValues = emptyShipmentForm, withVolumes, s
             </div>
             {values.category === "veiculo" ? (
               <div className="mt-4">
-                <VehicleEstimate details={values.details} />
+                <VehicleEstimate details={values.details} dispatchCountry={values.dispatchCountry} />
               </div>
             ) : null}
           </div>

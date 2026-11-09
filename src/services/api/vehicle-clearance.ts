@@ -1,4 +1,4 @@
-import type { VehicleTaxEstimate } from "@/domain/vehicle-taxes";
+import type { Money, VehicleTaxEstimate } from "@/domain/vehicle-taxes";
 import { apiDownload, apiRequest } from "@/lib/api-client";
 
 export type VehicleClearanceStatus = "draft" | "submitted" | "changes_requested" | "assessed" | "inspected" | "paid" | "registered";
@@ -40,9 +40,11 @@ export interface VehicleClearanceSummary {
 
 export interface VehicleClearance extends VehicleClearanceSummary {
   regimeLabel: string;
-  valueEur: number;
-  transportEur: number;
-  insuranceEur: number;
+  value: Money;
+  transport: Money;
+  insurance: Money;
+  /** País de onde envia (a taxa CEDEAO só se aplica de fora da CEDEAO). */
+  dispatchCountry: string;
   details: { make: string | null; model: string | null; year: string | null; engineCc: string | null; fuel: string | null; condition: string | null };
   arrivalPort: string | null;
   requiredDocuments: Array<{ type: string; label: string; status: VehicleDocumentStatus | "missing" }>;
@@ -81,7 +83,18 @@ export interface MyVehicle {
 export const listMyVehicles = () => apiRequest<MyVehicle[]>("/me/vehicles");
 export const openMyClearance = (shipmentId: string) => apiRequest<VehicleClearance>(`/me/vehicles/${shipmentId}/clearance`, { method: "POST" });
 export const getMyClearance = (shipmentId: string) => apiRequest<VehicleClearance>(`/me/vehicles/${shipmentId}/clearance`);
-export const declareMyClearance = (shipmentId: string, input: { regime: string; valueEur: number; transportEur: number; insuranceEur: number }) =>
+export const declareMyClearance = (
+  shipmentId: string,
+  input: {
+    regime: string;
+    valueAmount: number;
+    valueCurrency: Money["currency"];
+    transportAmount: number;
+    transportCurrency: Money["currency"];
+    insuranceAmount: number;
+    insuranceCurrency: Money["currency"];
+  },
+) =>
   apiRequest<VehicleClearance>(`/me/vehicles/${shipmentId}/clearance`, { method: "PUT", body: input });
 export function uploadMyDocument(shipmentId: string, type: string, file: File) {
   const form = new FormData();

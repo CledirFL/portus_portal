@@ -1,4 +1,4 @@
-import type { VehicleRegimeRule, VehicleTaxEstimate, VehicleTaxSettings } from "@/domain/vehicle-taxes";
+import type { Money, VehicleRegimeRule, VehicleTaxEstimate, VehicleTaxSettings } from "@/domain/vehicle-taxes";
 import { apiRequest } from "@/lib/api-client";
 
 export type VehicleRegime = VehicleRegimeRule & { description: string | null; active: boolean };
@@ -9,9 +9,11 @@ export interface VehicleEstimateInput {
   condition: "Novo" | "Usado";
   engineCc: number | null;
   fuel: string | null;
-  valueEur: number;
-  transportEur: number;
-  insuranceEur: number;
+  /** País de onde envia (a taxa CEDEAO só se aplica de fora da CEDEAO). */
+  dispatchCountry: string | null;
+  value: Money;
+  transport: Money;
+  insurance: Money;
 }
 
 export type VehicleRegimeInput = Omit<VehicleRegime, "code">;

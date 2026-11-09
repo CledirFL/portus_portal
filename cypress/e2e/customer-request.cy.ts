@@ -131,10 +131,11 @@ describe("pedido de envio pelo cliente", () => {
     field("Ano (opcional)").type("2020");
     field("Estado (opcional)").select("Usado");
     field("Uso da viatura em Cabo Verde").select("Táxi");
-    field("Valor de compra (opcional) · €").type("9000");
-    // Táxi só para viaturas novas: a estimativa avisa; como particular, calcula.
-    cy.get('[data-cy="vehicle-estimate-issues"]', { timeout: 30_000 }).should("contain.text", "só para viaturas novas");
-    field("Uso da viatura em Cabo Verde").select("Particular");
+    field("Valor de compra (opcional)").type("9000");
+    // Táxi só até 1400 cm³ (sem cilindrada indicada, a estimativa avisa); em uso privado, calcula pela Pauta 8703.
+    cy.get('[data-cy="vehicle-estimate-issues"]', { timeout: 30_000 }).should("contain.text", "cilindrada até 1400 cm³");
+    field("Uso da viatura em Cabo Verde").select("Uso privado");
+    cy.get('[data-cy="vehicle-estimate"]').should("contain.text", "8703").and("contain.text", "Pauta Aduaneira 2026");
     cy.get('[data-cy="vehicle-estimate-total"]', { timeout: 30_000 }).should("contain.text", "CVE");
     cy.get('[data-cy="vehicle-estimate-issues"]').should("not.exist");
     field("Descrição curta").type("Carrinha usada a gasóleo");

@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { Select } from "@/components/ui/select";
-import { vehicleDocumentLabels } from "@/domain/vehicle-taxes";
+import { type VehicleCurrency, vehicleCurrencies, vehicleDocumentLabels } from "@/domain/vehicle-taxes";
 import { ApiError } from "@/lib/api-client";
 import {
   ClearanceStatusBadge,
@@ -40,10 +40,14 @@ const messageOf = (cause: unknown, fallback: string) =>
 function DeclarationForm({ clearance, regimes, onSaved }: { clearance: VehicleClearance; regimes: VehicleRegime[]; onSaved: (clearance: VehicleClearance) => void }) {
   const [values, setValues] = useState({
     regime: clearance.regime,
-    valueEur: String(clearance.valueEur || ""),
-    transportEur: String(clearance.transportEur || ""),
-    insuranceEur: String(clearance.insuranceEur || ""),
+    valueAmount: String(clearance.value.amount || ""),
+    valueCurrency: clearance.value.currency,
+    transportAmount: String(clearance.transport.amount || ""),
+    transportCurrency: clearance.transport.currency,
+    insuranceAmount: String(clearance.insurance.amount || ""),
+    insuranceCurrency: clearance.insurance.currency,
   });
+  const currencyOptions = vehicleCurrencies.map((currency) => ({ value: currency, label: currency }));
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const toNumber = (value: string) => Number(value.replace(",", ".") || "0");
@@ -60,9 +64,12 @@ function DeclarationForm({ clearance, regimes, onSaved }: { clearance: VehicleCl
           onSaved(
             await declareMyClearance(clearance.shipmentId, {
               regime: values.regime,
-              valueEur: toNumber(values.valueEur),
-              transportEur: toNumber(values.transportEur),
-              insuranceEur: toNumber(values.insuranceEur),
+              valueAmount: toNumber(values.valueAmount),
+              valueCurrency: values.valueCurrency,
+              transportAmount: toNumber(values.transportAmount),
+              transportCurrency: values.transportCurrency,
+              insuranceAmount: toNumber(values.insuranceAmount),
+              insuranceCurrency: values.insuranceCurrency,
             }),
           );
           setMessage("Guardado.");
@@ -79,9 +86,24 @@ function DeclarationForm({ clearance, regimes, onSaved }: { clearance: VehicleCl
         onChange={(event) => setValues({ ...values, regime: event.target.value })}
         options={regimes.map((regime) => ({ value: regime.code, label: regime.label }))}
       />
-      <Input label="Valor de compra (€)" inputMode="decimal" value={values.valueEur} onChange={(event) => setValues({ ...values, valueEur: event.target.value })} />
-      <Input label="Valor do transporte (€)" inputMode="decimal" value={values.transportEur} onChange={(event) => setValues({ ...values, transportEur: event.target.value })} />
-      <Input label="Valor do seguro (€)" inputMode="decimal" value={values.insuranceEur} onChange={(event) => setValues({ ...values, insuranceEur: event.target.value })} />
+      <div />
+      {(
+        [
+          ["value", "Valor de compra"],
+          ["transport", "Valor do transporte"],
+          ["insurance", "Valor do seguro"],
+        ] as const
+      ).map(([key, label]) => (
+        <div key={key} className="grid grid-cols-[1fr_6rem] gap-2 sm:col-span-2">
+          <Input label={label} inputMode="decimal" value={values[`${key}Amount`]} onChange={(event) => setValues({ ...values, [`${key}Amount`]: event.target.value })} />
+          <Select
+            label="Moeda"
+            value={values[`${key}Currency`]}
+            onChange={(event) => setValues({ ...values, [`${key}Currency`]: event.target.value as VehicleCurrency })}
+            options={currencyOptions}
+          />
+        </div>
+      ))}
       <div className="flex items-center gap-3 sm:col-span-2">
         <Button type="submit" variant="outline" disabled={busy}>
           Guardar declaração

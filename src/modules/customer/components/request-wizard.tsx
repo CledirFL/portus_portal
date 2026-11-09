@@ -370,7 +370,7 @@ export function RequestWizard() {
             </div>
             {category === "veiculo" ? (
               <div className="mt-4">
-                <VehicleEstimate details={(values.details ?? {}) as Record<string, string | undefined>} />
+                <VehicleEstimate details={(values.details ?? {}) as Record<string, string | undefined>} dispatchCountry={values.dispatchCountry ?? null} />
               </div>
             ) : null}
           </Card>

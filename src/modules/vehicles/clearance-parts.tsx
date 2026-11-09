@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { formatCve } from "@/domain/clearance";
+import { estimateDisclaimer, TaxLines } from "@/modules/shipments/components/vehicle-estimate";
 import {
   openVehicleDocument,
   type VehicleClearance,
@@ -15,7 +16,8 @@ import {
 } from "@/services/api/vehicle-clearance";
 
 const formatDateTime = (iso: string) => new Date(iso).toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short" });
-const formatEur = (value: number) => `${value.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+const formatMoney = (money: { amount: number; currency: string }) =>
+  `${money.amount.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${money.currency === "CVE" ? "ECV" : money.currency}`;
 
 const statusTones: Record<VehicleClearanceStatus, "neutral" | "info" | "warning" | "success"> = {
   draft: "neutral",
@@ -83,9 +85,10 @@ export function VehicleSummary({ clearance }: { clearance: VehicleClearance }) {
     ["Cilindrada", details.engineCc ? `${details.engineCc} cm³` : "—"],
     ["Combustível", details.fuel ?? "—"],
     ["Regime", clearance.regimeLabel],
-    ["Valor de compra", formatEur(clearance.valueEur)],
-    ["Transporte", formatEur(clearance.transportEur)],
-    ["Seguro", formatEur(clearance.insuranceEur)],
+    ["Valor de compra", formatMoney(clearance.value)],
+    ["Transporte", formatMoney(clearance.transport)],
+    ["Seguro", formatMoney(clearance.insurance)],
+    ["País de onde envia", clearance.dispatchCountry],
     ["Porto de chegada", clearance.arrivalPort ?? "ainda em viagem"],
   ];
   return (
@@ -147,29 +150,10 @@ export function DutiesCard({ clearance }: { clearance: VehicleClearance }) {
       subtitle={clearance.assessedCve !== null ? "Valor fixado pela Alfândega." : "Com os valores em vigor na plataforma; o valor final é o da Alfândega."}
     >
       {source ? (
-        <table className="w-full text-sm" data-cy="vehicle-duties">
-          <tbody>
-            <tr className="border-b border-slate-200">
-              <td className="py-1 text-slate-500">Valor aduaneiro (compra + transporte + seguro)</td>
-              <td className="py-1 text-right tabular-nums text-slate-500">{formatCve(source.customsValueCve)}</td>
-            </tr>
-            {source.lines.map((line) => (
-              <tr key={line.code} className="border-b border-slate-100">
-                <td className="py-1">
-                  {line.label}
-                  {line.ratePct ? <span className="text-slate-400"> · {line.ratePct.toLocaleString("pt-PT")} %</span> : null}
-                </td>
-                <td className="py-1 text-right tabular-nums">{formatCve(line.amountCve)}</td>
-              </tr>
-            ))}
-            <tr>
-              <td className="pt-2 font-semibold">{clearance.assessedCve !== null ? "A pagar" : "Total estimado"}</td>
-              <td className="pt-2 text-right font-semibold tabular-nums" data-cy="vehicle-duties-total">
-                {formatCve(clearance.assessedCve ?? source.totalCve)}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div data-cy="vehicle-duties">
+          <TaxLines estimate={source} totalLabel={clearance.assessedCve !== null ? "A pagar" : "Total estimado"} totalCve={clearance.assessedCve ?? source.totalCve} />
+          {clearance.assessedCve === null ? <p className="mt-2 text-xs text-slate-500">{estimateDisclaimer}</p> : null}
+        </div>
       ) : (
         <p className="text-sm text-slate-500">Sem estimativa (regime desconhecido).</p>
       )}

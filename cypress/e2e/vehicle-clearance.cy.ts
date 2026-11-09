@@ -125,7 +125,7 @@ describe("desalfandegamento da viatura pelo dono", () => {
                       }
                       cy.get('[data-cy="assess-form"]').contains("button", "Liquidar os direitos").click();
                       cy.contains("Direitos liquidados · inspeção").should("be.visible");
-                      cy.get('[data-cy="vehicle-duties-total"]').should("contain.text", "CVE");
+                      cy.get('[data-cy="vehicle-duties"]').should("contain.text", "A pagar").and("contain.text", "8703");
 
                       // DGTR: inspeção aprovada; Alfândega regista o pagamento (API); DGTR emite a matrícula.
                       logIn("dgtr@portus.cv", "/dgtr");

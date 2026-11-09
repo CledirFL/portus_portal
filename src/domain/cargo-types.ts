@@ -52,10 +52,18 @@ const fuelOptions = ["Gasolina", "Gasóleo", "Híbrido", "Elétrico", "GPL"];
 
 /** Regimes de viatura (os valores de cada um são configurados pelo administrador). */
 export const vehicleRegimeLabels: Record<string, string> = {
-  particular: "Particular",
+  particular: "Uso privado",
   taxi: "Táxi",
-  emigrante: "Emigrante (regresso definitivo)",
-  eletrico: "Elétrico",
+  turismo: "Turismo aventura (4×4)",
+  emigrante: "Emigrante retornado",
+};
+const currencyField: CargoFieldDefinition = {
+  key: "valueCurrency",
+  label: "Moeda do valor de compra",
+  shortLabel: "Moeda",
+  type: "select",
+  options: ["EUR", "USD", "CVE"],
+  optionLabels: { EUR: "Euro (€)", USD: "Dólar (US$)", CVE: "Escudo (ECV)" },
 };
 const regimeField: CargoFieldDefinition = {
   key: "regime",
@@ -98,7 +106,8 @@ export const cargoTypes: CargoTypeDefinition[] = [
       regimeField,
       { key: "engineCc", label: "Cilindrada", type: "number", unit: "cm³", format: "positive", placeholder: "1400" },
       { key: "fuel", label: "Combustível", type: "select", options: fuelOptions },
-      { key: "value", label: "Valor de compra", type: "number", unit: "€", format: "positive" },
+      { key: "value", label: "Valor de compra", type: "number", format: "positive" },
+      currencyField,
     ],
     operatorFields: [
       { key: "vin", label: "VIN", type: "text", required: true, format: "vin", placeholder: "17 caracteres" },
@@ -109,7 +118,8 @@ export const cargoTypes: CargoTypeDefinition[] = [
       { key: "fuel", label: "Combustível", type: "select", required: true, options: fuelOptions },
       { key: "condition", label: "Estado", type: "select", required: true, options: conditionOptions },
       regimeField,
-      { key: "value", label: "Valor de compra", type: "number", unit: "€", required: true, format: "positive" },
+      { key: "value", label: "Valor de compra", type: "number", required: true, format: "positive" },
+      currencyField,
       { key: "transportCostEur", label: "Valor do transporte", type: "number", unit: "€", format: "positive" },
       { key: "insuranceCostEur", label: "Valor do seguro", type: "number", unit: "€", format: "positive" },
       { key: "mileageKm", label: "Quilometragem", type: "number", unit: "km", format: "positive" },

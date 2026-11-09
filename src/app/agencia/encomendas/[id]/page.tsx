@@ -247,7 +247,7 @@ export default function ShipmentDetailPage() {
           ) : null}
           {shipment.category === "veiculo" ? (
             <div className="mt-4">
-              <VehicleEstimate details={shipment.details} />
+              <VehicleEstimate details={shipment.details} dispatchCountry={shipment.dispatchCountry} />
             </div>
           ) : null}
         </Card>

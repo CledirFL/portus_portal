@@ -135,12 +135,12 @@ describe("encomendas da agência", () => {
     field("Cilindrada (cm³)").type("2400");
     field("Combustível").select("Gasóleo");
     field("Estado").select("Usado");
-    field("Uso da viatura em Cabo Verde").select("Particular");
-    field("Valor de compra (€)").type("15000");
+    field("Uso da viatura em Cabo Verde").select("Uso privado");
+    field("Valor de compra").type("15000");
     cy.contains("button", "Guardar alterações").click();
 
     cy.contains("dd", "Gasóleo").should("be.visible");
-    cy.contains("dd", "Particular").should("be.visible");
+    cy.contains("dd", "Uso privado").should("be.visible");
     cy.get('[data-cy="vehicle-estimate-total"]', { timeout: 30_000 }).should("contain.text", "CVE");
     cy.contains("button", "Validar").click();
     cy.contains("Validada").should("be.visible");
