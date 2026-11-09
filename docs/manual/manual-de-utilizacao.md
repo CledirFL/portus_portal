@@ -183,9 +183,10 @@ Com email indicado, chega também um email com o código e o botão **Ver ou can
 - ☐ O email "Pedido PED-… recebido" chega ao Mailpit e o botão abre o pedido (`/pedido/…`).
 - ☐ Sem NIF do destinatário, ou com um NIF que não tem 9 algarismos, não avança.
 - ☐ Com conta criada, o pedido aparece em **Os meus pedidos** (`/cliente`).
-- ☐ **Viatura:** escolha o **uso da viatura em Cabo Verde** (particular, táxi, emigrante, elétrico), o ano, o estado e o
-  valor de compra: aparece a **estimativa dos impostos** (direitos, ICE, taxa específica, taxa comunitária e IVA). Com
-  **Táxi** e uma viatura usada, ou acima de 1400 cm³, aparece o aviso de que o regime não se aplica.
+- ☐ **Viatura:** escolha o **uso da viatura em Cabo Verde** (uso privado, táxi, turismo aventura 4×4, emigrante
+  retornado), o ano, o estado, a cilindrada, o combustível e o valor de compra com a **moeda** (euro, dólar ou escudo):
+  aparece a **estimativa dos impostos** pela Pauta 8703 (ver [como se calcula](#como-se-calcula-a-estimativa-dos-impostos)).
+  Com **Táxi** e mais de 1400 cm³ (ou sem cilindrada), aparece o aviso de que o regime não se aplica.
 
 ### Etapa 2 — Agência: tratar o pedido ✅
 
@@ -513,11 +514,14 @@ como remetente), `alfandega@portus.cv` e `dgtr@portus.cv`.
 
 1. **Dono — As minhas viaturas** (`/cliente/viaturas`): a viatura aparece quando a agência fecha a encomenda. Clique em
    **Desalfandegar** → **Começar o desalfandegamento**.
-2. **Declaração:** confirme o uso da viatura (regime) e os valores de compra, transporte e seguro (em euros).
+2. **Declaração:** confirme o uso da viatura (regime) e os valores de compra, transporte e seguro, cada um na sua moeda
+   (euro, dólar ou escudo; ex.: compra em euros, frete em escudos).
 3. **Documentos** (PDF ou fotografia, até 5 MB): os que o regime exige — fatura de compra, certificado de conformidade
-   (COC) ou pedido de homologação, documento de registo do país de origem, cancelamento da matrícula para exportação,
-   identificação e NIF do dono, comprovativo do transporte, apólice do seguro (e a licença de táxi, ou o comprovativo de
-   regresso definitivo, conforme o regime). Clique em **Submeter à Alfândega**.
+   (COC) ou pedido de homologação, documento de registo da viatura (no país onde estava matriculada), cancelamento da
+   matrícula para exportação, identificação e NIF do dono, comprovativo do transporte, apólice do seguro e, conforme o
+   regime: licença de transporte público (táxi), licença de atividade turística (turismo), comprovativo de regresso
+   definitivo e de residência no estrangeiro há mais de 4 anos (emigrante). Clique em **Submeter à Alfândega**.
+   O regime de emigrante só se usa **uma vez a cada 4 anos** por pessoa: uma segunda viatura nesse prazo é recusada.
 4. **Alfândega — Viaturas** (`/alfandega/viaturas`): em **Por analisar**, abra a viatura, veja cada documento e
    **Aceite** ou **Recuse** (com motivo). Se faltar algo, **Pedir correções**: o dono recebe um email, troca o documento e
    submete de novo.
@@ -625,12 +629,33 @@ datas; **Exportar CSV** descarrega o que está filtrado (abre no Excel).
 ### Tarifas e prazo de abandono (`/admin/tarifas`)
 - **Tarifas:** manuseamento por volume, armazenagem por dia e dias grátis, e as **taxas do porto só das viaturas**,
   uma vez por encomenda: movimentação do contentor (Enapor), taxa de BL e abertura do contentor.
-- **Impostos de viaturas:** câmbio do euro, IVA, taxa comunitária, taxa específica do ICE (usadas até N anos) e os
-  escalões do ICE por idade.
-- **Regimes de viatura** (particular, táxi, emigrante, elétrico): direitos (%), isenções (ICE, taxa específica, IVA),
-  cilindrada máxima, só novas, combustível exigido e os **documentos que o dono tem de enviar**.
-- Os valores do seed são **de demonstração**: confirme-os com a Alfândega e atualize-os quando mudar o Orçamento do Estado.
+- **Impostos de viaturas (Pauta 8703):** câmbios do euro (fixo, 110,265) e do dólar (atualizar), IVA, taxa CEDEAO, TEA,
+  os escalões do **DI por combustível e cilindrada**, o **ICE fixo** das usadas recentes e os escalões do **ICE por idade**
+  (usadas e elétricas usadas).
+- **Regimes de viatura** (uso privado, táxi, turismo aventura 4×4, emigrante retornado): DI próprio (vazio segue a
+  Pauta), isenções de ICE e IVA, cilindrada máxima, só novas, combustível exigido, "uma viatura a cada N anos" e os
+  **documentos que o dono tem de enviar**.
+- Os valores vêm da Pauta Aduaneira 2026 (SH 2022): atualize-os quando mudar o Orçamento do Estado.
 - ☐ Mude a % de direitos do táxi: a estimativa no pedido muda logo.
+
+#### Como se calcula a estimativa dos impostos
+
+Pauta Aduaneira 2026 (SH 2022), posição 8703 — ligeiros de passageiros. Os montantes arredondam-se ao escudo.
+
+| Linha | Como se calcula |
+|---|---|
+| **CIF** (valor aduaneiro) | compra + transporte + seguro, cada um convertido para escudos (1 € = 110,265 ECV) |
+| **DI** (direitos de importação) | CIF × % pela Pauta: gasolina (e GPL) até 1000 cm³ 20 %, até 1500 cm³ 30 %, até 3000 cm³ 40 %, acima 50 %; gasóleo até 1500 cm³ 30 %, até 2500 cm³ 40 %, acima 50 %; híbrido 30 %; elétrico 0 %. Táxi e turismo: 5 %; emigrante: isento |
+| **ICE** | nova: 0; usada até 4 anos: 100 000$00 fixos; usada com 4–6 anos 40 %, 6–10 anos 80 %, mais de 10 anos 150 % de (CIF + DI). Elétrica usada: 10 %, 20 %, 60 %. Táxi: isento |
+| **Taxa CEDEAO** | 0,5 % do CIF, só quando se envia de um país de fora da CEDEAO |
+| **IVA** | 15 % de (CIF + DI + ICE + CEDEAO). Isentos: elétricas e emigrantes |
+| **TEA** | 5 000$00 por despacho |
+
+**Exemplo:** carro usado a gasolina, 2023 (3 anos), 1500 cm³, compra 11 000 €, frete 165 000 ECV e seguro 8 000 ECV,
+uso privado, enviado de Portugal: CIF 1 385 915; DI 30 % 415 775; ICE fixo 100 000; CEDEAO 6 930; IVA 286 293; TEA
+5 000 → **813 998 ECV** de impostos.
+
+É uma estimativa: a base oficial e o código SH exato podem variar. O valor oficial é o que a Alfândega liquida.
 - **Prazo de abandono:** dias depois da chegada do navio até a carga liberada e não levantada passar a
   **Abandonado** (60 por omissão), e quantos dias antes o remetente é avisado por email (10). A verificação corre
   de hora a hora; **Verificar agora** corre-a logo.
@@ -693,7 +718,8 @@ de ecrã. Mude o estado (Novo, Em análise, Resolvido, Não é erro) e escreva u
 | Documento do destinatário errado | Entregar a outra pessoa com um documento que não é o do destinatário | "O documento do destinatário não corresponde ao registado." |
 | Receber antes de levantar | Ler na agência um volume ainda **Liberado** | "Registe primeiro o levantamento no porto da encomenda ENC-…" |
 | Viatura sem transporte pago | Ler a viatura no contentor sem o pagamento | "…não tem o transporte e o seguro pagos…" |
-| Regime que não se aplica | Táxi com uma viatura usada | Aviso na estimativa; não deixa submeter |
+| Regime que não se aplica | Táxi com mais de 1400 cm³ | Aviso na estimativa; não deixa submeter |
+| Emigrante duas vezes | Segunda viatura do mesmo dono como emigrante em menos de 4 anos | "só uma viatura a cada 4 anos. Já o usou na encomenda ENC-…" |
 | Documentos em falta | Submeter o desalfandegamento sem um documento | "Faltam documentos: …" |
 | Viatura na libertação normal | **Libertar** uma viatura em Despacho aduaneiro | Aviso para usar **Viaturas** |
 | Ordem dos passos | Registar o pagamento antes da inspeção, ou a matrícula antes do pagamento | "O processo está noutro passo" |
@@ -725,7 +751,7 @@ Lista para não confundir uma funcionalidade em falta com um erro. Se uma destas
 | Ligação à DNRE / Sydonia World | ⏳ O dossiê fica no Portus; não há API pública para enviar a declaração |
 | Consulta ao EUCARIS (registo europeu) | ⏳ Cabo Verde não é membro: confirma-se com o documento de registo e o COC |
 | Viatura entregue na morada em Cabo Verde | ⏳ Levanta-se na portaria do porto |
-| Valores da viatura noutras moedas (USD, GBP…) | ⏳ A declaração e a estimativa usam euros; quem envia de fora da zona euro converte o valor |
+| Valores da viatura noutras moedas além de euro, dólar e escudo (ex.: libra) | ⏳ Converta para uma das três |
 | Outros idiomas | ⏳ Só português |
 
 ---
@@ -773,7 +799,7 @@ de viaturas usados na estimativa.
 
 | # | Conta | Ação | Anotar |
 |---|---|---|---|
-| 1 | `cliente` (o dono) | Entrar e ir a **Enviar encomenda**. **Carro, mota ou carrinha**: marca, modelo, ano `2019`, estado **Usado**, valor `7000`. Em **Uso da viatura**, escolha **Táxi**: aparece o aviso "só para viaturas novas"; mude para **Particular** e veja a **estimativa dos impostos** | estimativa |
+| 1 | `cliente` (o dono) | Entrar e ir a **Enviar encomenda**. **Carro, mota ou carrinha**: marca, modelo, ano `2019`, estado **Usado**, valor `7000`. Escolha a cilindrada e o combustível e a moeda do valor. Em **Uso da viatura**, escolha **Táxi** com mais de 1400 cm³: aparece o aviso; mude para **Uso privado** e veja a **estimativa dos impostos** (com o escalão da Pauta 8703) | estimativa |
 | 2 | `cliente` | **País de onde envia** (no exemplo, Portugal) → ilha de destino (no exemplo, **Santiago**), a agência que aceita viaturas e faz recolha (no exemplo, **Morabeza Envios**), **recolha** na morada do dono (qualquer morada; ex.: uma rua da Amadora). "Quem envia" já vem com os dados da conta; destinatário com **NIF** e documento; enviar | `PED-…` |
 | 3 | `agente` | **Pedidos de clientes**: **Aceitar** e **Agendar** a recolha na morada do dono | |
 | 4 | `agente` | Depois de ir buscar o carro: **Carga recebida (criar encomenda)** | `ENC-…` |
@@ -852,7 +878,11 @@ ficam registados sozinhos. O administrador vê tudo em **Problemas reportados**.
 | **Registo de atividade** | Registo imutável de quem fez o quê e quando: alterações, sessões, consultas e recusas. |
 | **Modo de manutenção** | Bloqueio do super admin em que só ele trabalha e entra na plataforma. |
 | **Desalfandegamento pelo dono** | O dono da viatura declara-a e envia os documentos no Portus; a Alfândega liquida os direitos. |
-| **Regime de viatura** | Uso da viatura em Cabo Verde (particular, táxi, emigrante, elétrico), com direitos e isenções próprios. |
+| **Regime de viatura** | Uso da viatura em Cabo Verde (uso privado, táxi, turismo aventura 4×4, emigrante retornado), com direitos e isenções próprios. |
+| **Pauta 8703** | Posição da Pauta Aduaneira dos ligeiros de passageiros: define o DI por combustível e cilindrada. |
+| **CIF** | Valor aduaneiro: compra + transporte (frete) + seguro. Base dos direitos e das taxas. |
+| **CEDEAO** | Comunidade dos Estados da África Ocidental: taxa comunitária de 0,5 % do CIF para mercadorias de fora da comunidade. |
+| **TEA** | Taxa estatística aduaneira, valor fixo por despacho. |
 | **COC** | Certificado de conformidade do fabricante; sem ele, faz-se um pedido de homologação. |
 | **DUC** | Recibo do pagamento dos direitos na Alfândega. |
 | **DGTR** | Direção-Geral dos Transportes Rodoviários: inspeção técnica e matrícula das viaturas. |
